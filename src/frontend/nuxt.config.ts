@@ -2,4 +2,12 @@
 export default defineNuxtConfig({
   devtools: { enabled: true },
   compatibilityDate: '2024-11-01',
+  modules: ['nuxt-open-fetch'],
+  openFetch: {
+    clients: {
+      zeitungApi: {
+        schema: './openapi.json',
+      },
+    },
+  },
 })

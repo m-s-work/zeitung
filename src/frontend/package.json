@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "nuxt": "^4.0.0",
+    "nuxt-open-fetch": "^0.10.2",
     "vue": "latest"
   }
 }

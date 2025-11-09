@@ -30,7 +30,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
           cache-dependency-path: src/frontend/package-lock.json
       
@@ -65,13 +65,13 @@ jobs:
           dotnet-version: '9.0.x'
       
       - name: Restore dependencies
-        run: dotnet restore
+        run: dotnet restore Zeitung.sln
       
       - name: Build backend
-        run: dotnet build --configuration Release --no-restore
+        run: dotnet build Zeitung.sln --configuration Release --no-restore
       
       - name: Run tests
-        run: dotnet test --configuration Release --no-build --verbosity normal
+        run: dotnet test Zeitung.sln --configuration Release --no-build --verbosity normal
 
   release-please:
     name: Release Please
