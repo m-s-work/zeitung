@@ -1,9 +1,49 @@
 # Smart RSS Feed Reader
 
+An intelligent RSS feed reader with AI-powered tagging and personalized recommendations.
 
+## Project Structure
 
+```
+zeitung/
+├── src/
+│   ├── frontend/       # Nuxt.js frontend application
+│   └── backend/        # ASP.NET Core Web API
+├── .github/
+│   └── workflows/      # CI/CD pipelines
+├── docker-compose.yml  # Local development setup
+└── Readme.MD
+```
 
-# How it works
+## Quick Start
+
+### Using Docker Compose
+
+```bash
+docker-compose up
+```
+
+This will start:
+- Frontend: http://localhost:3000
+- Backend: http://localhost:8080
+- PostgreSQL: localhost:5432
+- Redis: localhost:6379
+- Elasticsearch: http://localhost:9200
+
+### Development
+
+See individual README files:
+- [Frontend README](src/frontend/README.md)
+- [Backend README](src/backend/README.md)
+
+## CI/CD
+
+The project uses GitHub Actions for continuous integration and deployment:
+
+- **CI Workflow**: Runs on every push and pull request to build and test both frontend and backend
+- **Release Workflow**: Uses release-please for automated releases and publishes Docker images to GitHub Container Registry
+
+## How it works
 
 ## Feed List
 Each user can add feeds to their personal feed list.

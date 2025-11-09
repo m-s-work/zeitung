@@ -1,0 +1,38 @@
+# Git
+.git
+.gitignore
+
+# Documentation
+README.md
+*.md
+
+# Dependencies
+node_modules
+
+# Build artifacts
+.nuxt
+.output
+dist
+.cache
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Testing
+coverage
+.nyc_output
+
+# Environment
+.env
+.env.*
+!.env.example
