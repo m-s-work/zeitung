@@ -2,14 +2,14 @@ using Aspire.Hosting;
 using Aspire.Hosting.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
-using Xunit.Categories;
 
 namespace Zeitung.AppHost.Tests;
 
+[TestFixture]
+[Category("IntegrationTest")]
 public class HealthCheckTests
 {
-    [Fact]
-    [IntegrationTest]
+    [Test]
     public async Task ApiHealthCheckEndpointReturnsOk()
     {
         // Arrange
@@ -24,11 +24,10 @@ public class HealthCheckTests
         var response = await httpClient.GetAsync("/health");
 
         // Assert
-        Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
+        Assert.That(response.StatusCode, Is.EqualTo(System.Net.HttpStatusCode.OK));
     }
 
-    [Fact]
-    [IntegrationTest]
+    [Test]
     public async Task ApiAliveEndpointReturnsOk()
     {
         // Arrange
@@ -43,11 +42,10 @@ public class HealthCheckTests
         var response = await httpClient.GetAsync("/alive");
 
         // Assert
-        Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
+        Assert.That(response.StatusCode, Is.EqualTo(System.Net.HttpStatusCode.OK));
     }
 
-    [Fact]
-    [IntegrationTest]
+    [Test]
     public async Task ApiReadyEndpointReturnsOkWhenDependenciesAreHealthy()
     {
         // Arrange
@@ -91,11 +89,10 @@ public class HealthCheckTests
         }
 
         // Assert
-        Assert.Equal(System.Net.HttpStatusCode.OK, statusCode);
+        Assert.That(statusCode, Is.EqualTo(System.Net.HttpStatusCode.OK));
     }
 
-    [Fact]
-    [IntegrationTest]
+    [Test]
     public async Task PostgresHealthCheckIsRegistered()
     {
         // Arrange
@@ -119,13 +116,12 @@ public class HealthCheckTests
         var content = await response.Content.ReadAsStringAsync();
 
         // Assert
-        Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
+        Assert.That(response.StatusCode, Is.EqualTo(System.Net.HttpStatusCode.OK));
         // The health check response should be "Healthy" when all checks pass
-        Assert.Contains("Healthy", content);
+        Assert.That(content, Does.Contain("Healthy"));
     }
 
-    [Fact]
-    [IntegrationTest]
+    [Test]
     public async Task RedisHealthCheckIsRegistered()
     {
         // Arrange
@@ -149,12 +145,11 @@ public class HealthCheckTests
         var content = await response.Content.ReadAsStringAsync();
 
         // Assert
-        Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
-        Assert.Contains("Healthy", content);
+        Assert.That(response.StatusCode, Is.EqualTo(System.Net.HttpStatusCode.OK));
+        Assert.That(content, Does.Contain("Healthy"));
     }
 
-    [Fact]
-    [IntegrationTest]
+    [Test]
     public async Task ElasticsearchHealthCheckIsRegistered()
     {
         // Arrange
@@ -178,7 +173,7 @@ public class HealthCheckTests
         var content = await response.Content.ReadAsStringAsync();
 
         // Assert
-        Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
-        Assert.Contains("Healthy", content);
+        Assert.That(response.StatusCode, Is.EqualTo(System.Net.HttpStatusCode.OK));
+        Assert.That(content, Does.Contain("Healthy"));
     }
 }
