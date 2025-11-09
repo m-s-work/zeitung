@@ -12,9 +12,7 @@
     "test": "echo \"No tests yet\" && exit 0"
   },
   "dependencies": {
-    "@nuxt/devtools": "latest",
-    "nuxt": "^3.13.0",
-    "vue": "latest",
-    "vue-router": "latest"
+    "nuxt": "^4.0.0",
+    "vue": "latest"
   }
 }
