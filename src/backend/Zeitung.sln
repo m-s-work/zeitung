@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zeitung.AppHost", "Zeitung.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zeitung.ServiceDefaults", "Zeitung.ServiceDefaults\Zeitung.ServiceDefaults.csproj", "{98A9F70A-7CE2-43D8-973C-A65021093288}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zeitung.AppHost.Tests", "Zeitung.AppHost.Tests\Zeitung.AppHost.Tests.csproj", "{44A88AB0-122B-44DF-9406-DBF80C9C1720}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -55,6 +57,18 @@ Global
 		{98A9F70A-7CE2-43D8-973C-A65021093288}.Release|x64.Build.0 = Release|Any CPU
 		{98A9F70A-7CE2-43D8-973C-A65021093288}.Release|x86.ActiveCfg = Release|Any CPU
 		{98A9F70A-7CE2-43D8-973C-A65021093288}.Release|x86.Build.0 = Release|Any CPU
+		{44A88AB0-122B-44DF-9406-DBF80C9C1720}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{44A88AB0-122B-44DF-9406-DBF80C9C1720}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{44A88AB0-122B-44DF-9406-DBF80C9C1720}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{44A88AB0-122B-44DF-9406-DBF80C9C1720}.Debug|x64.Build.0 = Debug|Any CPU
+		{44A88AB0-122B-44DF-9406-DBF80C9C1720}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{44A88AB0-122B-44DF-9406-DBF80C9C1720}.Debug|x86.Build.0 = Debug|Any CPU
+		{44A88AB0-122B-44DF-9406-DBF80C9C1720}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{44A88AB0-122B-44DF-9406-DBF80C9C1720}.Release|Any CPU.Build.0 = Release|Any CPU
+		{44A88AB0-122B-44DF-9406-DBF80C9C1720}.Release|x64.ActiveCfg = Release|Any CPU
+		{44A88AB0-122B-44DF-9406-DBF80C9C1720}.Release|x64.Build.0 = Release|Any CPU
+		{44A88AB0-122B-44DF-9406-DBF80C9C1720}.Release|x86.ActiveCfg = Release|Any CPU
+		{44A88AB0-122B-44DF-9406-DBF80C9C1720}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

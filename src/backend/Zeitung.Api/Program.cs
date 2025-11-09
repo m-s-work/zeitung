@@ -3,6 +3,21 @@ var builder = WebApplication.CreateBuilder(args);
 // Add service defaults & Aspire components
 builder.AddServiceDefaults();
 
+// Add health checks for external dependencies
+builder.Services.AddHealthChecks()
+    .AddNpgSql(
+        name: "postgres",
+        connectionStringFactory: sp => builder.Configuration.GetConnectionString("zeitungdb") ?? "Host=localhost;Database=zeitung;Username=zeitung;Password=zeitung",
+        tags: ["ready", "db"])
+    .AddRedis(
+        name: "redis",
+        connectionStringFactory: sp => builder.Configuration.GetConnectionString("redis") ?? "localhost:6379",
+        tags: ["ready", "cache"])
+    .AddElasticsearch(
+        elasticsearchUri: builder.Configuration.GetConnectionString("elasticsearch") ?? "http://localhost:9200",
+        name: "elasticsearch",
+        tags: ["ready", "search"]);
+
 // Add services to the container
 builder.Services.AddOpenApi();
 builder.Services.AddEndpointsApiExplorer();
