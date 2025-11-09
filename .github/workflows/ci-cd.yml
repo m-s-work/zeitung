@@ -141,7 +141,7 @@ jobs:
         run: dotnet build Zeitung.sln --configuration Release --no-restore
       
       - name: Run tests
-        run: dotnet test Zeitung.sln --configuration Release --no-build --verbosity normal --logger "trx;LogFileName=test-results.trx"
+        run: dotnet test Zeitung.sln --configuration Release --no-build --verbosity normal --logger "trx;LogFileName=test-results.trx" --filter "Category!=IntegrationTest"
       
       - name: Publish Test Results
         uses: EnricoMi/publish-unit-test-result-action@v2

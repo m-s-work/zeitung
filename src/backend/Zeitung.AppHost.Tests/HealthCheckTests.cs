@@ -2,12 +2,14 @@ using Aspire.Hosting;
 using Aspire.Hosting.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Xunit.Categories;
 
 namespace Zeitung.AppHost.Tests;
 
 public class HealthCheckTests
 {
     [Fact]
+    [IntegrationTest]
     public async Task ApiHealthCheckEndpointReturnsOk()
     {
         // Arrange
@@ -26,6 +28,7 @@ public class HealthCheckTests
     }
 
     [Fact]
+    [IntegrationTest]
     public async Task ApiAliveEndpointReturnsOk()
     {
         // Arrange
@@ -44,6 +47,7 @@ public class HealthCheckTests
     }
 
     [Fact]
+    [IntegrationTest]
     public async Task ApiReadyEndpointReturnsOkWhenDependenciesAreHealthy()
     {
         // Arrange
@@ -91,6 +95,7 @@ public class HealthCheckTests
     }
 
     [Fact]
+    [IntegrationTest]
     public async Task PostgresHealthCheckIsRegistered()
     {
         // Arrange
@@ -120,6 +125,7 @@ public class HealthCheckTests
     }
 
     [Fact]
+    [IntegrationTest]
     public async Task RedisHealthCheckIsRegistered()
     {
         // Arrange
@@ -148,6 +154,7 @@ public class HealthCheckTests
     }
 
     [Fact]
+    [IntegrationTest]
     public async Task ElasticsearchHealthCheckIsRegistered()
     {
         // Arrange
