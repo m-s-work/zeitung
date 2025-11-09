@@ -1,0 +1,20 @@
+{
+  "name": "zeitung-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Zeitung RSS Reader Frontend",
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare",
+    "test": "echo \"No tests yet\" && exit 0"
+  },
+  "dependencies": {
+    "@nuxt/devtools": "latest",
+    "nuxt": "^3.13.0",
+    "vue": "latest",
+    "vue-router": "latest"
+  }
+}
