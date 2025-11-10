@@ -1,19 +1,15 @@
 # Pull Request Guidelines
 
-Pull requests to the Zeitung repository should follow these conventions to maintain a clean and professional codebase.
+Pull requests (titles) to the Zeitung repository should follow these conventions to maintain a clean and professional codebase.
 
 ## Conventional Commits
 
-All PRs must follow the [Conventional Commits](https://www.conventionalcommits.org/) specification because **we squash all PRs**. This means your PR title becomes the final commit message.
+All PR **titles** must follow the [Conventional Commits](https://www.conventionalcommits.org/) specification because **we squash all PRs**. This means your PR title becomes the final commit message.
 
 ### Format
 
 ```
 <type>(<scope>): <description>
-
-[optional body]
-
-[optional footer(s)]
 ```
 
 ### Types
@@ -29,6 +25,11 @@ All PRs must follow the [Conventional Commits](https://www.conventionalcommits.o
 - **ci**: Changes to CI configuration files and scripts
 - **chore**: Other changes that don't modify src or test files
 - **revert**: Reverts a previous commit
+
+### Breaking Changes
+
+- Indicate breaking changes by adding `!` after the type/scope, e.g., `feat(api)!: ...`
+- Include a `BREAKING CHANGE:` section in the PR description explaining the change
 
 ### Examples
 

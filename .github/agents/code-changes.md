@@ -18,7 +18,6 @@ When making changes to the Zeitung codebase, follow these principles to maintain
 
 ## Helper Functions and Utilities
 
-- Place helper functions in **related files**, not in separate utility files unless they're truly generic
 - Avoid duplicating helper functions across files
 - If a helper is used in multiple places, consider extracting it to a shared location
 - Keep helpers close to where they're used for better maintainability

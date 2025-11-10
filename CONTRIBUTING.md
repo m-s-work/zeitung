@@ -6,7 +6,7 @@ Thank you for your interest in contributing to Zeitung! This document provides g
 
 ### Conventional Commits
 
-**All PRs must follow [Conventional Commits](https://www.conventionalcommits.org/)** because we squash all PRs. Your PR title becomes the final commit message in the main branch.
+**All PRs and Commits must follow [Conventional Commits](https://www.conventionalcommits.org/)** because we squash all PRs. Your PR title becomes the final commit message in the main branch.
 
 #### Format
 
@@ -59,7 +59,6 @@ docs(readme): update installation instructions
 ### Code Organization
 
 - **One class per file** - Each file should contain a single class or component
-- Place **helper functions in related files**, not in separate utility files
 - Avoid duplicating helper functions
 - Follow the existing project structure
 
@@ -92,23 +91,6 @@ npm run dev
 npm test
 ```
 
-### Playwright E2E Tests
-
-**Important:** Playwright is configured to use the system Chrome browser. Ensure Chrome/Chromium is installed:
-
-```bash
-# Ubuntu/Debian
-sudo apt-get install -y chromium-browser
-
-# macOS
-brew install chromium
-```
-
-Run E2E tests:
-```bash
-cd src/frontend
-npm run test:e2e
-```
 
 ## Project Structure
 
