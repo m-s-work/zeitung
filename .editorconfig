@@ -13,7 +13,7 @@ trim_trailing_whitespace = true
 # Code files
 [*.{cs,ts,js,vue,json,yml,yaml}]
 indent_style = space
-indent_size = 2
+indent_size = 4
 
 # C# files
 [*.cs]
@@ -25,11 +25,13 @@ trim_trailing_whitespace = false
 
 # Solution and project files
 [*.{sln,csproj}]
-indent_style = tab
+indent_style = space
+indent_size = 4
 
 # Makefile
 [Makefile]
-indent_style = tab
+indent_style = space
+indent_size = 4
 
 # Batch files
 [*.{cmd,bat}]

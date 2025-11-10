@@ -11,11 +11,12 @@
         { "type": "revert", "section": "Reverts" },
         { "type": "docs", "section": "Documentation" },
         { "type": "style", "section": "Styles", "hidden": true },
-        { "type": "chore", "section": "Miscellaneous Chores", "hidden": true },
+        { "type": "chore", "section": "Miscellaneous Chores", "hidden": false },
         { "type": "refactor", "section": "Code Refactoring" },
-        { "type": "test", "section": "Tests", "hidden": true },
+        { "type": "test", "section": "Tests", "hidden": false },
         { "type": "build", "section": "Build System" },
-        { "type": "ci", "section": "Continuous Integration" }
+        { "type": "ci", "section": "Continuous Integration" },
+        { "type": "cicd", "section": "Continuous Integration" }
       ]
     }
   }
