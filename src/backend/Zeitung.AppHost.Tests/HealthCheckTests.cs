@@ -16,41 +16,29 @@ public class HealthCheckTests
     [OneTimeSetUp]
     public async Task OneTimeSetUpAsync()
     {
-        try
+        var appHost = await DistributedApplicationTestingBuilder
+            .CreateAsync<Projects.Zeitung_AppHost>();
+
+        // Configure logging to reduce DCP noise
+        appHost.Services.AddLogging(logging => logging
+            .AddFilter("Default", LogLevel.Information)
+            .AddFilter("Microsoft.AspNetCore", LogLevel.Warning)
+            .AddFilter("Aspire.Hosting.Dcp", LogLevel.Warning));
+
+        // Configure default HTTP client resilience/timeouts used by tests.
+        // Doing this here ensures all tests use consistent timeouts.
+        appHost.Services.ConfigureHttpClientDefaults(http =>
         {
-            var appHost = await DistributedApplicationTestingBuilder
-                .CreateAsync<Projects.Zeitung_AppHost>();
-
-            // Configure logging to reduce DCP noise
-            appHost.Services.AddLogging(logging => logging
-                .AddFilter("Default", LogLevel.Information)
-                .AddFilter("Microsoft.AspNetCore", LogLevel.Warning)
-                .AddFilter("Aspire.Hosting.Dcp", LogLevel.Warning));
-
-            // Configure default HTTP client resilience/timeouts used by tests.
-            // Doing this here ensures all tests use consistent timeouts.
-            appHost.Services.ConfigureHttpClientDefaults(http =>
+            http.AddStandardResilienceHandler(options =>
             {
-                http.AddStandardResilienceHandler(options =>
-                {
-                    options.TotalRequestTimeout.Timeout = TimeSpan.FromSeconds(30);
-                    options.AttemptTimeout.Timeout = TimeSpan.FromSeconds(10);
-                });
+                options.TotalRequestTimeout.Timeout = TimeSpan.FromSeconds(30);
+                options.AttemptTimeout.Timeout = TimeSpan.FromSeconds(10);
             });
+        });
 
-            _builder = appHost;
-            _app = await appHost.BuildAsync();
-            await _app.StartAsync();
-        }
-        catch (Exception ex) when (ex.Message.Contains("Connection refused") ||
-                                   ex.Message.Contains("TimeoutRejectedException") ||
-                                   ex.Message.Contains("Hosting failed to start"))
-        {
-            Assert.Ignore($"DCP orchestrator is not available in this environment. " +
-                          $"Integration tests require Docker and proper DCP setup. " +
-                          $"Error: {ex.GetType().Name}");
-            throw; // Never reached
-        }
+        _builder = appHost;
+        _app = await appHost.BuildAsync();
+        await _app.StartAsync();
     }
 
     [OneTimeTearDown]
