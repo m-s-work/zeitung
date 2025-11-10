@@ -23,6 +23,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Zeitung.ServiceDefaults\Zeitung.ServiceDefaults.csproj" />
+    <ProjectReference Include="..\Zeitung.Core\Zeitung.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>

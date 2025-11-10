@@ -1,7 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
+using Zeitung.Core.Models;
 using Zeitung.Worker.Models;
+using ArticleDto = Zeitung.Worker.Models.Article;
 using Zeitung.Worker.Services;
 
 namespace Zeitung.Worker.Tests.Models;
@@ -36,7 +38,7 @@ public class ArticleRepositoryTests
     public async Task SaveAsync_NewArticle_SavesSuccessfully()
     {
         // Arrange
-        var article = new Article
+        var article = new ArticleDto
         {
             Title = "Test Article",
             Link = "https://example.com/test",
@@ -59,7 +61,7 @@ public class ArticleRepositoryTests
     public async Task SaveAsync_DuplicateLink_ReturnsExistingArticle()
     {
         // Arrange
-        var article1 = new Article
+        var article1 = new ArticleDto
         {
             Title = "Test Article 1",
             Link = "https://example.com/test",
@@ -68,7 +70,7 @@ public class ArticleRepositoryTests
             FeedSource = "Test Feed"
         };
 
-        var article2 = new Article
+        var article2 = new ArticleDto
         {
             Title = "Test Article 2 (Different Title)",
             Link = "https://example.com/test", // Same link
@@ -90,7 +92,7 @@ public class ArticleRepositoryTests
     public async Task GetByLinkAsync_ExistingArticle_ReturnsArticle()
     {
         // Arrange
-        var article = new Article
+        var article = new ArticleDto
         {
             Title = "Test Article",
             Link = "https://example.com/test",

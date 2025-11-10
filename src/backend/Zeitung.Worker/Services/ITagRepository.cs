@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using Zeitung.Worker.Models;
+using Zeitung.Core.Models;
 
 namespace Zeitung.Worker.Services;
 

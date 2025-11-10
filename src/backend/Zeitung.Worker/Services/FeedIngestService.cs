@@ -1,5 +1,7 @@
 using Zeitung.Worker.Models;
+using Zeitung.Core.Models;
 using Zeitung.Worker.Strategies;
+using ArticleDto = Zeitung.Worker.Models.Article;
 
 namespace Zeitung.Worker.Services;
 
