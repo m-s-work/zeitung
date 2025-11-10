@@ -355,7 +355,7 @@ The API uses PostgreSQL with the following main entities:
 - **Liked**: User liked article with this tag
 
 ### Tag Decay
-Tags decay over time with a 30-day half-life. This allows the system to adapt to changing user interests.
+Tags decay as new interests are added rather than over time. When a user adds new tag interactions, the system applies exponential decay to existing tag scores based on their relative interaction counts. Tags with more interactions decay less aggressively, while tags with fewer interactions decay more. This allows the system to naturally adapt to changing user interests without arbitrary time limits.
 
 ## Future Enhancements
 

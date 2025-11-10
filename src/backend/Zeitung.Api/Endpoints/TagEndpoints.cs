@@ -161,23 +161,41 @@ public static class TagEndpoints
                 .Include(ut => ut.Tag)
                 .ToListAsync();
 
-            // Apply time-based decay
-            var now = DateTime.UtcNow;
-            var decayHalfLife = TimeSpan.FromDays(30); // Interests decay with 30-day half-life
-            
+            // Apply interaction-count-based decay
+            // As users add new interests, older interests decay proportionally
+            // This ensures the system adapts to changing interests naturally
             var tagScores = new Dictionary<string, double>();
+            
+            // Calculate total interaction count to determine decay
+            var totalInteractionCount = userTags
+                .Where(ut => ut.InteractionType != InteractionType.Ignored)
+                .Sum(ut => ut.InteractionCount);
+            
+            // Decay constant: how much influence total interactions have on decay
+            // Higher value = more aggressive decay as new interests are added
+            const double decayConstant = 0.1;
             
             foreach (var userTag in userTags)
             {
-                // Calculate decay factor
-                var daysSinceUpdate = (now - userTag.UpdatedAt).TotalDays;
-                var halfLives = daysSinceUpdate / decayHalfLife.TotalDays;
-                var decayFactor = Math.Pow(0.5, halfLives);
+                // Skip ignored tags
+                if (userTag.InteractionType == InteractionType.Ignored)
+                {
+                    continue;
+                }
                 
+                // Calculate decay factor based on relative interaction count
+                // Tags with fewer interactions decay more as total interactions increase
+                var relativeInteractionCount = totalInteractionCount > 0 
+                    ? (double)userTag.InteractionCount / totalInteractionCount 
+                    : 1.0;
+                
+                // Apply exponential decay: score * e^(-k * (1 - relative))
+                // Tags with higher relative interaction counts decay less
+                var decayFactor = Math.Exp(-decayConstant * totalInteractionCount * (1 - relativeInteractionCount));
                 var decayedScore = userTag.Score * decayFactor;
                 
-                // Skip ignored tags and very low scores
-                if (userTag.InteractionType == InteractionType.Ignored || decayedScore < 0.1)
+                // Skip very low scores
+                if (decayedScore < 0.1)
                 {
                     continue;
                 }
@@ -192,11 +210,11 @@ public static class TagEndpoints
 
             return Results.Ok(new TagSummaryDto(
                 sortedScores,
-                now
+                DateTime.UtcNow
             ));
         })
         .WithName("GetTagSummary")
         .WithSummary("Get tag summary with decay")
-        .WithDescription("Returns user's tag preferences with time-based decay applied");
+        .WithDescription("Returns user's tag preferences with interaction-count-based decay applied");
     }
 }
