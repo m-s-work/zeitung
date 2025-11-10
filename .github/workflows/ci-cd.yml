@@ -4,7 +4,6 @@ on:
   push:
     branches: [ main, develop ]
   pull_request:
-    branches: [ main, develop ]
 
 permissions:
   contents: write
@@ -148,6 +147,50 @@ jobs:
             src/backend/**/test-results.trx
           check_name: Backend Test Results
           comment_title: Backend Test Results
+  
+  test-backend-integration:
+    name: Test Backend Integration
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
+    
+    permissions:
+      contents: read
+      checks: write
+      pull-requests: write
+    
+    defaults:
+      run:
+        working-directory: src/backend
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+      
+      - name: Restore dependencies
+        run: dotnet restore Zeitung.sln
+      
+      - name: Build backend
+        run: dotnet build Zeitung.sln --configuration Release --no-restore
+      
+      - name: Run tests
+        run: dotnet test Zeitung.sln --configuration Release --no-build --verbosity normal --logger "trx;LogFileName=test-results.trx" --filter "TestCategory=IntegrationTest"
+        env:
+          ASPNETCORE_ENVIRONMENT: ci
+          DOTNET_ENVIRONMENT: ci
+      
+      - name: Publish Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: always()
+        with:
+          files: |
+            src/backend/**/test-results.trx
+          check_name: Backend Integration Test Results
+          comment_title: Backend Integration Test Results
 
   release-please:
     name: Release Please

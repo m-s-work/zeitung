@@ -2,6 +2,7 @@ using Aspire.Hosting;
 using Aspire.Hosting.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Logging;
 
 namespace Zeitung.AppHost.Tests;
 
@@ -9,18 +10,75 @@ namespace Zeitung.AppHost.Tests;
 [Category("IntegrationTest")]
 public class HealthCheckTests
 {
+    private IDistributedApplicationTestingBuilder? _builder;
+    private DistributedApplication? _app;
+
+    [OneTimeSetUp]
+    public async Task OneTimeSetUpAsync()
+    {
+        var appHost = await DistributedApplicationTestingBuilder
+            .CreateAsync<Projects.Zeitung_AppHost>();
+
+        // Configure logging to reduce DCP noise
+        appHost.Services.AddLogging(logging => logging
+            .AddFilter("Default", LogLevel.Information)
+            .AddFilter("Microsoft.AspNetCore", LogLevel.Warning)
+            .AddFilter("Aspire.Hosting.Dcp", LogLevel.Warning));
+
+        // Configure default HTTP client resilience/timeouts used by tests.
+        // Doing this here ensures all tests use consistent timeouts.
+        appHost.Services.ConfigureHttpClientDefaults(http =>
+        {
+            http.AddStandardResilienceHandler(options =>
+            {
+                options.TotalRequestTimeout.Timeout = TimeSpan.FromSeconds(30);
+                options.AttemptTimeout.Timeout = TimeSpan.FromSeconds(10);
+            });
+        });
+
+        _builder = appHost;
+        _app = await appHost.BuildAsync();
+        await _app.StartAsync();
+    }
+
+    [OneTimeTearDown]
+    public async Task OneTimeTearDownAsync()
+    {
+        if (_app != null)
+        {
+            // Attempt graceful stop and dispose of the shared application
+            try
+            {
+                await _app.StopAsync();
+            }
+            catch
+            {
+                // Ignore stop failures during teardown
+            }
+
+            try
+            {
+                await _app.DisposeAsync();
+            }
+            catch
+            {
+                // Ignore dispose failures during teardown
+            }
+
+            _app = null;
+            _builder = null;
+        }
+    }
+
     [Test]
     public async Task ApiHealthCheckEndpointReturnsOk()
     {
         // Arrange
-        var appHost = await DistributedApplicationTestingBuilder
-            .CreateAsync<Projects.Zeitung_AppHost>();
-        
-        await using var app = await appHost.BuildAsync();
-        await app.StartAsync();
+        var builder = (IDistributedApplicationTestingBuilder)_builder!;
+        var app = _app!;
 
         // Act
-        var httpClient = app.CreateHttpClient("api");
+        var httpClient = app!.CreateHttpClient("api");
         var response = await httpClient.GetAsync("/health");
 
         // Assert
@@ -31,14 +89,11 @@ public class HealthCheckTests
     public async Task ApiAliveEndpointReturnsOk()
     {
         // Arrange
-        var appHost = await DistributedApplicationTestingBuilder
-            .CreateAsync<Projects.Zeitung_AppHost>();
-        
-        await using var app = await appHost.BuildAsync();
-        await app.StartAsync();
+        var builder = (IDistributedApplicationTestingBuilder)_builder!;
+        var app = _app!;
 
         // Act
-        var httpClient = app.CreateHttpClient("api");
+        var httpClient = app!.CreateHttpClient("api");
         var response = await httpClient.GetAsync("/alive");
 
         // Assert
@@ -49,23 +104,11 @@ public class HealthCheckTests
     public async Task ApiReadyEndpointReturnsOkWhenDependenciesAreHealthy()
     {
         // Arrange
-        var appHost = await DistributedApplicationTestingBuilder
-            .CreateAsync<Projects.Zeitung_AppHost>();
-        
-        appHost.Services.ConfigureHttpClientDefaults(http =>
-        {
-            http.AddStandardResilienceHandler(options =>
-            {
-                options.TotalRequestTimeout.Timeout = TimeSpan.FromMinutes(5);
-                options.AttemptTimeout.Timeout = TimeSpan.FromMinutes(2);
-            });
-        });
-        
-        await using var app = await appHost.BuildAsync();
-        await app.StartAsync();
+        var builder = (IDistributedApplicationTestingBuilder)_builder!;
+        var app = _app!;
 
         // Act
-        var httpClient = app.CreateHttpClient("api");
+        var httpClient = app!.CreateHttpClient("api");
         
         // Retry logic for /ready endpoint as dependencies might take time to initialize
         var maxRetries = 20;
@@ -96,22 +139,11 @@ public class HealthCheckTests
     public async Task PostgresHealthCheckIsRegistered()
     {
         // Arrange
-        var appHost = await DistributedApplicationTestingBuilder
-            .CreateAsync<Projects.Zeitung_AppHost>();
-        
-        appHost.Services.ConfigureHttpClientDefaults(http =>
-        {
-            http.AddStandardResilienceHandler(options =>
-            {
-                options.TotalRequestTimeout.Timeout = TimeSpan.FromMinutes(5);
-            });
-        });
-        
-        await using var app = await appHost.BuildAsync();
-        await app.StartAsync();
+        var builder = (IDistributedApplicationTestingBuilder)_builder!;
+        var app = _app!;
 
         // Act
-        var httpClient = app.CreateHttpClient("api");
+        var httpClient = app!.CreateHttpClient("api");
         var response = await httpClient.GetAsync("/health");
         var content = await response.Content.ReadAsStringAsync();
 
@@ -125,22 +157,11 @@ public class HealthCheckTests
     public async Task RedisHealthCheckIsRegistered()
     {
         // Arrange
-        var appHost = await DistributedApplicationTestingBuilder
-            .CreateAsync<Projects.Zeitung_AppHost>();
-        
-        appHost.Services.ConfigureHttpClientDefaults(http =>
-        {
-            http.AddStandardResilienceHandler(options =>
-            {
-                options.TotalRequestTimeout.Timeout = TimeSpan.FromMinutes(5);
-            });
-        });
-        
-        await using var app = await appHost.BuildAsync();
-        await app.StartAsync();
+        var builder = (IDistributedApplicationTestingBuilder)_builder!;
+        var app = _app!;
 
         // Act
-        var httpClient = app.CreateHttpClient("api");
+        var httpClient = app!.CreateHttpClient("api");
         var response = await httpClient.GetAsync("/health");
         var content = await response.Content.ReadAsStringAsync();
 
@@ -153,22 +174,11 @@ public class HealthCheckTests
     public async Task ElasticsearchHealthCheckIsRegistered()
     {
         // Arrange
-        var appHost = await DistributedApplicationTestingBuilder
-            .CreateAsync<Projects.Zeitung_AppHost>();
-        
-        appHost.Services.ConfigureHttpClientDefaults(http =>
-        {
-            http.AddStandardResilienceHandler(options =>
-            {
-                options.TotalRequestTimeout.Timeout = TimeSpan.FromMinutes(5);
-            });
-        });
-        
-        await using var app = await appHost.BuildAsync();
-        await app.StartAsync();
+        var builder = (IDistributedApplicationTestingBuilder)_builder!;
+        var app = _app!;
 
         // Act
-        var httpClient = app.CreateHttpClient("api");
+        var httpClient = app!.CreateHttpClient("api");
         var response = await httpClient.GetAsync("/health");
         var content = await response.Content.ReadAsStringAsync();
 
