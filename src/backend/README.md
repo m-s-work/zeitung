@@ -48,7 +48,36 @@ dotnet test Zeitung.Worker.Tests/Zeitung.Worker.Tests.csproj
 
 ## RSS Feed Worker
 
-The worker service ingests RSS feeds in the background and tags articles using configurable strategies.
+The worker service ingests RSS feeds in the background, tags articles using configurable strategies, and persists them to PostgreSQL and Elasticsearch.
+
+### Persistence
+
+The worker:
+- **Stores articles in PostgreSQL** - Articles, tags, and their relationships are persisted
+- **Tracks tag co-occurrence** - Maintains counts of how often tags appear together for similarity calculations
+- **Indexes articles in Elasticsearch** - Enables full-text search and recommendations
+
+Database schema includes:
+- `Articles` - Article content and metadata
+- `Tags` - Unique tag names
+- `ArticleTags` - Many-to-many relationship between articles and tags
+- `TagCoOccurrences` - Tracks how often tag pairs appear together
+
+### Database Migrations
+
+Database migrations can be run on-demand using the `--migrate` or `-m` flag. This is useful for pre-deploy hooks in Helm or Argo:
+
+```bash
+dotnet run --project Zeitung.Worker/Zeitung.Worker.csproj -- --migrate
+# or
+dotnet run --project Zeitung.Worker/Zeitung.Worker.csproj -- -m
+```
+
+The flag can be combined with `--run-once` for one-time migration and ingestion:
+
+```bash
+dotnet run --project Zeitung.Worker/Zeitung.Worker.csproj -- --migrate --run-once
+```
 
 ### Configuration
 

@@ -5,16 +5,16 @@ namespace Zeitung.Worker;
 public class RssFeedIngestWorker : BackgroundService
 {
     private readonly ILogger<RssFeedIngestWorker> _logger;
-    private readonly IFeedIngestService _feedIngestService;
+    private readonly IServiceProvider _serviceProvider;
     private readonly IConfiguration _configuration;
 
     public RssFeedIngestWorker(
         ILogger<RssFeedIngestWorker> logger, 
-        IFeedIngestService feedIngestService,
+        IServiceProvider serviceProvider,
         IConfiguration configuration)
     {
         _logger = logger;
-        _feedIngestService = feedIngestService;
+        _serviceProvider = serviceProvider;
         _configuration = configuration;
     }
 
@@ -30,7 +30,9 @@ public class RssFeedIngestWorker : BackgroundService
         {
             try
             {
-                await _feedIngestService.IngestFeedsAsync(stoppingToken);
+                using var scope = _serviceProvider.CreateScope();
+                var feedIngestService = scope.ServiceProvider.GetRequiredService<IFeedIngestService>();
+                await feedIngestService.IngestFeedsAsync(stoppingToken);
             }
             catch (Exception ex)
             {

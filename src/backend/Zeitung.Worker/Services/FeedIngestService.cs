@@ -12,17 +12,26 @@ public class FeedIngestService : IFeedIngestService
 {
     private readonly IRssFeedParser _parser;
     private readonly ITaggingStrategy _taggingStrategy;
+    private readonly IArticleRepository _articleRepository;
+    private readonly ITagRepository _tagRepository;
+    private readonly IElasticsearchService _elasticsearchService;
     private readonly ILogger<FeedIngestService> _logger;
     private readonly List<RssFeed> _feeds;
 
     public FeedIngestService(
         IRssFeedParser parser,
         ITaggingStrategy taggingStrategy,
+        IArticleRepository articleRepository,
+        ITagRepository tagRepository,
+        IElasticsearchService elasticsearchService,
         ILogger<FeedIngestService> logger,
         IConfiguration configuration)
     {
         _parser = parser;
         _taggingStrategy = taggingStrategy;
+        _articleRepository = articleRepository;
+        _tagRepository = tagRepository;
+        _elasticsearchService = elasticsearchService;
         _logger = logger;
         
         // Load feeds from configuration
@@ -57,7 +66,14 @@ public class FeedIngestService : IFeedIngestService
                         article.Title, 
                         string.Join(", ", article.Tags));
 
-                    // TODO: Store article in database
+                    // Store article in PostgreSQL
+                    var articleEntity = await _articleRepository.SaveAsync(article, cancellationToken);
+
+                    // Store tags and relationships
+                    await _tagRepository.SaveArticleTagsAsync(articleEntity.Id, article.Tags, cancellationToken);
+
+                    // Index article in Elasticsearch
+                    await _elasticsearchService.IndexArticleAsync(article, articleEntity.Id, cancellationToken);
                 }
 
                 _logger.LogInformation("Completed processing feed: {FeedName}", feed.Name);
