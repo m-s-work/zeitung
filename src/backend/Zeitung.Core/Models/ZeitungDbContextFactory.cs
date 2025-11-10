@@ -1,8 +1,12 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 
-namespace Zeitung.Worker.Models;
+namespace Zeitung.Core.Models;
 
+/// <summary>
+/// Design-time factory for creating ZeitungDbContext instances.
+/// Used by EF Core tools for migrations.
+/// </summary>
 public class ZeitungDbContextFactory : IDesignTimeDbContextFactory<ZeitungDbContext>
 {
     public ZeitungDbContext CreateDbContext(string[] args)

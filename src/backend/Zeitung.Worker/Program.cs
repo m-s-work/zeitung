@@ -1,7 +1,7 @@
 using Elastic.Clients.Elasticsearch;
 using Microsoft.EntityFrameworkCore;
 using Zeitung.Worker;
-using Zeitung.Worker.Models;
+using Zeitung.Core.Models;
 using Zeitung.Worker.Services;
 using Zeitung.Worker.Strategies;
 

@@ -1,8 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
+using Zeitung.Core.Models;
 using Zeitung.Worker.Models;
 using Zeitung.Worker.Services;
+using ArticleEntity = Zeitung.Core.Models.Article;
+using TagEntity = Zeitung.Core.Models.Tag;
 
 namespace Zeitung.Worker.Tests.Models;
 
@@ -32,17 +35,32 @@ public class PostgresTagRepositoryTests
         _context.Dispose();
     }
 
+    private async Task<Feed> CreateTestFeed(string name = "Test Feed")
+    {
+        var feed = new Feed
+        {
+            Url = $"https://example.com/feed/{Guid.NewGuid()}",
+            Name = name,
+            Description = $"Test description for {name}",
+            IsApproved = false
+        };
+        _context.Feeds.Add(feed);
+        await _context.SaveChangesAsync();
+        return feed;
+    }
+
     [Test]
     public async Task SaveArticleTagsAsync_NewTags_CreatesTagsAndRelationships()
     {
         // Arrange
+        var feed = await CreateTestFeed();
         var articleEntity = new ArticleEntity
         {
             Title = "Test Article",
             Link = "https://example.com/test",
             Description = "Test description",
             PublishedDate = DateTime.UtcNow,
-            FeedSource = "Test Feed"
+            FeedId = feed.Id
         };
         _context.Articles.Add(articleEntity);
         await _context.SaveChangesAsync();
@@ -66,7 +84,8 @@ public class PostgresTagRepositoryTests
     public async Task SaveArticleTagsAsync_ExistingTags_ReusesTagsAndCreatesRelationships()
     {
         // Arrange
-        var existingTag = new TagEntity { Name = "technology" };
+        var feed = await CreateTestFeed();
+        var existingTag = new Tag { Name = "technology" };
         _context.Tags.Add(existingTag);
         await _context.SaveChangesAsync();
 
@@ -76,7 +95,7 @@ public class PostgresTagRepositoryTests
             Link = "https://example.com/test",
             Description = "Test description",
             PublishedDate = DateTime.UtcNow,
-            FeedSource = "Test Feed"
+            FeedId = feed.Id
         };
         _context.Articles.Add(articleEntity);
         await _context.SaveChangesAsync();
@@ -95,13 +114,14 @@ public class PostgresTagRepositoryTests
     public async Task SaveArticleTagsAsync_MultipleTags_CreatesCoOccurrenceRecords()
     {
         // Arrange
+        var feed = await CreateTestFeed();
         var articleEntity = new ArticleEntity
         {
             Title = "Test Article",
             Link = "https://example.com/test",
             Description = "Test description",
             PublishedDate = DateTime.UtcNow,
-            FeedSource = "Test Feed"
+            FeedId = feed.Id
         };
         _context.Articles.Add(articleEntity);
         await _context.SaveChangesAsync();
@@ -125,13 +145,14 @@ public class PostgresTagRepositoryTests
     public async Task SaveArticleTagsAsync_SameTagPairTwice_IncrementsCoOccurrenceCount()
     {
         // Arrange
+        var feed = await CreateTestFeed();
         var article1 = new ArticleEntity
         {
             Title = "Test Article 1",
             Link = "https://example.com/test1",
             Description = "Test description",
             PublishedDate = DateTime.UtcNow,
-            FeedSource = "Test Feed"
+            FeedId = feed.Id
         };
         _context.Articles.Add(article1);
 
@@ -141,7 +162,7 @@ public class PostgresTagRepositoryTests
             Link = "https://example.com/test2",
             Description = "Test description",
             PublishedDate = DateTime.UtcNow,
-            FeedSource = "Test Feed"
+            FeedId = feed.Id
         };
         _context.Articles.Add(article2);
         await _context.SaveChangesAsync();
@@ -162,10 +183,11 @@ public class PostgresTagRepositoryTests
     public async Task GetAllTagsAsync_ReturnsAllTagNames()
     {
         // Arrange
+        var feed = await CreateTestFeed();
         _context.Tags.AddRange(
-            new TagEntity { Name = "technology" },
-            new TagEntity { Name = "news" },
-            new TagEntity { Name = "programming" }
+            new Tag { Name = "technology" },
+            new Tag { Name = "news" },
+            new Tag { Name = "programming" }
         );
         await _context.SaveChangesAsync();
 
@@ -183,13 +205,14 @@ public class PostgresTagRepositoryTests
     public async Task SaveArticleTagsAsync_EmptyTagList_DoesNothing()
     {
         // Arrange
+        var feed = await CreateTestFeed();
         var articleEntity = new ArticleEntity
         {
             Title = "Test Article",
             Link = "https://example.com/test",
             Description = "Test description",
             PublishedDate = DateTime.UtcNow,
-            FeedSource = "Test Feed"
+            FeedId = feed.Id
         };
         _context.Articles.Add(articleEntity);
         await _context.SaveChangesAsync();
