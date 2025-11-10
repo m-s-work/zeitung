@@ -35,16 +35,35 @@ var elasticsearch = builder.AddElasticsearch("elasticsearch")
         return Task.CompletedTask;
     });
 
+// do ef core migrations
+var workerMigrator = builder.AddProject<Projects.Zeitung_Worker>("migrator")
+    .WithReference(postgresdb)
+    .WaitFor(postgresdb)
+    .WithArgs("--migrate");
+
+
 // Add the API service
 var api = builder.AddProject<Projects.Zeitung_Api>("api")
     .WithReference(postgresdb)
     .WithReference(redis)
-    .WithReference(elasticsearch);
+    .WithReference(elasticsearch)
+
+    .WaitFor(postgresdb)
+    .WaitFor(redis)
+    .WaitFor(elasticsearch)
+
+    .WaitForCompletion(workerMigrator);
 
 // Add the Worker service for RSS feed ingestion
 var worker = builder.AddProject<Projects.Zeitung_Worker>("worker")
     .WithReference(postgresdb)
     .WithReference(redis)
-    .WithReference(elasticsearch);
+    .WithReference(elasticsearch)
+
+    .WaitFor(postgresdb)
+    .WaitFor(redis)
+    .WaitFor(elasticsearch)
+
+    .WaitForCompletion(workerMigrator);
 
 builder.Build().Run();
