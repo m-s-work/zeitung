@@ -1,8 +1,12 @@
+using Microsoft.EntityFrameworkCore;
+using Zeitung.Worker.Data;
+
 namespace Zeitung.Worker.Services;
 
 public interface ITagRepository
 {
     Task<List<string>> GetAllTagsAsync(CancellationToken cancellationToken = default);
+    Task SaveArticleTagsAsync(int articleId, List<string> tags, CancellationToken cancellationToken = default);
 }
 
 public class InMemoryTagRepository : ITagRepository
@@ -23,7 +27,7 @@ public class InMemoryTagRepository : ITagRepository
         }
     }
 
-    public async Task AddTagsAsync(IEnumerable<string> tags, CancellationToken cancellationToken = default)
+    public async Task SaveArticleTagsAsync(int articleId, List<string> tags, CancellationToken cancellationToken = default)
     {
         await _semaphore.WaitAsync(cancellationToken);
         try
