@@ -9,12 +9,14 @@ using Zeitung.Core.Models;
 namespace Zeitung.Api.Tests;
 
 /// <summary>
-/// Base class for API integration tests with in-memory database
+/// Base class for API integration tests with in-memory database.
+/// Uses unique test identifiers to enable parallel test execution.
 /// </summary>
 public class IntegrationTestBase : IDisposable
 {
     protected readonly WebApplicationFactory<Program> Factory;
     protected readonly HttpClient Client;
+    protected readonly string TestId;
     private readonly string _databaseName;
 
     public IntegrationTestBase()
@@ -22,8 +24,11 @@ public class IntegrationTestBase : IDisposable
         // Set environment variable BEFORE creating the factory
         Environment.SetEnvironmentVariable("UseInMemoryDatabase", "true");
         
-        // Use a unique database name for this test fixture instance
-        _databaseName = $"TestDb_{Guid.NewGuid()}";
+        // Generate unique test ID for this test instance to enable parallel execution
+        TestId = Guid.NewGuid().ToString("N")[..8]; // Short 8-char ID
+        
+        // Use a shared database name for all tests (parallel-safe due to unique TestId in data)
+        _databaseName = "TestDb_Shared";
         
         Factory = new WebApplicationFactory<Program>()
             .WithWebHostBuilder(builder =>
@@ -63,27 +68,6 @@ public class IntegrationTestBase : IDisposable
     {
         var scope = Factory.Services.CreateScope();
         return scope.ServiceProvider.GetRequiredService<ZeitungDbContext>();
-    }
-    
-    protected void ClearDatabase()
-    {
-        using var scope = Factory.Services.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<ZeitungDbContext>();
-        
-        // Remove all data from all tables
-        db.UserFeeds.RemoveRange(db.UserFeeds);
-        db.UserTags.RemoveRange(db.UserTags);
-        db.Votes.RemoveRange(db.Votes);
-        db.RefreshTokens.RemoveRange(db.RefreshTokens);
-        db.MagicLinks.RemoveRange(db.MagicLinks);
-        db.ArticleTags.RemoveRange(db.ArticleTags);
-        db.TagCoOccurrences.RemoveRange(db.TagCoOccurrences);
-        db.Articles.RemoveRange(db.Articles);
-        db.Tags.RemoveRange(db.Tags);
-        db.Feeds.RemoveRange(db.Feeds);
-        db.Users.RemoveRange(db.Users);
-        
-        db.SaveChanges();
     }
 
     public void Dispose()
