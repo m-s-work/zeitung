@@ -82,16 +82,24 @@ For LLM strategy, configure:
   "OpenRouter": {
     "ApiKey": "your-api-key",
     "ApiUrl": "https://openrouter.ai/api/v1/chat/completions",
-    "Model": "meta-llama/llama-3.1-8b-instruct:free"
+    "Model": "meta-llama/llama-3.1-8b-instruct:free",
+    "IncludeExistingTags": true,
+    "MinimumTagProbability": 0.7
   }
 }
 ```
 
-The LLM strategy uses the OpenAI client library and requests structured JSON responses with:
-- Tags with probability scores
-- Optional comments explaining tag selection
-- Automatic retry (up to 3 attempts) if the response doesn't match the expected format
-- Exponential backoff between retries
+The LLM strategy features:
+- **Polly-based retry logic** with exponential backoff (up to 3 attempts)
+- **Structured JSON responses** with tags, probability scores, comments, and error fields
+- **Configurable probability threshold** - only tags meeting the minimum probability are included (default: 0.7)
+- **Existing tag awareness** (optional) - can pass existing tags to LLM to avoid creating duplicates
+- **Tag creation guidelines** enforced:
+  - Use singular forms (e.g., "technology" not "technologies")
+  - Lowercase tags
+  - Prefer existing tags when relevant
+  - Be specific but not overly detailed
+  - Avoid generic tags like "news" or "article"
 
 ### One-off Execution Mode
 

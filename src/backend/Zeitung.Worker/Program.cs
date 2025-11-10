@@ -10,6 +10,9 @@ builder.AddServiceDefaults();
 // Register HTTP client factory
 builder.Services.AddHttpClient();
 
+// Register tag repository (in-memory for now, can be replaced with database implementation)
+builder.Services.AddSingleton<ITagRepository, InMemoryTagRepository>();
+
 // Register services
 builder.Services.AddSingleton<IRssFeedParser, RssFeedParser>();
 builder.Services.AddSingleton<IFeedIngestService, FeedIngestService>();
