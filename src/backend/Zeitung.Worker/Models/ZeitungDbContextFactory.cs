@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 
-namespace Zeitung.Worker.Data;
+namespace Zeitung.Worker.Models;
 
 public class ZeitungDbContextFactory : IDesignTimeDbContextFactory<ZeitungDbContext>
 {

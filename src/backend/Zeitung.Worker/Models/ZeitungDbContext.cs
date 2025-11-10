@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 
-namespace Zeitung.Worker.Data;
+namespace Zeitung.Worker.Models;
 
 public class ZeitungDbContext : DbContext
 {

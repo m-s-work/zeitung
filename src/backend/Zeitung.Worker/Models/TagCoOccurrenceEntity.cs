@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Zeitung.Worker.Data;
+namespace Zeitung.Worker.Models;
 
 /// <summary>
 /// Tracks how often two tags appear together on articles.

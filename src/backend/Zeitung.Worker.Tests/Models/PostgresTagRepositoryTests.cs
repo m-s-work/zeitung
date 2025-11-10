@@ -1,10 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Zeitung.Worker.Data;
+using Zeitung.Worker.Models;
 using Zeitung.Worker.Services;
 
-namespace Zeitung.Worker.Tests.Data;
+namespace Zeitung.Worker.Tests.Models;
 
 [TestFixture]
 public class PostgresTagRepositoryTests

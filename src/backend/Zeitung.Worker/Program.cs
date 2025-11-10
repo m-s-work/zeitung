@@ -1,7 +1,7 @@
 using Elastic.Clients.Elasticsearch;
 using Microsoft.EntityFrameworkCore;
 using Zeitung.Worker;
-using Zeitung.Worker.Data;
+using Zeitung.Worker.Models;
 using Zeitung.Worker.Services;
 using Zeitung.Worker.Strategies;
 
@@ -51,16 +51,22 @@ switch (taggingStrategy)
 // Check if running in one-off mode (e.g., for K8s CronJob)
 var runOnce = args.Contains("--run-once") || args.Contains("-o");
 
+// Check if migrations should be run (e.g., for pre-deploy hooks in Helm or Argo)
+var runMigrations = args.Contains("--migrate") || args.Contains("-m");
+
 if (runOnce)
 {
     // One-off execution mode
     var host = builder.Build();
     
-    // Run migrations
-    using (var scope = host.Services.CreateScope())
+    // Run migrations if requested
+    if (runMigrations)
     {
-        var dbContext = scope.ServiceProvider.GetRequiredService<ZeitungDbContext>();
-        await dbContext.Database.MigrateAsync();
+        using (var scope = host.Services.CreateScope())
+        {
+            var dbContext = scope.ServiceProvider.GetRequiredService<ZeitungDbContext>();
+            await dbContext.Database.MigrateAsync();
+        }
     }
     
     var logger = host.Services.GetRequiredService<ILogger<Program>>();
@@ -88,11 +94,14 @@ else
     
     var host = builder.Build();
     
-    // Run migrations
-    using (var scope = host.Services.CreateScope())
+    // Run migrations if requested
+    if (runMigrations)
     {
-        var dbContext = scope.ServiceProvider.GetRequiredService<ZeitungDbContext>();
-        await dbContext.Database.MigrateAsync();
+        using (var scope = host.Services.CreateScope())
+        {
+            var dbContext = scope.ServiceProvider.GetRequiredService<ZeitungDbContext>();
+            await dbContext.Database.MigrateAsync();
+        }
     }
     
     await host.RunAsync();
