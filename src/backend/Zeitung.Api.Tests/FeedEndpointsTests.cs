@@ -3,7 +3,7 @@ using System.Net.Http.Json;
 using Microsoft.EntityFrameworkCore;
 using NUnit.Framework;
 using Zeitung.Api.DTOs;
-using Zeitung.Api.Models;
+using Zeitung.Core.Models;
 
 namespace Zeitung.Api.Tests;
 
