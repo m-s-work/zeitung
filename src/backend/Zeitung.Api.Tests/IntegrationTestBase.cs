@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Zeitung.Core.Models;
@@ -17,6 +18,9 @@ public class IntegrationTestBase : IDisposable
 
     public IntegrationTestBase()
     {
+        // Set environment variable BEFORE creating the factory
+        Environment.SetEnvironmentVariable("UseInMemoryDatabase", "true");
+        
         Factory = new WebApplicationFactory<Program>()
             .WithWebHostBuilder(builder =>
             {
@@ -24,19 +28,15 @@ public class IntegrationTestBase : IDisposable
                 
                 builder.ConfigureServices(services =>
                 {
-                    // Remove existing DbContext registration
-                    var descriptor = services.SingleOrDefault(
-                        d => d.ServiceType == typeof(DbContextOptions<ZeitungDbContext>));
-                    if (descriptor != null)
+                    // Remove all existing DbContext registrations to avoid conflicts
+                    var descriptorsToRemove = services.Where(
+                        d => d.ServiceType == typeof(DbContextOptions<ZeitungDbContext>) ||
+                             d.ServiceType == typeof(ZeitungDbContext) ||
+                             d.ServiceType == typeof(DbContextOptions)).ToList();
+                    
+                    foreach (var descriptor in descriptorsToRemove)
                     {
                         services.Remove(descriptor);
-                    }
-                    
-                    var dbContextDescriptor = services.SingleOrDefault(
-                        d => d.ServiceType == typeof(ZeitungDbContext));
-                    if (dbContextDescriptor != null)
-                    {
-                        services.Remove(dbContextDescriptor);
                     }
 
                     // Add in-memory database for testing
