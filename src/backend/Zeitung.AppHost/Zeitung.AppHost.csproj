@@ -20,6 +20,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Zeitung.Api\Zeitung.Api.csproj" />
+    <ProjectReference Include="..\Zeitung.Worker\Zeitung.Worker.csproj" />
   </ItemGroup>
 
 </Project>
