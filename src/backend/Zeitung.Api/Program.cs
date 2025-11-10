@@ -1,13 +1,23 @@
+using Microsoft.EntityFrameworkCore;
+using Zeitung.Api.Data;
+using Zeitung.Api.Endpoints;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add service defaults & Aspire components
 builder.AddServiceDefaults();
 
+// Add database context
+var connectionString = builder.Configuration.GetConnectionString("zeitungdb") 
+    ?? "Host=localhost;Database=zeitung;Username=zeitung;Password=zeitung";
+builder.Services.AddDbContext<ZeitungDbContext>(options =>
+    options.UseNpgsql(connectionString));
+
 // Add health checks for external dependencies
 builder.Services.AddHealthChecks()
     .AddNpgSql(
         name: "postgres",
-        connectionStringFactory: sp => builder.Configuration.GetConnectionString("zeitungdb") ?? "Host=localhost;Database=zeitung;Username=zeitung;Password=zeitung",
+        connectionStringFactory: sp => connectionString,
         tags: ["ready", "db"])
     .AddRedis(
         name: "redis",
@@ -41,29 +51,10 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast = Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast")
-.WithOpenApi();
+// Map API endpoints
+app.MapFeedEndpoints();
+app.MapArticleEndpoints();
+app.MapTagEndpoints();
+app.MapUserEndpoints();
 
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
