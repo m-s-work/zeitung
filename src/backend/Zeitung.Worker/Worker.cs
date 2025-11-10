@@ -2,14 +2,14 @@ using Zeitung.Worker.Services;
 
 namespace Zeitung.Worker;
 
-public class Worker : BackgroundService
+public class RssFeedIngestWorker : BackgroundService
 {
-    private readonly ILogger<Worker> _logger;
+    private readonly ILogger<RssFeedIngestWorker> _logger;
     private readonly IFeedIngestService _feedIngestService;
     private readonly IConfiguration _configuration;
 
-    public Worker(
-        ILogger<Worker> logger, 
+    public RssFeedIngestWorker(
+        ILogger<RssFeedIngestWorker> logger, 
         IFeedIngestService feedIngestService,
         IConfiguration configuration)
     {

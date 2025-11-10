@@ -30,8 +30,36 @@ switch (taggingStrategy)
         break;
 }
 
-// Register worker
-builder.Services.AddHostedService<Worker>();
+// Check if running in one-off mode (e.g., for K8s CronJob)
+var runOnce = args.Contains("--run-once") || args.Contains("-o");
 
-var host = builder.Build();
-host.Run();
+if (runOnce)
+{
+    // One-off execution mode
+    var host = builder.Build();
+    var logger = host.Services.GetRequiredService<ILogger<Program>>();
+    var feedIngestService = host.Services.GetRequiredService<IFeedIngestService>();
+    
+    logger.LogInformation("Running in one-off mode");
+    
+    try
+    {
+        await feedIngestService.IngestFeedsAsync(CancellationToken.None);
+        logger.LogInformation("One-off feed ingestion completed successfully");
+        return 0;
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Error during one-off feed ingestion");
+        return 1;
+    }
+}
+else
+{
+    // Continuous background service mode
+    builder.Services.AddHostedService<RssFeedIngestWorker>();
+    
+    var host = builder.Build();
+    await host.RunAsync();
+    return 0;
+}

@@ -72,7 +72,7 @@ Configure feeds and tagging strategy in `appsettings.json`:
 
 - **Mock** - Returns predictable mock tags for testing
 - **FeedBased** - Extracts tags from feed metadata and article content
-- **LLM** - Uses OpenRouter API for AI-powered tagging (requires API key)
+- **LLM** - Uses OpenRouter API for AI-powered tagging with JSON format, probability scores, and automatic retry on format errors (requires API key)
 
 Set `TaggingStrategy` to "Mock", "FeedBased", or "LLM" in configuration.
 
@@ -81,9 +81,26 @@ For LLM strategy, configure:
 {
   "OpenRouter": {
     "ApiKey": "your-api-key",
-    "ApiUrl": "https://openrouter.ai/api/v1/chat/completions"
+    "ApiUrl": "https://openrouter.ai/api/v1/chat/completions",
+    "Model": "meta-llama/llama-3.1-8b-instruct:free"
   }
 }
+```
+
+The LLM strategy uses the OpenAI client library and requests structured JSON responses with:
+- Tags with probability scores
+- Optional comments explaining tag selection
+- Automatic retry (up to 3 attempts) if the response doesn't match the expected format
+- Exponential backoff between retries
+
+### One-off Execution Mode
+
+For K8s CronJob scenarios, run the worker once and exit:
+
+```bash
+dotnet run --project Zeitung.Worker/Zeitung.Worker.csproj -- --run-once
+# or
+dotnet run --project Zeitung.Worker/Zeitung.Worker.csproj -- -o
 ```
 
 ## Generating OpenAPI JSON
@@ -107,6 +124,11 @@ Build the Docker image for the Worker:
 ```bash
 cd Zeitung.Worker
 docker build -t zeitung-worker .
+```
+
+Run the Worker in one-off mode:
+```bash
+docker run zeitung-worker --run-once
 ```
 
 Run the Docker container:
