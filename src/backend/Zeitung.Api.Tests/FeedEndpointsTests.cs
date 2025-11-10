@@ -10,6 +10,13 @@ namespace Zeitung.Api.Tests;
 [TestFixture]
 public class FeedEndpointsTests : IntegrationTestBase
 {
+    [SetUp]
+    public void SetUp()
+    {
+        // Clear database before each test to ensure test isolation
+        ClearDatabase();
+    }
+
     [Test]
     public async Task GetFeeds_ReturnsEmptyList_WhenNoFeeds()
     {
@@ -98,27 +105,34 @@ public class FeedEndpointsTests : IntegrationTestBase
     public async Task PromoteFeed_ReturnsOk_WhenFeedExists()
     {
         // Arrange
-        using var db = GetDbContext();
-        var feed = new Feed
+        int feedId;
+        using (var db = GetDbContext())
         {
-            Url = "https://example.com/rss3",
-            Name = "Example Feed 3",
-            IsApproved = false
-        };
-        db.Feeds.Add(feed);
-        await db.SaveChangesAsync();
+            var feed = new Feed
+            {
+                Url = "https://example.com/rss3",
+                Name = "Example Feed 3",
+                IsApproved = false
+            };
+            db.Feeds.Add(feed);
+            await db.SaveChangesAsync();
+            feedId = feed.Id;
+        }
 
         // Act
-        var response = await Client.PostAsync($"/api/feeds/{feed.Id}/promote", null);
+        var response = await Client.PostAsync($"/api/feeds/{feedId}/promote", null);
         
         // Assert
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
         
-        // Verify feed is approved
-        var updatedFeed = await db.Feeds.FindAsync(feed.Id);
-        Assert.That(updatedFeed, Is.Not.Null);
-        Assert.That(updatedFeed!.IsApproved, Is.True);
-        Assert.That(updatedFeed.ApprovedAt, Is.Not.Null);
+        // Verify feed is approved with a fresh DbContext
+        using (var db = GetDbContext())
+        {
+            var updatedFeed = await db.Feeds.FindAsync(feedId);
+            Assert.That(updatedFeed, Is.Not.Null);
+            Assert.That(updatedFeed!.IsApproved, Is.True);
+            Assert.That(updatedFeed.ApprovedAt, Is.Not.Null);
+        }
     }
 
     [Test]
