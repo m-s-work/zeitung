@@ -2,6 +2,7 @@ using Aspire.Hosting;
 using Aspire.Hosting.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Logging;
 
 namespace Zeitung.AppHost.Tests;
 
@@ -15,6 +16,12 @@ public class HealthCheckTests
         // Arrange
         var appHost = await DistributedApplicationTestingBuilder
             .CreateAsync<Projects.Zeitung_AppHost>();
+        
+        // Configure logging to reduce DCP noise
+        appHost.Services.AddLogging(logging => logging
+            .AddFilter("Default", LogLevel.Information)
+            .AddFilter("Microsoft.AspNetCore", LogLevel.Warning)
+            .AddFilter("Aspire.Hosting.Dcp", LogLevel.Warning));
         
         await using var app = await appHost.BuildAsync();
         await app.StartAsync();
@@ -34,6 +41,12 @@ public class HealthCheckTests
         var appHost = await DistributedApplicationTestingBuilder
             .CreateAsync<Projects.Zeitung_AppHost>();
         
+        // Configure logging to reduce DCP noise
+        appHost.Services.AddLogging(logging => logging
+            .AddFilter("Default", LogLevel.Information)
+            .AddFilter("Microsoft.AspNetCore", LogLevel.Warning)
+            .AddFilter("Aspire.Hosting.Dcp", LogLevel.Warning));
+        
         await using var app = await appHost.BuildAsync();
         await app.StartAsync();
 
@@ -51,6 +64,12 @@ public class HealthCheckTests
         // Arrange
         var appHost = await DistributedApplicationTestingBuilder
             .CreateAsync<Projects.Zeitung_AppHost>();
+        
+        // Configure logging to reduce DCP noise
+        appHost.Services.AddLogging(logging => logging
+            .AddFilter("Default", LogLevel.Information)
+            .AddFilter("Microsoft.AspNetCore", LogLevel.Warning)
+            .AddFilter("Aspire.Hosting.Dcp", LogLevel.Warning));
         
         appHost.Services.ConfigureHttpClientDefaults(http =>
         {
@@ -99,6 +118,12 @@ public class HealthCheckTests
         var appHost = await DistributedApplicationTestingBuilder
             .CreateAsync<Projects.Zeitung_AppHost>();
         
+        // Configure logging to reduce DCP noise
+        appHost.Services.AddLogging(logging => logging
+            .AddFilter("Default", LogLevel.Information)
+            .AddFilter("Microsoft.AspNetCore", LogLevel.Warning)
+            .AddFilter("Aspire.Hosting.Dcp", LogLevel.Warning));
+        
         appHost.Services.ConfigureHttpClientDefaults(http =>
         {
             http.AddStandardResilienceHandler(options =>
@@ -128,6 +153,12 @@ public class HealthCheckTests
         var appHost = await DistributedApplicationTestingBuilder
             .CreateAsync<Projects.Zeitung_AppHost>();
         
+        // Configure logging to reduce DCP noise
+        appHost.Services.AddLogging(logging => logging
+            .AddFilter("Default", LogLevel.Information)
+            .AddFilter("Microsoft.AspNetCore", LogLevel.Warning)
+            .AddFilter("Aspire.Hosting.Dcp", LogLevel.Warning));
+        
         appHost.Services.ConfigureHttpClientDefaults(http =>
         {
             http.AddStandardResilienceHandler(options =>
@@ -155,6 +186,12 @@ public class HealthCheckTests
         // Arrange
         var appHost = await DistributedApplicationTestingBuilder
             .CreateAsync<Projects.Zeitung_AppHost>();
+        
+        // Configure logging to reduce DCP noise
+        appHost.Services.AddLogging(logging => logging
+            .AddFilter("Default", LogLevel.Information)
+            .AddFilter("Microsoft.AspNetCore", LogLevel.Warning)
+            .AddFilter("Aspire.Hosting.Dcp", LogLevel.Warning));
         
         appHost.Services.ConfigureHttpClientDefaults(http =>
         {
