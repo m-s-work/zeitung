@@ -1,7 +1,28 @@
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 var builder = DistributedApplication.CreateBuilder(args);
+
+// Check if running in CI environment
+var isCI = builder.Configuration.GetValue<bool>("CI");
+
+// Add external services (RSS feeds and OpenRouter)
+// These are used by the worker to know when external dependencies are available
+var bbcNews = builder.AddExternalService("bbc-news", "http://feeds.bbci.co.uk")
+    .WithHttpHealthCheck(path: "/news/rss.xml");
+
+var heiseOnline = builder.AddExternalService("heise-online", "https://www.heise.de")
+    .WithHttpHealthCheck(path: "/rss/heise-atom.xml");
+
+var golem = builder.AddExternalService("golem", "https://rss.golem.de")
+    .WithHttpHealthCheck(path: "/rss.php?feed=RSS2.0");
+
+var orf = builder.AddExternalService("orf", "https://rss.orf.at")
+    .WithHttpHealthCheck(path: "/news.xml");
+
+var openRouter = builder.AddExternalService("openrouter", "https://openrouter.ai")
+    .WithHttpHealthCheck(path: "/api/v1/models");
 
 // Add PostgreSQL with lifecycle event hook
 var postgres = builder.AddPostgres("postgres")
@@ -55,6 +76,7 @@ var api = builder.AddProject<Projects.Zeitung_Api>("api")
     .WaitForCompletion(workerMigrator);
 
 // Add the Worker service for RSS feed ingestion
+// In CI mode, worker will use Mock strategy and won't need external feeds
 var worker = builder.AddProject<Projects.Zeitung_Worker>("worker")
     .WithReference(postgresdb)
     .WithReference(redis)
@@ -65,5 +87,17 @@ var worker = builder.AddProject<Projects.Zeitung_Worker>("worker")
     .WaitFor(elasticsearch)
 
     .WaitForCompletion(workerMigrator);
+
+// Add references to external services for health monitoring
+// Worker will check if these are available before attempting to fetch feeds
+if (!isCI)
+{
+    worker = worker
+        .WithReference(bbcNews)
+        .WithReference(heiseOnline)
+        .WithReference(golem)
+        .WithReference(orf)
+        .WithReference(openRouter);
+}
 
 builder.Build().Run();
