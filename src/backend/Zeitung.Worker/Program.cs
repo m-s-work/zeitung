@@ -48,29 +48,30 @@ switch (taggingStrategy)
         break;
 }
 
+// Register the background worker service - this only runs when `RunAsync();` is called
+builder.Services.AddHostedService<RssFeedIngestWorker>();
+
 // Check if running in one-off mode (e.g., for K8s CronJob)
 var runOnce = args.Contains("--run-once") || args.Contains("-o");
-
 // Check if migrations should be run (e.g., for pre-deploy hooks in Helm or Argo)
 var runMigrations = args.Contains("--migrate") || args.Contains("-m");
 
+var host = builder.Build();
+var logger = host.Services.GetRequiredService<ILogger<Program>>();
+
+// Run migrations if requested
+if (runMigrations)
+{
+    using (var scope = host.Services.CreateScope())
+    {
+        var dbContext = scope.ServiceProvider.GetRequiredService<ZeitungDbContext>();
+        await dbContext.Database.MigrateAsync();
+        return 0;
+    }
+}
+
 if (runOnce)
 {
-    // One-off execution mode
-    var host = builder.Build();
-    
-    // Run migrations if requested
-    if (runMigrations)
-    {
-        using (var scope = host.Services.CreateScope())
-        {
-            var dbContext = scope.ServiceProvider.GetRequiredService<ZeitungDbContext>();
-            await dbContext.Database.MigrateAsync();
-        }
-    }
-    
-    var logger = host.Services.GetRequiredService<ILogger<Program>>();
-    
     logger.LogInformation("Running in one-off mode");
     
     try
@@ -90,20 +91,6 @@ if (runOnce)
 else
 {
     // Continuous background service mode
-    builder.Services.AddHostedService<RssFeedIngestWorker>();
-    
-    var host = builder.Build();
-    
-    // Run migrations if requested
-    if (runMigrations)
-    {
-        using (var scope = host.Services.CreateScope())
-        {
-            var dbContext = scope.ServiceProvider.GetRequiredService<ZeitungDbContext>();
-            await dbContext.Database.MigrateAsync();
-        }
-    }
-    
     await host.RunAsync();
     return 0;
 }
