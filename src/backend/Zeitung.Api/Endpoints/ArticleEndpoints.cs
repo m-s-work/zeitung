@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
-using Zeitung.Api.Data;
+using Zeitung.Core.Models;
 using Zeitung.Api.DTOs;
-using Zeitung.Api.Models;
+using Zeitung.Core.Models;
 
 namespace Zeitung.Api.Endpoints;
 

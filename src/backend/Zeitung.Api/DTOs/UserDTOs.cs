@@ -1,3 +1,4 @@
+using Zeitung.Core.Models;
 namespace Zeitung.Api.DTOs;
 
 public record UserDto(

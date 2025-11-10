@@ -2,7 +2,7 @@ using System.Net;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Moq.Protected;
-using Zeitung.Worker.Models;
+using Zeitung.Core.Models;
 using Zeitung.Worker.Services;
 
 namespace Zeitung.Worker.Tests.Services;

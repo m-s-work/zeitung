@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using Zeitung.Api.Data;
+using Zeitung.Core.Models;
 using Zeitung.Api.Endpoints;
 
 var builder = WebApplication.CreateBuilder(args);

@@ -1,4 +1,4 @@
-using Zeitung.Worker.Models;
+using Zeitung.Core.Models;
 using Zeitung.Worker.Strategies;
 
 namespace Zeitung.Worker.Tests.Strategies;

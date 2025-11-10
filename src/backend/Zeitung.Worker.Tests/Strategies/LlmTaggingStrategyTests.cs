@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Zeitung.Worker.Models;
+using Zeitung.Core.Models;
 using Zeitung.Worker.Strategies;
 
 namespace Zeitung.Worker.Tests.Strategies;
