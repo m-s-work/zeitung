@@ -187,8 +187,8 @@ jobs:
         with:
           files: |
             src/backend/**/test-results.trx
-          check_name: Backend Test Results
-          comment_title: Backend Test Results
+          check_name: Backend Integration Test Results
+          comment_title: Backend Integration Test Results
 
   release-please:
     name: Release Please

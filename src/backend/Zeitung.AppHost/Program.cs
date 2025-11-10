@@ -1,18 +1,39 @@
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+
 var builder = DistributedApplication.CreateBuilder(args);
 
-// Add PostgreSQL
+// Add PostgreSQL with lifecycle event hook
 var postgres = builder.AddPostgres("postgres")
-    .WithLifetime(ContainerLifetime.Persistent);
+    .WithLifetime(ContainerLifetime.Persistent)
+    .OnBeforeResourceStarted((resource, evt, cancellationToken) =>
+    {
+        var logger = evt.Services.GetRequiredService<ILogger<Program>>();
+        logger.LogInformation("PostgreSQL container starting...");
+        return Task.CompletedTask;
+    });
 
 var postgresdb = postgres.AddDatabase("zeitungdb");
 
-// Add Redis
+// Add Redis with lifecycle event hook
 var redis = builder.AddRedis("redis")
-    .WithLifetime(ContainerLifetime.Persistent);
+    .WithLifetime(ContainerLifetime.Persistent)
+    .OnBeforeResourceStarted((resource, evt, cancellationToken) =>
+    {
+        var logger = evt.Services.GetRequiredService<ILogger<Program>>();
+        logger.LogInformation("Redis container starting...");
+        return Task.CompletedTask;
+    });
 
-// Add Elasticsearch
+// Add Elasticsearch with lifecycle event hook
 var elasticsearch = builder.AddElasticsearch("elasticsearch")
-    .WithLifetime(ContainerLifetime.Persistent);
+    .WithLifetime(ContainerLifetime.Persistent)
+    .OnBeforeResourceStarted((resource, evt, cancellationToken) =>
+    {
+        var logger = evt.Services.GetRequiredService<ILogger<Program>>();
+        logger.LogInformation("Elasticsearch container starting...");
+        return Task.CompletedTask;
+    });
 
 // Add the API service
 var api = builder.AddProject<Projects.Zeitung_Api>("api")
