@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using Moq.Protected;
 using Zeitung.Core.Models;
+using Zeitung.Worker.Models;
 using Zeitung.Worker.Services;
 
 namespace Zeitung.Worker.Tests.Services;

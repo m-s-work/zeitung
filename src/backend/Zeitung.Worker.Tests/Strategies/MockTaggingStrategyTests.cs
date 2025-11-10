@@ -1,4 +1,6 @@
 using Zeitung.Core.Models;
+using Zeitung.Worker.Models;
+using ArticleDto = Zeitung.Worker.Models.Article;
 using Zeitung.Worker.Strategies;
 
 namespace Zeitung.Worker.Tests.Strategies;
@@ -18,7 +20,7 @@ public class MockTaggingStrategyTests
     public async Task GenerateTagsAsync_ReturnsExpectedMockTags()
     {
         // Arrange
-        var article = new Article
+        var article = new ArticleDto
         {
             Title = "Test Article",
             Link = "https://example.com/test",
@@ -41,7 +43,7 @@ public class MockTaggingStrategyTests
     public async Task GenerateTagsAsync_ReturnsSameTagsForAllArticles()
     {
         // Arrange
-        var article1 = new Article
+        var article1 = new ArticleDto
         {
             Title = "Article 1",
             Link = "https://example.com/1",
@@ -49,7 +51,7 @@ public class MockTaggingStrategyTests
             FeedSource = "Test Feed"
         };
         
-        var article2 = new Article
+        var article2 = new ArticleDto
         {
             Title = "Article 2",
             Link = "https://example.com/2",

@@ -1,4 +1,6 @@
 using Zeitung.Core.Models;
+using Zeitung.Worker.Models;
+using ArticleDto = Zeitung.Worker.Models.Article;
 using Zeitung.Worker.Strategies;
 
 namespace Zeitung.Worker.Tests.Strategies;
@@ -18,7 +20,7 @@ public class FeedBasedTaggingStrategyTests
     public async Task GenerateTagsAsync_IncludesCategoriesFromArticle()
     {
         // Arrange
-        var article = new Article
+        var article = new ArticleDto
         {
             Title = "Breaking News Story",
             Link = "https://example.com/news",
@@ -40,7 +42,7 @@ public class FeedBasedTaggingStrategyTests
     public async Task GenerateTagsAsync_ExtractsKeywordsFromTitle()
     {
         // Arrange
-        var article = new Article
+        var article = new ArticleDto
         {
             Title = "Artificial Intelligence Breakthrough",
             Link = "https://example.com/ai",
@@ -62,7 +64,7 @@ public class FeedBasedTaggingStrategyTests
     public async Task GenerateTagsAsync_FiltersShortWords()
     {
         // Arrange
-        var article = new Article
+        var article = new ArticleDto
         {
             Title = "AI is big in IT",
             Link = "https://example.com/test",
@@ -82,7 +84,7 @@ public class FeedBasedTaggingStrategyTests
     public async Task GenerateTagsAsync_ReturnsUniqueTagsOnly()
     {
         // Arrange
-        var article = new Article
+        var article = new ArticleDto
         {
             Title = "Technology Technology revolution",
             Link = "https://example.com/test",
