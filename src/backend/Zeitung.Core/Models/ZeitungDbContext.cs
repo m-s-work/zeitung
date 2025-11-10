@@ -24,6 +24,10 @@ public class ZeitungDbContext : DbContext
     public DbSet<UserFeed> UserFeeds { get; set; } = null!;
     public DbSet<UserTag> UserTags { get; set; } = null!;
     public DbSet<Vote> Votes { get; set; } = null!;
+    
+    // Authentication entities
+    public DbSet<MagicLink> MagicLinks { get; set; } = null!;
+    public DbSet<RefreshToken> RefreshTokens { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -150,6 +154,27 @@ public class ZeitungDbContext : DbContext
                 .WithMany()
                 .HasForeignKey(e => e.FeedId)
                 .OnDelete(DeleteBehavior.SetNull);
+        });
+        
+        // MagicLink entity
+        modelBuilder.Entity<MagicLink>(entity =>
+        {
+            entity.ToTable("MagicLinks");
+            entity.HasIndex(e => e.Token).IsUnique();
+            entity.HasIndex(e => e.Email);
+        });
+        
+        // RefreshToken entity
+        modelBuilder.Entity<RefreshToken>(entity =>
+        {
+            entity.ToTable("RefreshTokens");
+            entity.HasIndex(e => e.Token).IsUnique();
+            entity.HasIndex(e => e.UserId);
+            
+            entity.HasOne(e => e.User)
+                .WithMany()
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
     }
 }

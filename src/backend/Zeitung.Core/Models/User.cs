@@ -31,6 +31,16 @@ public class User
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public DateTime LastSyncAt { get; set; } = DateTime.UtcNow;
+    
+    /// <summary>
+    /// Last login timestamp for authentication tracking
+    /// </summary>
+    public DateTime? LastLoginAt { get; set; }
+    
+    /// <summary>
+    /// Indicates if the user account is active
+    /// </summary>
+    public bool IsActive { get; set; } = true;
 
     /// <summary>
     /// Navigation property: User's personal feed subscriptions
