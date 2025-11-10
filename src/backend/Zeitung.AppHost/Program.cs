@@ -20,4 +20,10 @@ var api = builder.AddProject<Projects.Zeitung_Api>("api")
     .WithReference(redis)
     .WithReference(elasticsearch);
 
+// Add the Worker service for RSS feed ingestion
+var worker = builder.AddProject<Projects.Zeitung_Worker>("worker")
+    .WithReference(postgresdb)
+    .WithReference(redis)
+    .WithReference(elasticsearch);
+
 builder.Build().Run();

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Heise Online News</title>
+    <link>https://www.heise.de</link>
+    <description>Nachrichten aus der Welt der Technik</description>
+    <language>de</language>
+    <pubDate>Sat, 09 Nov 2024 12:00:00 GMT</pubDate>
+    
+    <item>
+      <title>Neue Sicherheitslücke in beliebter Software entdeckt</title>
+      <link>https://www.heise.de/news/security-12345</link>
+      <description>Forscher haben eine kritische Schwachstelle gefunden, die Millionen Nutzer betrifft.</description>
+      <pubDate>Sat, 09 Nov 2024 10:45:00 GMT</pubDate>
+      <category>Security</category>
+      <category>Software</category>
+    </item>
+    
+    <item>
+      <title>Künstliche Intelligenz revolutioniert Medizin</title>
+      <link>https://www.heise.de/news/ai-medicine-67890</link>
+      <description>Machine-Learning-Algorithmen verbessern Diagnose und Behandlung erheblich.</description>
+      <pubDate>Sat, 09 Nov 2024 08:30:00 GMT</pubDate>
+      <category>AI</category>
+      <category>Medicine</category>
+    </item>
+  </channel>
+</rss>

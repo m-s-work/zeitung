@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>BBC News - World</title>
+    <link>https://www.bbc.com/news/world</link>
+    <description>The latest stories from the World</description>
+    <language>en-gb</language>
+    <pubDate>Sat, 09 Nov 2024 12:00:00 GMT</pubDate>
+    
+    <item>
+      <title>International diplomacy reaches new milestone</title>
+      <link>https://www.bbc.com/news/world-12345</link>
+      <description>Leaders from multiple countries gather to discuss global challenges and cooperation.</description>
+      <pubDate>Sat, 09 Nov 2024 11:30:00 GMT</pubDate>
+      <category>World</category>
+      <category>Politics</category>
+    </item>
+    
+    <item>
+      <title>Economic recovery shows positive signs</title>
+      <link>https://www.bbc.com/news/business-67890</link>
+      <description>Global markets respond positively to recent economic indicators and policy changes.</description>
+      <pubDate>Sat, 09 Nov 2024 09:15:00 GMT</pubDate>
+      <category>Business</category>
+      <category>Economy</category>
+    </item>
+  </channel>
+</rss>

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Test News Feed</title>
+    <link>https://example.com/news</link>
+    <description>A test RSS feed for unit testing</description>
+    <language>en-us</language>
+    <pubDate>Sat, 09 Nov 2024 12:00:00 GMT</pubDate>
+    
+    <item>
+      <title>Breaking: New Technology Breakthrough</title>
+      <link>https://example.com/news/tech-breakthrough</link>
+      <description>Scientists have made a major breakthrough in quantum computing technology that could revolutionize the industry.</description>
+      <pubDate>Sat, 09 Nov 2024 10:00:00 GMT</pubDate>
+      <category>Technology</category>
+      <category>Science</category>
+    </item>
+    
+    <item>
+      <title>Global Climate Summit Concludes</title>
+      <link>https://example.com/news/climate-summit</link>
+      <description>World leaders reached agreement on new climate goals at the international summit.</description>
+      <pubDate>Sat, 09 Nov 2024 08:00:00 GMT</pubDate>
+      <category>Environment</category>
+      <category>Politics</category>
+    </item>
+    
+    <item>
+      <title>Sports Team Wins Championship</title>
+      <link>https://example.com/news/sports-championship</link>
+      <description>Local sports team celebrates victory after intense final match.</description>
+      <pubDate>Fri, 08 Nov 2024 20:00:00 GMT</pubDate>
+      <category>Sports</category>
+    </item>
+  </channel>
+</rss>
