@@ -3,6 +3,7 @@ using Aspire.Hosting.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
+using Zeitung.AppHost.Tests.TestHelpers;
 
 namespace Zeitung.AppHost.Tests;
 
@@ -10,10 +11,30 @@ namespace Zeitung.AppHost.Tests;
 [Category("IntegrationTest")]
 public class HealthCheckTests
 {
-    [Test]
-    public async Task ApiHealthCheckEndpointReturnsOk()
+    private static bool? _dcpAvailable;
+    private static string? _dcpFailureReason;
+
+    [OneTimeSetUp]
+    public async Task OneTimeSetUp()
     {
-        // Arrange
+        // Check if DCP is available before running any tests
+        var (isAvailable, failureReason) = await DcpAvailability.CheckAsync();
+        _dcpAvailable = isAvailable;
+        _dcpFailureReason = failureReason;
+
+        if (!isAvailable)
+        {
+            Assert.Warn($"DCP is not available in this environment. Integration tests will be skipped. Reason: {failureReason}");
+        }
+    }
+
+    private async Task<(IDistributedApplicationTestingBuilder builder, DistributedApplication? app)> CreateAndStartAppHostAsync()
+    {
+        if (_dcpAvailable == false)
+        {
+            Assert.Ignore($"Test skipped: DCP not available. {_dcpFailureReason}");
+        }
+
         var appHost = await DistributedApplicationTestingBuilder
             .CreateAsync<Projects.Zeitung_AppHost>();
         
@@ -22,12 +43,29 @@ public class HealthCheckTests
             .AddFilter("Default", LogLevel.Information)
             .AddFilter("Microsoft.AspNetCore", LogLevel.Warning)
             .AddFilter("Aspire.Hosting.Dcp", LogLevel.Warning));
-        
-        await using var app = await appHost.BuildAsync();
-        await app.StartAsync();
+
+        try
+        {
+            var app = await appHost.BuildAsync();
+            await app.StartAsync();
+            return (appHost, app);
+        }
+        catch (Exception ex)
+        {
+            Assert.Fail($"Failed to start AppHost: {ex.Message}");
+            throw; // Never reached, but satisfies compiler
+        }
+    }
+
+    [Test]
+    public async Task ApiHealthCheckEndpointReturnsOk()
+    {
+        // Arrange
+        var (builder, app) = await CreateAndStartAppHostAsync();
+        await using var _ = app;
 
         // Act
-        var httpClient = app.CreateHttpClient("api");
+        var httpClient = app!.CreateHttpClient("api");
         var response = await httpClient.GetAsync("/health");
 
         // Assert
@@ -38,20 +76,11 @@ public class HealthCheckTests
     public async Task ApiAliveEndpointReturnsOk()
     {
         // Arrange
-        var appHost = await DistributedApplicationTestingBuilder
-            .CreateAsync<Projects.Zeitung_AppHost>();
-        
-        // Configure logging to reduce DCP noise
-        appHost.Services.AddLogging(logging => logging
-            .AddFilter("Default", LogLevel.Information)
-            .AddFilter("Microsoft.AspNetCore", LogLevel.Warning)
-            .AddFilter("Aspire.Hosting.Dcp", LogLevel.Warning));
-        
-        await using var app = await appHost.BuildAsync();
-        await app.StartAsync();
+        var (builder, app) = await CreateAndStartAppHostAsync();
+        await using var _ = app;
 
         // Act
-        var httpClient = app.CreateHttpClient("api");
+        var httpClient = app!.CreateHttpClient("api");
         var response = await httpClient.GetAsync("/alive");
 
         // Assert
@@ -62,16 +91,11 @@ public class HealthCheckTests
     public async Task ApiReadyEndpointReturnsOkWhenDependenciesAreHealthy()
     {
         // Arrange
-        var appHost = await DistributedApplicationTestingBuilder
-            .CreateAsync<Projects.Zeitung_AppHost>();
+        var (builder, app) = await CreateAndStartAppHostAsync();
+        await using var _ = app;
         
-        // Configure logging to reduce DCP noise
-        appHost.Services.AddLogging(logging => logging
-            .AddFilter("Default", LogLevel.Information)
-            .AddFilter("Microsoft.AspNetCore", LogLevel.Warning)
-            .AddFilter("Aspire.Hosting.Dcp", LogLevel.Warning));
-        
-        appHost.Services.ConfigureHttpClientDefaults(http =>
+        // Configure extended timeout for resilience
+        builder.Services.ConfigureHttpClientDefaults(http =>
         {
             http.AddStandardResilienceHandler(options =>
             {
@@ -79,12 +103,9 @@ public class HealthCheckTests
                 options.AttemptTimeout.Timeout = TimeSpan.FromMinutes(2);
             });
         });
-        
-        await using var app = await appHost.BuildAsync();
-        await app.StartAsync();
 
         // Act
-        var httpClient = app.CreateHttpClient("api");
+        var httpClient = app!.CreateHttpClient("api");
         
         // Retry logic for /ready endpoint as dependencies might take time to initialize
         var maxRetries = 20;
@@ -115,28 +136,19 @@ public class HealthCheckTests
     public async Task PostgresHealthCheckIsRegistered()
     {
         // Arrange
-        var appHost = await DistributedApplicationTestingBuilder
-            .CreateAsync<Projects.Zeitung_AppHost>();
+        var (builder, app) = await CreateAndStartAppHostAsync();
+        await using var _ = app;
         
-        // Configure logging to reduce DCP noise
-        appHost.Services.AddLogging(logging => logging
-            .AddFilter("Default", LogLevel.Information)
-            .AddFilter("Microsoft.AspNetCore", LogLevel.Warning)
-            .AddFilter("Aspire.Hosting.Dcp", LogLevel.Warning));
-        
-        appHost.Services.ConfigureHttpClientDefaults(http =>
+        builder.Services.ConfigureHttpClientDefaults(http =>
         {
             http.AddStandardResilienceHandler(options =>
             {
                 options.TotalRequestTimeout.Timeout = TimeSpan.FromMinutes(5);
             });
         });
-        
-        await using var app = await appHost.BuildAsync();
-        await app.StartAsync();
 
         // Act
-        var httpClient = app.CreateHttpClient("api");
+        var httpClient = app!.CreateHttpClient("api");
         var response = await httpClient.GetAsync("/health");
         var content = await response.Content.ReadAsStringAsync();
 
@@ -150,28 +162,19 @@ public class HealthCheckTests
     public async Task RedisHealthCheckIsRegistered()
     {
         // Arrange
-        var appHost = await DistributedApplicationTestingBuilder
-            .CreateAsync<Projects.Zeitung_AppHost>();
+        var (builder, app) = await CreateAndStartAppHostAsync();
+        await using var _ = app;
         
-        // Configure logging to reduce DCP noise
-        appHost.Services.AddLogging(logging => logging
-            .AddFilter("Default", LogLevel.Information)
-            .AddFilter("Microsoft.AspNetCore", LogLevel.Warning)
-            .AddFilter("Aspire.Hosting.Dcp", LogLevel.Warning));
-        
-        appHost.Services.ConfigureHttpClientDefaults(http =>
+        builder.Services.ConfigureHttpClientDefaults(http =>
         {
             http.AddStandardResilienceHandler(options =>
             {
                 options.TotalRequestTimeout.Timeout = TimeSpan.FromMinutes(5);
             });
         });
-        
-        await using var app = await appHost.BuildAsync();
-        await app.StartAsync();
 
         // Act
-        var httpClient = app.CreateHttpClient("api");
+        var httpClient = app!.CreateHttpClient("api");
         var response = await httpClient.GetAsync("/health");
         var content = await response.Content.ReadAsStringAsync();
 
@@ -184,28 +187,19 @@ public class HealthCheckTests
     public async Task ElasticsearchHealthCheckIsRegistered()
     {
         // Arrange
-        var appHost = await DistributedApplicationTestingBuilder
-            .CreateAsync<Projects.Zeitung_AppHost>();
+        var (builder, app) = await CreateAndStartAppHostAsync();
+        await using var _ = app;
         
-        // Configure logging to reduce DCP noise
-        appHost.Services.AddLogging(logging => logging
-            .AddFilter("Default", LogLevel.Information)
-            .AddFilter("Microsoft.AspNetCore", LogLevel.Warning)
-            .AddFilter("Aspire.Hosting.Dcp", LogLevel.Warning));
-        
-        appHost.Services.ConfigureHttpClientDefaults(http =>
+        builder.Services.ConfigureHttpClientDefaults(http =>
         {
             http.AddStandardResilienceHandler(options =>
             {
                 options.TotalRequestTimeout.Timeout = TimeSpan.FromMinutes(5);
             });
         });
-        
-        await using var app = await appHost.BuildAsync();
-        await app.StartAsync();
 
         // Act
-        var httpClient = app.CreateHttpClient("api");
+        var httpClient = app!.CreateHttpClient("api");
         var response = await httpClient.GetAsync("/health");
         var content = await response.Content.ReadAsStringAsync();
 
