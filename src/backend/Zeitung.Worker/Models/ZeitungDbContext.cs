@@ -13,6 +13,9 @@ public class ZeitungDbContext : DbContext
     public DbSet<TagEntity> Tags { get; set; } = null!;
     public DbSet<ArticleTagEntity> ArticleTags { get; set; } = null!;
     public DbSet<TagCoOccurrenceEntity> TagCoOccurrences { get; set; } = null!;
+    public DbSet<UserEntity> Users { get; set; } = null!;
+    public DbSet<RefreshTokenEntity> RefreshTokens { get; set; } = null!;
+    public DbSet<MagicLinkEntity> MagicLinks { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -66,6 +69,34 @@ public class ZeitungDbContext : DbContext
                 .WithMany(t => t.TagCoOccurrences2)
                 .HasForeignKey(e => e.Tag2Id)
                 .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // Configure UserEntity
+        modelBuilder.Entity<UserEntity>(entity =>
+        {
+            entity.ToTable("Users");
+            entity.HasIndex(e => e.Email).IsUnique();
+        });
+
+        // Configure RefreshTokenEntity
+        modelBuilder.Entity<RefreshTokenEntity>(entity =>
+        {
+            entity.ToTable("RefreshTokens");
+            entity.HasIndex(e => e.Token).IsUnique();
+            entity.HasIndex(e => e.UserId);
+            
+            entity.HasOne(e => e.User)
+                .WithMany()
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // Configure MagicLinkEntity
+        modelBuilder.Entity<MagicLinkEntity>(entity =>
+        {
+            entity.ToTable("MagicLinks");
+            entity.HasIndex(e => e.Token).IsUnique();
+            entity.HasIndex(e => e.Email);
         });
     }
 }
