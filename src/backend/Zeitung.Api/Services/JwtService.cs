@@ -8,7 +8,7 @@ namespace Zeitung.Api.Services;
 
 public interface IJwtService
 {
-    string GenerateAccessToken(Guid userId, string email);
+    string GenerateAccessToken(int userId, string email);
     string GenerateRefreshToken();
     ClaimsPrincipal? ValidateToken(string token);
 }
@@ -30,13 +30,13 @@ public class JwtService : IJwtService
         _accessTokenExpirationMinutes = int.Parse(_configuration["Jwt:AccessTokenExpirationMinutes"] ?? "15");
     }
 
-    public string GenerateAccessToken(Guid userId, string email)
+    public string GenerateAccessToken(int userId, string email)
     {
         var claims = new[]
         {
             new Claim(JwtRegisteredClaimNames.Sub, userId.ToString()),
             new Claim(JwtRegisteredClaimNames.Email, email),
-            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.CreateVersion7().ToString()),
             new Claim(JwtRegisteredClaimNames.Iat, DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString())
         };
 

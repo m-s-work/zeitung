@@ -2,17 +2,18 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Zeitung.Api.DTOs;
+using Zeitung.Core.Models;
+using Zeitung.Api.Endpoints;
 using Zeitung.Api.Services;
-using Zeitung.Worker.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add service defaults & Aspire components
 builder.AddServiceDefaults();
 
-// Add Database Context
-var connectionString = builder.Configuration.GetConnectionString("zeitungdb") ?? "Host=localhost;Database=zeitung;Username=zeitung;Password=zeitung";
+// Add database context
+var connectionString = builder.Configuration.GetConnectionString("zeitungdb") 
+    ?? "Host=localhost;Database=zeitung;Username=zeitung;Password=zeitung";
 builder.Services.AddDbContext<ZeitungDbContext>(options =>
     options.UseNpgsql(connectionString));
 
@@ -39,7 +40,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthorization();
 
-// Add services
+// Add authentication services
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IMagicLinkService, MagicLinkService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -48,7 +49,7 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddHealthChecks()
     .AddNpgSql(
         name: "postgres",
-        connectionStringFactory: sp => builder.Configuration.GetConnectionString("zeitungdb") ?? "Host=localhost;Database=zeitung;Username=zeitung;Password=zeitung",
+        connectionStringFactory: sp => connectionString,
         tags: ["ready", "db"])
     .AddRedis(
         name: "redis",
@@ -85,100 +86,14 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-// Authentication Endpoints
-app.MapPost("/auth/login", async (LoginRequest request, IMagicLinkService magicLinkService) =>
-{
-    if (string.IsNullOrWhiteSpace(request.Email))
-    {
-        return Results.BadRequest(new { error = "Email is required" });
-    }
-
-    var token = await magicLinkService.GenerateMagicLinkAsync(request.Email);
-    
-    // In production, send this token via email
-    // For now, return it in the response for testing
-    return Results.Ok(new { message = "Magic link generated", token });
-})
-.WithName("RequestMagicLink")
-.WithOpenApi();
-
-app.MapPost("/auth/verify", async (VerifyMagicLinkRequest request, IMagicLinkService magicLinkService, IAuthService authService) =>
-{
-    if (string.IsNullOrWhiteSpace(request.Token))
-    {
-        return Results.BadRequest(new { error = "Token is required" });
-    }
-
-    var (isValid, email) = await magicLinkService.ValidateMagicLinkAsync(request.Token);
-    
-    if (!isValid || email == null)
-    {
-        return Results.Unauthorized();
-    }
-
-    var (accessToken, refreshToken, expiresAt) = await authService.AuthenticateAsync(email);
-    
-    return Results.Ok(new AuthResponse(accessToken, refreshToken, expiresAt));
-})
-.WithName("VerifyMagicLink")
-.WithOpenApi();
-
-app.MapPost("/auth/refresh", async (RefreshTokenRequest request, IAuthService authService) =>
-{
-    if (string.IsNullOrWhiteSpace(request.RefreshToken))
-    {
-        return Results.BadRequest(new { error = "Refresh token is required" });
-    }
-
-    var (isValid, accessToken, refreshToken, expiresAt) = await authService.RefreshTokenAsync(request.RefreshToken);
-    
-    if (!isValid || accessToken == null || refreshToken == null || expiresAt == null)
-    {
-        return Results.Unauthorized();
-    }
-
-    return Results.Ok(new AuthResponse(accessToken, refreshToken, expiresAt.Value));
-})
-.WithName("RefreshToken")
-.WithOpenApi();
-
-app.MapPost("/auth/revoke", async (RefreshTokenRequest request, IAuthService authService) =>
-{
-    if (string.IsNullOrWhiteSpace(request.RefreshToken))
-    {
-        return Results.BadRequest(new { error = "Refresh token is required" });
-    }
-
-    await authService.RevokeRefreshTokenAsync(request.RefreshToken);
-    
-    return Results.Ok(new { message = "Token revoked successfully" });
-})
-.WithName("RevokeRefreshToken")
-.WithOpenApi();
-
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast = Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast")
-.WithOpenApi();
+// Map API endpoints
+app.MapAuthEndpoints();
+app.MapFeedEndpoints();
+app.MapArticleEndpoints();
+app.MapTagEndpoints();
+app.MapUserEndpoints();
 
 app.Run();
 
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
+// Make Program class accessible for testing
+public partial class Program { }

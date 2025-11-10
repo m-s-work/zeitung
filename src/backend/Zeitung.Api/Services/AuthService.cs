@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using Zeitung.Worker.Models;
+using Zeitung.Core.Models;
 
 namespace Zeitung.Api.Services;
 
@@ -31,11 +31,13 @@ public class AuthService : IAuthService
         var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == email);
         if (user == null)
         {
-            user = new UserEntity
+            user = new User
             {
-                Id = Guid.NewGuid(),
+                Username = email.Split('@')[0], // Use email prefix as username
                 Email = email,
+                Role = "User", // Default role
                 CreatedAt = DateTime.UtcNow,
+                LastSyncAt = DateTime.UtcNow,
                 IsActive = true
             };
             _dbContext.Users.Add(user);
@@ -48,7 +50,7 @@ public class AuthService : IAuthService
         var refreshTokenValue = _jwtService.GenerateRefreshToken();
         var expiresAt = DateTime.UtcNow.AddDays(_refreshTokenExpirationDays);
 
-        var refreshToken = new RefreshTokenEntity
+        var refreshToken = new RefreshToken
         {
             Id = Guid.NewGuid(),
             UserId = user.Id,
@@ -83,7 +85,7 @@ public class AuthService : IAuthService
         storedToken.RevokedAt = DateTime.UtcNow;
 
         // Create new refresh token
-        var newRefreshToken = new RefreshTokenEntity
+        var newRefreshToken = new RefreshToken
         {
             Id = Guid.NewGuid(),
             UserId = storedToken.UserId,

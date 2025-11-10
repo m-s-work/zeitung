@@ -1,6 +1,6 @@
 using System.Security.Cryptography;
 using Microsoft.EntityFrameworkCore;
-using Zeitung.Worker.Models;
+using Zeitung.Core.Models;
 
 namespace Zeitung.Api.Services;
 
@@ -25,7 +25,7 @@ public class MagicLinkService : IMagicLinkService
     {
         var token = GenerateSecureToken();
         
-        var magicLink = new MagicLinkEntity
+        var magicLink = new MagicLink
         {
             Id = Guid.NewGuid(),
             Email = email.ToLowerInvariant(),
