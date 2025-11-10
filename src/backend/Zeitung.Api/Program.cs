@@ -1,3 +1,5 @@
+using Zeitung.Api.Endpoints;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add service defaults & Aspire components
@@ -60,6 +62,11 @@ app.MapGet("/weatherforecast", () =>
 })
 .WithName("GetWeatherForecast")
 .WithOpenApi();
+
+// Map API endpoints
+app.MapFeedEndpoints();
+app.MapArticleEndpoints();
+app.MapTagEndpoints();
 
 app.Run();
 
