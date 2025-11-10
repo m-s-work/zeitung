@@ -11,20 +11,27 @@ public static class DcpAvailability
 {
     private static bool? _isAvailable;
     private static string? _failureReason;
+    private static readonly object _lock = new object();
 
     /// <summary>
     /// Checks if DCP is available for running integration tests.
     /// </summary>
     public static async Task<(bool IsAvailable, string? FailureReason)> CheckAsync()
     {
-        if (_isAvailable.HasValue)
+        lock (_lock)
         {
-            return (_isAvailable.Value, _failureReason);
+            if (_isAvailable.HasValue)
+            {
+                return (_isAvailable.Value, _failureReason);
+            }
         }
 
         try
         {
             // Try to create a minimal AppHost to test DCP availability
+            // Use a shorter timeout to fail fast
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+            
             var builder = await DistributedApplicationTestingBuilder
                 .CreateAsync<Projects.Zeitung_AppHost>();
 
@@ -33,19 +40,35 @@ public static class DcpAvailability
                 .SetMinimumLevel(LogLevel.Error));
 
             // Try to build - this will fail if DCP can't start
-            await using var app = await builder.BuildAsync();
+            // We don't actually need to start it, just build to verify DCP is available
+            await using var app = await builder.BuildAsync(cts.Token);
             
             // If we got here, DCP is working
-            _isAvailable = true;
-            _failureReason = null;
+            lock (_lock)
+            {
+                _isAvailable = true;
+                _failureReason = null;
+            }
             
             return (true, null);
         }
+        catch (OperationCanceledException)
+        {
+            lock (_lock)
+            {
+                _isAvailable = false;
+                _failureReason = "DCP availability check timed out after 30 seconds";
+            }
+            return (false, _failureReason!);
+        }
         catch (Exception ex)
         {
-            _isAvailable = false;
-            _failureReason = $"DCP not available: {ex.GetType().Name} - {ex.Message}";
-            return (false, _failureReason);
+            lock (_lock)
+            {
+                _isAvailable = false;
+                _failureReason = $"DCP not available: {ex.GetType().Name} - {ex.Message.Split('\n')[0]}";
+            }
+            return (false, _failureReason!);
         }
     }
 
@@ -54,7 +77,10 @@ public static class DcpAvailability
     /// </summary>
     public static void Reset()
     {
-        _isAvailable = null;
-        _failureReason = null;
+        lock (_lock)
+        {
+            _isAvailable = null;
+            _failureReason = null;
+        }
     }
 }
