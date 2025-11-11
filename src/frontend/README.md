@@ -39,10 +39,26 @@ npm run build
 
 ## Testing
 
-Run tests:
+### Unit Tests
+
+Run unit tests:
 ```bash
 npm test
 ```
+
+### E2E Tests
+
+Install Playwright browsers (one-time setup):
+```bash
+npm run test:e2e:install
+```
+
+Run E2E tests:
+```bash
+npm run test:e2e
+```
+
+**For detailed E2E testing documentation, including CI/CD setup and browser configuration, see [tests/E2E_TESTING.md](tests/E2E_TESTING.md).**
 
 ## Project Structure
 

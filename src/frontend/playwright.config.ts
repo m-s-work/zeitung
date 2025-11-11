@@ -3,6 +3,21 @@ import { defineConfig, devices } from '@playwright/test';
 /**
  * Playwright Test Configuration for Zeitung Frontend
  * 
+ * BROWSER CONFIGURATION:
+ * =====================
+ * 
+ * Local Development / Agent Mode:
+ * - Uses Playwright-managed Chromium browser
+ * - Install with: npm run test:e2e:install
+ * - Browser is downloaded to ~/.cache/ms-playwright/
+ * - No system Chrome/Chromium required
+ * 
+ * CI/CD Mode:
+ * - Same configuration - uses Playwright-managed Chromium
+ * - Set CI=true environment variable
+ * - Automatically retries failed tests (2 retries)
+ * - Runs tests serially (workers: 1) for stability
+ * 
  * See https://playwright.dev/docs/test-configuration.
  */
 export default defineConfig({
@@ -35,6 +50,8 @@ export default defineConfig({
       name: 'chromium',
       use: { 
         ...devices['Desktop Chrome'],
+        // Uses Playwright-managed Chromium (not system Chrome)
+        // This ensures consistent browser version across environments
       },
     },
   ],
