@@ -3,10 +3,6 @@ import { defineConfig, devices } from '@playwright/test';
 /**
  * Playwright Test Configuration for Zeitung Frontend
  * 
- * IMPORTANT: This configuration uses the system Chrome/Chromium browser.
- * This is required for GitHub Copilot agent mode and CI environments.
- * Ensure Chrome/Chromium is installed on your system before running tests.
- * 
  * See https://playwright.dev/docs/test-configuration.
  */
 export default defineConfig({
@@ -39,10 +35,6 @@ export default defineConfig({
       name: 'chromium',
       use: { 
         ...devices['Desktop Chrome'],
-        // IMPORTANT: Use system Chrome/Chromium instead of downloading Playwright browsers.
-        // This is required for GitHub Copilot agent mode and CI environments.
-        // Install Chrome: https://www.google.com/chrome/ or `apt-get install chromium-browser`
-        channel: 'chrome',
       },
     },
   ],
