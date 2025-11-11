@@ -6,10 +6,38 @@ ASP.NET Core Web API with .NET Aspire 9.5.2 for the Zeitung RSS Feed Reader.
 
 - **Zeitung.Api** - Web API project
 - **Zeitung.Worker** - Background worker service for RSS feed ingestion
-- **Zeitung.AppHost** - Aspire orchestration host
+- **Zeitung.AppHost** - Aspire orchestration host (includes frontend integration)
 - **Zeitung.ServiceDefaults** - Shared service configurations (telemetry, health checks, etc.)
 - **Zeitung.Worker.Tests** - Unit tests for the worker service
 - **Zeitung.AppHost.Tests** - Integration tests for the AppHost
+
+## Aspire Integration
+
+The AppHost orchestrates all services using .NET Aspire 9.5.2, including:
+
+- **Backend Services**: API and Worker
+- **Infrastructure**: PostgreSQL, Redis, Elasticsearch
+- **Frontend**: Nuxt.js app (conditionally included based on environment)
+
+### Frontend Integration
+
+The frontend is added to Aspire using:
+- `Aspire.Hosting.NodeJS` package for npm app support
+- `CommunityToolkit.Aspire.Hosting.NodeJS.Extensions` for automatic package installation
+
+Configuration:
+- `IncludeFrontend` setting controls whether frontend is included (default: true in dev, false in CI)
+- In development: Frontend runs with `npm run dev` and dependencies are auto-installed
+- In CI/CD: Frontend is excluded via `appsettings.ci.json` to avoid npm overhead in integration tests
+
+To manually control frontend inclusion:
+```bash
+# Run with frontend (default in development)
+dotnet run --project Zeitung.AppHost/Zeitung.AppHost.csproj
+
+# Run without frontend
+dotnet run --project Zeitung.AppHost/Zeitung.AppHost.csproj -- --IncludeFrontend=false
+```
 
 ## Building
 
@@ -24,6 +52,16 @@ Run with Aspire AppHost (recommended):
 ```bash
 dotnet run --project Zeitung.AppHost/Zeitung.AppHost.csproj
 ```
+
+This will start all services including:
+- PostgreSQL database
+- Redis cache
+- Elasticsearch
+- Backend API
+- Worker service
+- **Frontend** (Nuxt.js app on development mode)
+
+The frontend is automatically included when running locally. To disable it, set `IncludeFrontend=false` in configuration.
 
 Or run API directly:
 ```bash
@@ -45,6 +83,21 @@ Run only worker tests:
 ```bash
 dotnet test Zeitung.Worker.Tests/Zeitung.Worker.Tests.csproj
 ```
+
+Run integration tests (excludes frontend to avoid npm overhead):
+```bash
+dotnet test Zeitung.sln --filter "TestCategory=IntegrationTest"
+```
+
+### Frontend in CI/CD
+
+The frontend npm/Nuxt.js app is integrated into Aspire for local development but **excluded in CI/CD tests** to avoid npm installation overhead during C# integration tests. This is controlled by:
+
+- `appsettings.ci.json` sets `IncludeFrontend: false`
+- Integration tests use `--environment=ci` flag
+- In local development, frontend runs via `npm run dev` with automatic package installation
+
+For production deployments, use `npm ci --frozen-lockfile` in the Dockerfile to ensure exact dependency versions.
 
 ## RSS Feed Worker
 
