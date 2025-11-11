@@ -52,7 +52,7 @@
           variant="subtle"
           size="xs"
         >
-          <Icon name="heroicons:hashtag-20-solid" class="w-3 h-3" />
+          <UIcon name="i-heroicons-hashtag-20-solid" class="w-3 h-3 inline" />
           {{ tag.name }}
           <span v-if="showConfidence" class="ml-1 opacity-60 text-xs">
             {{ Math.round(tag.confidence * 100) }}%
@@ -94,12 +94,12 @@
         </div>
 
         <UButton
+          trailing-icon="i-heroicons-arrow-right-20-solid"
           size="sm"
           color="primary"
           @click="handleRead"
         >
           Read Article
-          <Icon name="heroicons:arrow-right-20-solid" class="w-4 h-4" />
         </UButton>
       </div>
     </div>

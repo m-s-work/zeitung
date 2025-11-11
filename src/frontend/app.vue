@@ -6,7 +6,7 @@
         <nav class="flex items-center justify-between h-16">
           <!-- Logo and Brand -->
           <NuxtLink to="/" class="flex items-center gap-2 hover:opacity-80 transition-opacity">
-            <Icon name="heroicons:newspaper" class="w-7 h-7 text-primary-500" />
+            <UIcon name="i-heroicons-newspaper" class="w-7 h-7 text-primary-500" />
             <span class="text-xl font-bold bg-gradient-to-r from-primary-500 to-primary-600 dark:from-primary-400 dark:to-primary-500 bg-clip-text text-transparent">
               Zeitung
             </span>
@@ -16,29 +16,29 @@
           <div class="hidden md:flex items-center gap-2">
             <UButton
               to="/"
+              icon="i-heroicons-newspaper-20-solid"
               variant="ghost"
               color="gray"
               size="sm"
             >
-              <Icon name="heroicons:newspaper-20-solid" class="w-4 h-4" />
               Articles
             </UButton>
             <UButton
               to="/feeds"
+              icon="i-heroicons-rss-20-solid"
               variant="ghost"
               color="gray"
               size="sm"
             >
-              <Icon name="heroicons:rss-20-solid" class="w-4 h-4" />
               Feeds
             </UButton>
             <UButton
               to="/tags"
+              icon="i-heroicons-tag-20-solid"
               variant="ghost"
               color="gray"
               size="sm"
             >
-              <Icon name="heroicons:tag-20-solid" class="w-4 h-4" />
               Tags
             </UButton>
             
@@ -83,32 +83,32 @@
         <div v-if="isMenuOpen" class="md:hidden pb-4 space-y-2">
           <UButton
             to="/"
+            icon="i-heroicons-newspaper-20-solid"
             block
             variant="ghost"
             color="gray"
             @click="isMenuOpen = false"
           >
-            <Icon name="heroicons:newspaper-20-solid" class="w-4 h-4" />
             Articles
           </UButton>
           <UButton
             to="/feeds"
+            icon="i-heroicons-rss-20-solid"
             block
             variant="ghost"
             color="gray"
             @click="isMenuOpen = false"
           >
-            <Icon name="heroicons:rss-20-solid" class="w-4 h-4" />
             Feeds
           </UButton>
           <UButton
             to="/tags"
+            icon="i-heroicons-tag-20-solid"
             block
             variant="ghost"
             color="gray"
             @click="isMenuOpen = false"
           >
-            <Icon name="heroicons:tag-20-solid" class="w-4 h-4" />
             Tags
           </UButton>
         </div>
@@ -125,7 +125,7 @@
       <UContainer class="py-8">
         <div class="flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-gray-600 dark:text-gray-400">
           <div class="flex items-center gap-2">
-            <Icon name="heroicons:newspaper" class="w-5 h-5" />
+            <UIcon name="i-heroicons-newspaper" class="w-5 h-5" />
             <span class="font-medium">Zeitung RSS Reader</span>
           </div>
           <p>Smart RSS reader with AI-powered recommendations</p>

@@ -54,7 +54,7 @@
         <UCard v-else class="border-2 border-dashed border-gray-300 dark:border-gray-700">
           <div class="text-center py-20">
             <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-primary-100 dark:bg-primary-900/30 mb-6">
-              <Icon name="heroicons:newspaper" class="w-10 h-10 text-primary-600 dark:text-primary-400" />
+              <UIcon name="i-heroicons-newspaper" class="w-10 h-10 text-primary-600 dark:text-primary-400" />
             </div>
             <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-3">
               No articles yet
@@ -62,8 +62,7 @@
             <p class="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
               Get started by adding some RSS feeds to begin reading personalized articles
             </p>
-            <UButton to="/feeds" color="primary" size="lg">
-              <Icon name="heroicons:plus-20-solid" class="w-5 h-5" />
+            <UButton to="/feeds" color="primary" size="lg" icon="i-heroicons-plus-20-solid">
               Add Your First Feed
             </UButton>
           </div>
