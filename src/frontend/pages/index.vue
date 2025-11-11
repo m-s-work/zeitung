@@ -1,41 +1,20 @@
 <template>
-  <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
+  <div class="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
     <UContainer class="py-8">
-      <div class="space-y-6">
-        <!-- Header -->
-        <div class="flex items-center justify-between">
-          <div>
-            <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
-              Zeitung Feed Reader
-            </h1>
-            <p class="mt-1 text-gray-600 dark:text-gray-400">
-              Smart RSS reader with AI-powered recommendations
-            </p>
-          </div>
-
-          <div class="flex gap-2">
-            <UButton
-              to="/feeds"
-              icon="i-heroicons-rss"
-              color="gray"
-              variant="soft"
-            >
-              Manage Feeds
-            </UButton>
-            <UButton
-              to="/tags"
-              icon="i-heroicons-tag"
-              color="gray"
-              variant="soft"
-            >
-              Tag Preferences
-            </UButton>
-          </div>
+      <div class="space-y-8">
+        <!-- Hero Section -->
+        <div class="text-center max-w-3xl mx-auto space-y-4">
+          <h1 class="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-primary-600 to-primary-900 dark:from-primary-400 dark:to-primary-600 bg-clip-text text-transparent">
+            Your Personalized Feed
+          </h1>
+          <p class="text-lg text-gray-600 dark:text-gray-400">
+            Discover articles tailored to your interests with AI-powered recommendations
+          </p>
         </div>
 
         <!-- Loading State -->
-        <div v-if="pending" class="space-y-4">
-          <USkeleton v-for="i in 3" :key="i" class="h-48" />
+        <div v-if="pending" class="space-y-4 max-w-4xl mx-auto">
+          <USkeleton v-for="i in 3" :key="i" class="h-64 rounded-xl" />
         </div>
 
         <!-- Error State -->
@@ -45,10 +24,12 @@
           variant="soft"
           title="Failed to load articles"
           :description="error.message"
+          icon="i-heroicons-exclamation-circle"
+          class="max-w-4xl mx-auto"
         />
 
         <!-- Articles List -->
-        <div v-else-if="articles.length > 0" class="space-y-4">
+        <div v-else-if="articles.length > 0" class="space-y-6 max-w-4xl mx-auto">
           <ArticleCard
             v-for="article in articles"
             :key="article.id"
@@ -61,27 +42,30 @@
           />
 
           <!-- Pagination -->
-          <div v-if="totalPages > 1" class="flex justify-center pt-4">
+          <div v-if="totalPages > 1" class="flex justify-center pt-6">
             <UPagination
               v-model="currentPage"
               :total="totalArticles"
               :page-count="pageSize"
+              :ui="{ rounded: 'rounded-full' }"
             />
           </div>
         </div>
 
         <!-- Empty State -->
-        <UCard v-else>
-          <div class="text-center py-12">
-            <UIcon name="i-heroicons-newspaper" class="w-16 h-16 mx-auto text-gray-400 mb-4" />
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+        <UCard v-else class="max-w-2xl mx-auto shadow-lg">
+          <div class="text-center py-16">
+            <div class="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-primary-100 to-primary-200 dark:from-primary-900/30 dark:to-primary-800/30 flex items-center justify-center">
+              <UIcon name="i-heroicons-newspaper" class="w-12 h-12 text-primary-600 dark:text-primary-400" />
+            </div>
+            <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-3">
               No articles yet
             </h3>
-            <p class="text-gray-600 dark:text-gray-400 mb-4">
-              Add some feeds to start reading articles
+            <p class="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
+              Start your reading journey by adding some RSS feeds to discover interesting content
             </p>
-            <UButton to="/feeds" color="primary">
-              Add Feeds
+            <UButton to="/feeds" color="primary" size="lg" icon="i-heroicons-plus">
+              Add Your First Feed
             </UButton>
           </div>
         </UCard>

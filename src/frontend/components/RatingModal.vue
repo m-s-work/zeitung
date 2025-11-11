@@ -1,9 +1,9 @@
 <template>
-  <UModal v-model="isOpen" :ui="{ width: 'max-w-md' }">
-    <UCard>
+  <UModal v-model="isOpen" :ui="{ width: 'sm:max-w-md' }">
+    <UCard :ui="{ rounded: 'rounded-2xl' }">
       <template #header>
         <div class="flex items-center justify-between">
-          <h3 class="text-lg font-semibold">Rate This Article</h3>
+          <h3 class="text-xl font-bold text-gray-900 dark:text-white">Rate This Article</h3>
           <UButton
             color="gray"
             variant="ghost"
@@ -13,27 +13,32 @@
         </div>
       </template>
 
-      <div class="space-y-4">
+      <div class="space-y-6">
         <div>
-          <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">
-            You spent {{ formatReadingTime(readingTime) }} reading this article.
+          <div class="flex items-center justify-center gap-2 mb-4 text-sm text-gray-600 dark:text-gray-400">
+            <UIcon name="i-heroicons-clock" class="w-4 h-4" />
+            <p>
+              You spent <span class="font-semibold text-primary-600 dark:text-primary-400">{{ formatReadingTime(readingTime) }}</span> reading
+            </p>
+          </div>
+          <p class="text-center text-base font-medium text-gray-900 dark:text-white mb-4">
+            How would you rate it?
           </p>
-          <p class="text-sm font-medium mb-2">How would you rate it?</p>
           
           <!-- Star Rating -->
-          <div class="flex gap-2 justify-center py-4">
+          <div class="flex gap-3 justify-center py-6">
             <button
               v-for="star in 5"
               :key="star"
               @click="rating = star"
               @mouseenter="hoverRating = star"
               @mouseleave="hoverRating = 0"
-              class="transition-transform hover:scale-110"
+              class="transition-all duration-200 hover:scale-125 focus:outline-none focus:ring-2 focus:ring-primary-500 rounded-full"
             >
               <UIcon
-                name="i-heroicons-star"
+                :name="(hoverRating || rating) >= star ? 'i-heroicons-star-solid' : 'i-heroicons-star'"
                 :class="[
-                  'w-10 h-10',
+                  'w-12 h-12 transition-colors',
                   (hoverRating || rating) >= star
                     ? 'text-yellow-400'
                     : 'text-gray-300 dark:text-gray-600'
@@ -42,20 +47,26 @@
             </button>
           </div>
 
-          <div class="text-center text-sm text-gray-600 dark:text-gray-400">
-            <template v-if="rating === 0">Select a rating</template>
-            <template v-else-if="rating === 1">Poor</template>
-            <template v-else-if="rating === 2">Fair</template>
-            <template v-else-if="rating === 3">Good</template>
-            <template v-else-if="rating === 4">Very Good</template>
-            <template v-else-if="rating === 5">Excellent</template>
+          <div class="text-center">
+            <UBadge
+              :color="rating > 3 ? 'green' : rating > 0 ? 'amber' : 'gray'"
+              variant="soft"
+              size="lg"
+            >
+              <template v-if="rating === 0">Select a rating</template>
+              <template v-else-if="rating === 1">Poor</template>
+              <template v-else-if="rating === 2">Fair</template>
+              <template v-else-if="rating === 3">Good</template>
+              <template v-else-if="rating === 4">Very Good</template>
+              <template v-else-if="rating === 5">Excellent</template>
+            </UBadge>
           </div>
         </div>
       </div>
 
       <template #footer>
-        <div class="flex justify-end gap-2">
-          <UButton color="gray" variant="ghost" @click="close">
+        <div class="flex justify-end gap-3">
+          <UButton color="gray" variant="ghost" @click="close" size="lg">
             Skip
           </UButton>
           <UButton 
@@ -63,6 +74,8 @@
             @click="submitRating"
             :disabled="rating === 0"
             :loading="submitting"
+            size="lg"
+            icon="i-heroicons-check"
           >
             Submit Rating
           </UButton>

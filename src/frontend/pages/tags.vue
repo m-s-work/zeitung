@@ -1,61 +1,73 @@
 <template>
-  <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
+  <div class="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
     <UContainer class="py-8">
-      <div class="space-y-6">
+      <div class="space-y-8">
         <!-- Header -->
-        <div>
-          <UButton
-            to="/"
-            icon="i-heroicons-arrow-left"
-            color="gray"
-            variant="ghost"
-            size="sm"
-            class="mb-2"
-          >
-            Back to Articles
-          </UButton>
-          <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
+        <div class="max-w-4xl mx-auto">
+          <div class="flex items-center gap-3 mb-4">
+            <UButton
+              to="/"
+              icon="i-heroicons-arrow-left"
+              color="gray"
+              variant="ghost"
+              size="sm"
+            >
+              <span class="hidden sm:inline">Back</span>
+            </UButton>
+          </div>
+          <h1 class="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-primary-600 to-primary-900 dark:from-primary-400 dark:to-primary-600 bg-clip-text text-transparent">
             Tag Preferences
           </h1>
-          <p class="mt-1 text-gray-600 dark:text-gray-400">
-            Manage your interests and improve recommendations
+          <p class="mt-2 text-gray-600 dark:text-gray-400">
+            Customize your interests to receive better article recommendations
           </p>
         </div>
 
         <!-- User Tag Stats -->
-        <UCard v-if="!loadingUserTags && userTags.length > 0">
+        <UCard v-if="!loadingUserTags && userTags.length > 0" class="max-w-4xl mx-auto shadow-lg" :ui="{ rounded: 'rounded-xl' }">
           <template #header>
-            <h3 class="text-lg font-semibold">Your Tag Interests</h3>
+            <div class="flex items-center gap-2">
+              <UIcon name="i-heroicons-star" class="w-5 h-5 text-primary-500" />
+              <h3 class="text-lg font-bold">Your Tag Interests</h3>
+            </div>
           </template>
 
-          <div class="space-y-4">
+          <div class="space-y-3">
             <div
               v-for="tag in userTags"
               :key="tag.tagId"
-              class="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-800"
+              class="flex items-center justify-between p-4 rounded-lg bg-gray-50 dark:bg-gray-800/50 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
             >
               <div class="flex-1">
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-3 flex-wrap">
                   <UBadge
                     :color="getInteractionColor(tag.interactionType)"
                     variant="soft"
+                    size="md"
                   >
+                    <UIcon name="i-heroicons-hashtag" class="w-3 h-3" />
                     {{ tag.tagName }}
                   </UBadge>
-                  <span class="text-xs text-gray-500">
+                  <span class="text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wide">
                     {{ tag.interactionType }}
                   </span>
                 </div>
-                <div class="mt-1 text-xs text-gray-500">
-                  Score: {{ tag.score.toFixed(2) }} • 
-                  Interactions: {{ tag.interactionCount }}
+                <div class="mt-2 flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
+                  <span class="flex items-center gap-1">
+                    <UIcon name="i-heroicons-chart-bar" class="w-3 h-3" />
+                    Score: {{ tag.score.toFixed(2) }}
+                  </span>
+                  <span class="flex items-center gap-1">
+                    <UIcon name="i-heroicons-cursor-arrow-ripple" class="w-3 h-3" />
+                    {{ tag.interactionCount }} interactions
+                  </span>
                 </div>
               </div>
 
               <UButton
                 v-if="tag.interactionType !== 'Ignored'"
                 icon="i-heroicons-x-mark"
-                size="xs"
+                size="sm"
                 color="red"
                 variant="ghost"
                 @click="handleIgnoreTag(tag.tagId)"
@@ -65,34 +77,39 @@
         </UCard>
 
         <!-- All Tags -->
-        <UCard>
+        <UCard class="max-w-4xl mx-auto shadow-lg" :ui="{ rounded: 'rounded-xl' }">
           <template #header>
-            <div class="flex items-center justify-between">
-              <h3 class="text-lg font-semibold">All Tags</h3>
+            <div class="flex items-center justify-between gap-4 flex-wrap">
+              <div class="flex items-center gap-2">
+                <UIcon name="i-heroicons-tag" class="w-5 h-5 text-primary-500" />
+                <h3 class="text-lg font-bold">All Tags</h3>
+              </div>
               <UInput
                 v-model="searchQuery"
                 placeholder="Search tags..."
                 icon="i-heroicons-magnifying-glass"
-                size="sm"
+                size="md"
+                class="w-full sm:w-64"
               />
             </div>
           </template>
 
-          <div v-if="loadingTags" class="space-y-2">
-            <USkeleton v-for="i in 10" :key="i" class="h-10" />
+          <div v-if="loadingTags" class="space-y-3">
+            <USkeleton v-for="i in 10" :key="i" class="h-16 rounded-lg" />
           </div>
 
           <div v-else-if="filteredTags.length > 0" class="space-y-2">
             <div
               v-for="tag in paginatedTags"
               :key="tag.id"
-              class="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+              class="flex items-center justify-between p-4 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-all duration-200 group"
             >
-              <div class="flex items-center gap-3">
-                <UBadge color="gray" variant="soft">
+              <div class="flex items-center gap-4">
+                <UBadge color="gray" variant="soft" size="md">
+                  <UIcon name="i-heroicons-hashtag" class="w-3 h-3" />
                   {{ tag.name }}
                 </UBadge>
-                <span class="text-xs text-gray-500">
+                <span class="text-sm text-gray-500 dark:text-gray-400">
                   {{ tag.usageCount }} articles
                 </span>
               </div>
@@ -100,39 +117,41 @@
               <div class="flex gap-2">
                 <UButton
                   icon="i-heroicons-heart"
-                  size="xs"
+                  size="sm"
                   :color="isTagInterested(tag.id) ? 'primary' : 'gray'"
-                  variant="soft"
+                  :variant="isTagInterested(tag.id) ? 'soft' : 'ghost'"
                   @click="handleMarkInterested(tag.id)"
                   :loading="actionLoading === tag.id"
                 >
-                  Interested
+                  <span class="hidden sm:inline">Interested</span>
                 </UButton>
                 <UButton
                   icon="i-heroicons-x-mark"
-                  size="xs"
+                  size="sm"
                   :color="isTagIgnored(tag.id) ? 'red' : 'gray'"
-                  variant="soft"
+                  :variant="isTagIgnored(tag.id) ? 'soft' : 'ghost'"
                   @click="handleMarkIgnored(tag.id)"
                   :loading="actionLoading === tag.id"
                 >
-                  Ignore
+                  <span class="hidden sm:inline">Ignore</span>
                 </UButton>
               </div>
             </div>
 
             <!-- Pagination -->
-            <div v-if="totalTagPages > 1" class="flex justify-center pt-4">
+            <div v-if="totalTagPages > 1" class="flex justify-center pt-6">
               <UPagination
                 v-model="currentTagPage"
                 :total="filteredTags.length"
                 :page-count="tagsPerPage"
+                :ui="{ rounded: 'rounded-full' }"
               />
             </div>
           </div>
 
-          <div v-else class="text-center py-8 text-gray-500">
-            No tags found
+          <div v-else class="text-center py-12">
+            <UIcon name="i-heroicons-magnifying-glass" class="w-12 h-12 mx-auto text-gray-400 mb-3" />
+            <p class="text-gray-500 dark:text-gray-400">No tags found</p>
           </div>
         </UCard>
       </div>

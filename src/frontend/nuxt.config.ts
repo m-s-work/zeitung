@@ -15,4 +15,12 @@ export default defineNuxtConfig({
       apiBase: process.env.API_BASE_URL || 'http://localhost:8080',
     },
   },
+  colorMode: {
+    preference: 'dark', // default dark mode
+    fallback: 'dark',
+  },
+  ui: {
+    primary: 'blue',
+    gray: 'slate',
+  },
 })

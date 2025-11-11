@@ -1,118 +1,139 @@
 <template>
-  <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
+  <div class="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
     <UContainer class="py-8">
-      <div class="space-y-6">
+      <div class="space-y-8">
         <!-- Header -->
-        <div class="flex items-center justify-between">
-          <div>
-            <UButton
-              to="/"
-              icon="i-heroicons-arrow-left"
-              color="gray"
-              variant="ghost"
-              size="sm"
-              class="mb-2"
-            >
-              Back to Articles
-            </UButton>
-            <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
-              Feed Management
-            </h1>
-            <p class="mt-1 text-gray-600 dark:text-gray-400">
-              Manage your RSS feed subscriptions
-            </p>
-          </div>
+        <div class="max-w-4xl mx-auto">
+          <div class="flex items-start justify-between gap-4 flex-wrap">
+            <div class="flex-1">
+              <div class="flex items-center gap-3 mb-4">
+                <UButton
+                  to="/"
+                  icon="i-heroicons-arrow-left"
+                  color="gray"
+                  variant="ghost"
+                  size="sm"
+                >
+                  <span class="hidden sm:inline">Back</span>
+                </UButton>
+              </div>
+              <h1 class="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-primary-600 to-primary-900 dark:from-primary-400 dark:to-primary-600 bg-clip-text text-transparent">
+                Feed Management
+              </h1>
+              <p class="mt-2 text-gray-600 dark:text-gray-400">
+                Manage your RSS feed subscriptions and discover new content
+              </p>
+            </div>
 
-          <UButton
-            icon="i-heroicons-plus"
-            color="primary"
-            @click="showAddModal = true"
-          >
-            Add Feed
-          </UButton>
+            <UButton
+              icon="i-heroicons-plus"
+              color="primary"
+              size="lg"
+              class="shadow-lg"
+              @click="showAddModal = true"
+            >
+              Add Feed
+            </UButton>
+          </div>
         </div>
 
         <!-- Tabs -->
-        <UTabs v-model="activeTab" :items="tabs">
-          <!-- My Feeds -->
-          <template #feeds>
-            <div v-if="loadingFeeds" class="space-y-4 pt-4">
-              <USkeleton v-for="i in 3" :key="i" class="h-32" />
-            </div>
-
-            <div v-else-if="myFeeds.length > 0" class="space-y-4 pt-4">
-              <FeedCard
-                v-for="feed in myFeeds"
-                :key="feed.id"
-                :feed="feed"
-                :can-promote="false"
-                :loading="actionLoading === feed.id"
-                @unsubscribe="handleUnsubscribe"
-                @delete="handleDelete"
-              />
-            </div>
-
-            <UCard v-else class="mt-4">
-              <div class="text-center py-12">
-                <UIcon name="i-heroicons-rss" class="w-16 h-16 mx-auto text-gray-400 mb-4" />
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                  No feeds yet
-                </h3>
-                <p class="text-gray-600 dark:text-gray-400 mb-4">
-                  Start by adding your first feed
-                </p>
-                <UButton color="primary" @click="showAddModal = true">
-                  Add Feed
-                </UButton>
+        <div class="max-w-4xl mx-auto">
+          <UTabs v-model="activeTab" :items="tabs" class="w-full">
+            <!-- My Feeds -->
+            <template #feeds>
+              <div v-if="loadingFeeds" class="space-y-4 pt-6">
+                <USkeleton v-for="i in 3" :key="i" class="h-40 rounded-xl" />
               </div>
-            </UCard>
-          </template>
 
-          <!-- Recommendations -->
-          <template #recommendations>
-            <div v-if="loadingRecommendations" class="space-y-4 pt-4">
-              <USkeleton v-for="i in 3" :key="i" class="h-32" />
-            </div>
-
-            <div v-else-if="recommendations.length > 0" class="space-y-4 pt-4">
-              <FeedCard
-                v-for="feed in recommendations"
-                :key="feed.id"
-                :feed="feed"
-                :is-recommendation="true"
-                :loading="actionLoading === feed.id"
-                @subscribe="handleSubscribe"
-              />
-            </div>
-
-            <UCard v-else class="mt-4">
-              <div class="text-center py-12">
-                <UIcon name="i-heroicons-light-bulb" class="w-16 h-16 mx-auto text-gray-400 mb-4" />
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                  No recommendations yet
-                </h3>
-                <p class="text-gray-600 dark:text-gray-400">
-                  Add some feeds and like articles to get personalized recommendations
-                </p>
+              <div v-else-if="myFeeds.length > 0" class="space-y-4 pt-6">
+                <FeedCard
+                  v-for="feed in myFeeds"
+                  :key="feed.id"
+                  :feed="feed"
+                  :can-promote="false"
+                  :loading="actionLoading === feed.id"
+                  @unsubscribe="handleUnsubscribe"
+                  @delete="handleDelete"
+                />
               </div>
-            </UCard>
-          </template>
-        </UTabs>
+
+              <UCard v-else class="mt-6 shadow-lg">
+                <div class="text-center py-16">
+                  <div class="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-primary-100 to-primary-200 dark:from-primary-900/30 dark:to-primary-800/30 flex items-center justify-center">
+                    <UIcon name="i-heroicons-rss" class="w-10 h-10 text-primary-600 dark:text-primary-400" />
+                  </div>
+                  <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-3">
+                    No feeds yet
+                  </h3>
+                  <p class="text-gray-600 dark:text-gray-400 mb-6">
+                    Start by adding your first RSS feed to begin reading
+                  </p>
+                  <UButton color="primary" size="lg" icon="i-heroicons-plus" @click="showAddModal = true">
+                    Add Your First Feed
+                  </UButton>
+                </div>
+              </UCard>
+            </template>
+
+            <!-- Recommendations -->
+            <template #recommendations>
+              <div v-if="loadingRecommendations" class="space-y-4 pt-6">
+                <USkeleton v-for="i in 3" :key="i" class="h-40 rounded-xl" />
+              </div>
+
+              <div v-else-if="recommendations.length > 0" class="space-y-4 pt-6">
+                <FeedCard
+                  v-for="feed in recommendations"
+                  :key="feed.id"
+                  :feed="feed"
+                  :is-recommendation="true"
+                  :loading="actionLoading === feed.id"
+                  @subscribe="handleSubscribe"
+                />
+              </div>
+
+              <UCard v-else class="mt-6 shadow-lg">
+                <div class="text-center py-16">
+                  <div class="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-amber-100 to-amber-200 dark:from-amber-900/30 dark:to-amber-800/30 flex items-center justify-center">
+                    <UIcon name="i-heroicons-light-bulb" class="w-10 h-10 text-amber-600 dark:text-amber-400" />
+                  </div>
+                  <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-3">
+                    No recommendations yet
+                  </h3>
+                  <p class="text-gray-600 dark:text-gray-400">
+                    Add some feeds and interact with articles to receive personalized recommendations
+                  </p>
+                </div>
+              </UCard>
+            </template>
+          </UTabs>
+        </div>
       </div>
 
       <!-- Add Feed Modal -->
-      <UModal v-model="showAddModal">
+      <UModal v-model="showAddModal" :ui="{ width: 'sm:max-w-md' }">
         <UCard>
           <template #header>
-            <h3 class="text-lg font-semibold">Add New Feed</h3>
+            <div class="flex items-center justify-between">
+              <h3 class="text-xl font-bold text-gray-900 dark:text-white">Add New Feed</h3>
+              <UButton
+                color="gray"
+                variant="ghost"
+                icon="i-heroicons-x-mark"
+                @click="showAddModal = false"
+              />
+            </div>
           </template>
 
-          <div class="space-y-4">
+          <div class="space-y-5">
             <UFormGroup label="Feed URL" required>
               <UInput
                 v-model="newFeed.url"
                 placeholder="https://example.com/feed.xml"
                 type="url"
+                size="lg"
+                icon="i-heroicons-link"
               />
             </UFormGroup>
 
@@ -120,6 +141,8 @@
               <UInput
                 v-model="newFeed.name"
                 placeholder="My Awesome Blog"
+                size="lg"
+                icon="i-heroicons-pencil"
               />
             </UFormGroup>
 
@@ -133,7 +156,7 @@
           </div>
 
           <template #footer>
-            <div class="flex justify-end gap-2">
+            <div class="flex justify-end gap-3">
               <UButton color="gray" variant="ghost" @click="showAddModal = false">
                 Cancel
               </UButton>
@@ -142,6 +165,7 @@
                 @click="handleAddFeed"
                 :loading="adding"
                 :disabled="!newFeed.url || !newFeed.name"
+                size="lg"
               >
                 Add Feed
               </UButton>
