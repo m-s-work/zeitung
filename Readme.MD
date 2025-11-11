@@ -1,6 +1,14 @@
 # Smart RSS Feed Reader
 
+Zeitung is an intelligent RSS feed reader that uses AI to tag and recommend articles based on user interests.
 
+## Platforms
+
+- **Web**: Nuxt 4 frontend with .NET backend
+- **Desktop**: Native Windows and Linux apps via Tauri 2
+- **Mobile**: Android app via Tauri 2
+
+See [docs/tauri-setup.md](docs/tauri-setup.md) for desktop and mobile app development.
 
 
 # How it works
@@ -33,5 +41,17 @@ There should be a "summary" of the tags. Here the decay is factored in. The TagS
 
 ## Architecture
 
-The system consists of a c# backend and a nuxt frontend. For ingesting feeds we use a separate worker service.
-As database we use postgresql, cache is redis, recommendation is based on elasticsearch (or/and maybe and vector DB).
+The system consists of a C# backend and a Nuxt frontend. For ingesting feeds we use a separate worker service.
+As database we use PostgreSQL, cache is Redis, recommendation is based on Elasticsearch (or/and maybe a vector DB).
+
+### Desktop and Mobile Apps
+
+Desktop and mobile applications are built using [Tauri v2](https://v2.tauri.app), which bundles the Nuxt frontend with a native Rust backend. This provides:
+- Native performance and small binary sizes
+- Cross-platform support (Windows, Linux, Android)
+- Local-first capabilities with optional backend sync
+- Access to native OS features
+
+For more details, see:
+- [Tauri Setup Guide](docs/tauri-setup.md)
+- [C# Integration Analysis](docs/csharp-integration.md)
