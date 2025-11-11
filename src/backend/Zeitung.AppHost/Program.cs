@@ -7,6 +7,9 @@ var builder = DistributedApplication.CreateBuilder(args);
 // Check if running in CI environment
 var isCI = builder.Configuration.GetValue<bool>("CI");
 
+// Check if frontend should be included (disabled in CI by default)
+var includeFrontend = builder.Configuration.GetValue<bool>("IncludeFrontend", !isCI);
+
 // Add external services (RSS feeds and OpenRouter)
 // These are used by the worker to know when external dependencies are available
 var bbcNews = builder.AddExternalService("bbc-news", "http://feeds.bbci.co.uk")
@@ -98,6 +101,23 @@ if (!isCI)
         .WithReference(golem)
         .WithReference(orf)
         .WithReference(openRouter);
+}
+
+// Add the frontend npm app if not in CI mode
+// In CI/CD tests, we skip the frontend to avoid npm install overhead in C# integration tests
+if (includeFrontend)
+{
+    // Get the path to the frontend directory (relative to AppHost or absolute)
+    var frontendPath = Path.Combine("..", "..", "..", "frontend");
+    
+    var frontend = builder.AddNpmApp("frontend", frontendPath, "dev")
+        .WithHttpEndpoint(env: "PORT")
+        .WithExternalHttpEndpoints()
+        .WithReference(api)
+        .WithNpmPackageInstallation(); // Ensures npm install is run before starting
+    
+    // Note: For production deployments, use npm ci with --frozen-lockfile in the Dockerfile
+    // to ensure exact dependency versions. This is handled outside of Aspire.
 }
 
 builder.Build().Run();
