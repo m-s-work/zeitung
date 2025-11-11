@@ -3,9 +3,21 @@ import { defineConfig, devices } from '@playwright/test';
 /**
  * Playwright Test Configuration for Zeitung Frontend
  * 
- * IMPORTANT: This configuration uses the system Chrome/Chromium browser.
- * This is required for GitHub Copilot agent mode and CI environments.
- * Ensure Chrome/Chromium is installed on your system before running tests.
+ * BROWSER CONFIGURATION:
+ * =====================
+ * 
+ * Local Development / Agent Mode:
+ * - Uses Playwright-managed Chromium browser
+ * - Install with: npm run test:e2e:install
+ * - Browser is downloaded to ~/.cache/ms-playwright/
+ * 
+ * CI/CD Mode (GitHub Actions):
+ * - Uses pre-installed Chrome from the runner OS
+ * - No browser installation required (faster pipeline)
+ * - GitHub Actions ubuntu-latest includes Chrome
+ * - Set CI=true environment variable
+ * - Automatically retries failed tests (2 retries)
+ * - Runs tests serially (workers: 1) for stability
  * 
  * See https://playwright.dev/docs/test-configuration.
  */
@@ -39,10 +51,9 @@ export default defineConfig({
       name: 'chromium',
       use: { 
         ...devices['Desktop Chrome'],
-        // IMPORTANT: Use system Chrome/Chromium instead of downloading Playwright browsers.
-        // This is required for GitHub Copilot agent mode and CI environments.
-        // Install Chrome: https://www.google.com/chrome/ or `apt-get install chromium-browser`
-        channel: 'chrome',
+        // In CI/CD: Use system Chrome (pre-installed on GitHub Actions runners)
+        // Locally: Use Playwright-managed Chromium (install with npm run test:e2e:install)
+        ...(process.env.CI && { channel: 'chrome' }),
       },
     },
   ],
