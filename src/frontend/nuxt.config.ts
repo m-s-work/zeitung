@@ -16,7 +16,10 @@ export default defineNuxtConfig({
     },
   },
   colorMode: {
-    preference: 'dark', // default value of $colorMode.preference
-    fallback: 'dark', // fallback value if not system preference found
+    preference: 'dark',
+    fallback: 'dark',
   },
+  ui: {
+    icons: ['heroicons']
+  }
 })
