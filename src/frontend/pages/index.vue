@@ -1,64 +1,46 @@
 <template>
-  <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
-    <UContainer class="py-8">
-      <div class="space-y-6">
-        <!-- Header -->
-        <div class="flex items-center justify-between">
-          <div>
-            <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
-              Zeitung Feed Reader
-            </h1>
-            <p class="mt-1 text-gray-600 dark:text-gray-400">
-              Smart RSS reader with AI-powered recommendations
-            </p>
-          </div>
-
-          <div class="flex gap-2">
-            <UButton
-              to="/feeds"
-              icon="i-heroicons-rss"
-              color="gray"
-              variant="soft"
-            >
-              Manage Feeds
-            </UButton>
-            <UButton
-              to="/tags"
-              icon="i-heroicons-tag"
-              color="gray"
-              variant="soft"
-            >
-              Tag Preferences
-            </UButton>
-          </div>
+  <div class="min-h-screen">
+    <UContainer class="py-6 md:py-10">
+      <div class="space-y-6 md:space-y-8">
+        <!-- Hero Section -->
+        <div class="text-center md:text-left space-y-3">
+          <h1 class="text-3xl md:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
+            Your Personalized Feed
+          </h1>
+          <p class="text-base md:text-lg text-gray-600 dark:text-gray-400 max-w-2xl">
+            Discover articles tailored to your interests with AI-powered recommendations
+          </p>
         </div>
 
         <!-- Loading State -->
-        <div v-if="pending" class="space-y-4">
-          <USkeleton v-for="i in 3" :key="i" class="h-48" />
+        <div v-if="pending" class="grid grid-cols-1 gap-4 md:gap-6">
+          <USkeleton v-for="i in 3" :key="i" class="h-56 md:h-64 rounded-xl" />
         </div>
 
         <!-- Error State -->
         <UAlert
           v-else-if="error"
           color="red"
-          variant="soft"
+          variant="subtle"
           title="Failed to load articles"
           :description="error.message"
+          icon="i-heroicons-exclamation-triangle"
         />
 
-        <!-- Articles List -->
-        <div v-else-if="articles.length > 0" class="space-y-4">
-          <ArticleCard
-            v-for="article in articles"
-            :key="article.id"
-            :article="article"
-            :show-confidence="true"
-            @like="handleLike"
-            @vote="handleVote"
-            @click="handleClick"
-            @read="handleRead"
-          />
+        <!-- Articles Grid -->
+        <div v-else-if="articles.length > 0" class="space-y-6">
+          <div class="grid grid-cols-1 gap-4 md:gap-6">
+            <ArticleCard
+              v-for="article in articles"
+              :key="article.id"
+              :article="article"
+              :show-confidence="true"
+              @like="handleLike"
+              @vote="handleVote"
+              @click="handleClick"
+              @read="handleRead"
+            />
+          </div>
 
           <!-- Pagination -->
           <div v-if="totalPages > 1" class="flex justify-center pt-4">
@@ -66,22 +48,32 @@
               v-model="currentPage"
               :total="totalArticles"
               :page-count="pageSize"
+              :ui="{
+                rounded: 'rounded-full',
+                default: {
+                  activeButton: {
+                    variant: 'solid'
+                  }
+                }
+              }"
             />
           </div>
         </div>
 
         <!-- Empty State -->
-        <UCard v-else>
-          <div class="text-center py-12">
-            <UIcon name="i-heroicons-newspaper" class="w-16 h-16 mx-auto text-gray-400 mb-4" />
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+        <UCard v-else class="border-2 border-dashed border-gray-300 dark:border-gray-700">
+          <div class="text-center py-16 md:py-20">
+            <div class="mb-6 inline-flex items-center justify-center w-20 h-20 rounded-full bg-primary-50 dark:bg-primary-900/20">
+              <UIcon name="i-heroicons-newspaper" class="w-10 h-10 text-primary-500" />
+            </div>
+            <h3 class="text-xl md:text-2xl font-semibold text-gray-900 dark:text-white mb-3">
               No articles yet
             </h3>
-            <p class="text-gray-600 dark:text-gray-400 mb-4">
-              Add some feeds to start reading articles
+            <p class="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
+              Get started by adding some RSS feeds to begin reading personalized articles
             </p>
-            <UButton to="/feeds" color="primary">
-              Add Feeds
+            <UButton to="/feeds" color="primary" size="lg" icon="i-heroicons-plus">
+              Add Your First Feed
             </UButton>
           </div>
         </UCard>
