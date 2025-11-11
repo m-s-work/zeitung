@@ -1,24 +1,14 @@
 <template>
-  <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
-    <UContainer class="py-8">
+  <div>
+    <UContainer class="py-6 md:py-8">
       <div class="space-y-6">
         <!-- Header -->
         <div class="flex items-center justify-between">
           <div>
-            <UButton
-              to="/"
-              icon="i-heroicons-arrow-left"
-              color="gray"
-              variant="ghost"
-              size="sm"
-              class="mb-2"
-            >
-              Back to Articles
-            </UButton>
-            <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
+            <h1 class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
               Feed Management
             </h1>
-            <p class="mt-1 text-gray-600 dark:text-gray-400">
+            <p class="mt-1 text-sm md:text-base text-gray-600 dark:text-gray-400">
               Manage your RSS feed subscriptions
             </p>
           </div>
@@ -26,9 +16,11 @@
           <UButton
             icon="i-heroicons-plus"
             color="primary"
+            size="lg"
             @click="showAddModal = true"
+            class="shadow-md"
           >
-            Add Feed
+            <span class="hidden sm:inline">Add Feed</span>
           </UButton>
         </div>
 
@@ -54,14 +46,16 @@
 
             <UCard v-else class="mt-4">
               <div class="text-center py-12">
-                <UIcon name="i-heroicons-rss" class="w-16 h-16 mx-auto text-gray-400 mb-4" />
+                <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-primary-100 to-primary-200 dark:from-primary-900 dark:to-primary-800 flex items-center justify-center">
+                  <UIcon name="i-heroicons-rss" class="w-10 h-10 text-primary-600 dark:text-primary-400" />
+                </div>
                 <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
                   No feeds yet
                 </h3>
                 <p class="text-gray-600 dark:text-gray-400 mb-4">
                   Start by adding your first feed
                 </p>
-                <UButton color="primary" @click="showAddModal = true">
+                <UButton color="primary" @click="showAddModal = true" icon="i-heroicons-plus">
                   Add Feed
                 </UButton>
               </div>
@@ -87,7 +81,9 @@
 
             <UCard v-else class="mt-4">
               <div class="text-center py-12">
-                <UIcon name="i-heroicons-light-bulb" class="w-16 h-16 mx-auto text-gray-400 mb-4" />
+                <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-amber-100 to-amber-200 dark:from-amber-900 dark:to-amber-800 flex items-center justify-center">
+                  <UIcon name="i-heroicons-light-bulb" class="w-10 h-10 text-amber-600 dark:text-amber-400" />
+                </div>
                 <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
                   No recommendations yet
                 </h3>

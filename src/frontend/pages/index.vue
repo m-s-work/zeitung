@@ -1,36 +1,15 @@
 <template>
-  <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
-    <UContainer class="py-8">
+  <div>
+    <UContainer class="py-6 md:py-8">
       <div class="space-y-6">
-        <!-- Header -->
-        <div class="flex items-center justify-between">
-          <div>
-            <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
-              Zeitung Feed Reader
-            </h1>
-            <p class="mt-1 text-gray-600 dark:text-gray-400">
-              Smart RSS reader with AI-powered recommendations
-            </p>
-          </div>
-
-          <div class="flex gap-2">
-            <UButton
-              to="/feeds"
-              icon="i-heroicons-rss"
-              color="gray"
-              variant="soft"
-            >
-              Manage Feeds
-            </UButton>
-            <UButton
-              to="/tags"
-              icon="i-heroicons-tag"
-              color="gray"
-              variant="soft"
-            >
-              Tag Preferences
-            </UButton>
-          </div>
+        <!-- Page Header -->
+        <div>
+          <h1 class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
+            Your Feed
+          </h1>
+          <p class="mt-1 text-sm md:text-base text-gray-600 dark:text-gray-400">
+            Discover articles tailored to your interests
+          </p>
         </div>
 
         <!-- Loading State -->
@@ -71,20 +50,22 @@
         </div>
 
         <!-- Empty State -->
-        <UCard v-else>
-          <div class="text-center py-12">
-            <UIcon name="i-heroicons-newspaper" class="w-16 h-16 mx-auto text-gray-400 mb-4" />
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-              No articles yet
+        <div v-else class="flex items-center justify-center min-h-[60vh]">
+          <div class="text-center max-w-md mx-auto px-4">
+            <div class="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-primary-100 to-primary-200 dark:from-primary-900 dark:to-primary-800 flex items-center justify-center">
+              <UIcon name="i-heroicons-newspaper" class="w-12 h-12 text-primary-600 dark:text-primary-400" />
+            </div>
+            <h3 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-white mb-3">
+              Your feed is empty
             </h3>
-            <p class="text-gray-600 dark:text-gray-400 mb-4">
-              Add some feeds to start reading articles
+            <p class="text-gray-600 dark:text-gray-400 mb-6">
+              Start your reading journey by adding some RSS feeds to follow
             </p>
-            <UButton to="/feeds" color="primary">
-              Add Feeds
+            <UButton to="/feeds" color="primary" size="lg" icon="i-heroicons-plus">
+              Add Your First Feed
             </UButton>
           </div>
-        </UCard>
+        </div>
       </div>
 
       <!-- Rating Modal -->

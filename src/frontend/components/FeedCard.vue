@@ -1,13 +1,21 @@
 <template>
-  <UCard>
+  <UCard :ui="{ 
+    ring: 'ring-1 ring-gray-200 dark:ring-gray-800',
+    rounded: 'rounded-xl',
+    shadow: 'shadow-sm hover:shadow-md transition-shadow duration-200'
+  }">
     <template #header>
-      <div class="flex items-center justify-between">
-        <h3 class="text-lg font-semibold">{{ feed.name }}</h3>
-        <div class="flex gap-2">
-          <UBadge v-if="feed.isApproved" color="green" variant="soft">
+      <div class="flex items-start justify-between gap-3">
+        <div class="flex-1 min-w-0">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">{{ feed.name }}</h3>
+        </div>
+        <div class="flex gap-2 flex-shrink-0">
+          <UBadge v-if="feed.isApproved" color="green" variant="soft" size="sm">
+            <UIcon name="i-heroicons-check-circle" class="w-3 h-3" />
             Approved
           </UBadge>
-          <UBadge v-if="feed.isSubscribed" color="primary" variant="soft">
+          <UBadge v-if="feed.isSubscribed" color="primary" variant="soft" size="sm">
+            <UIcon name="i-heroicons-bell" class="w-3 h-3" />
             Subscribed
           </UBadge>
         </div>
@@ -15,19 +23,19 @@
     </template>
 
     <div class="space-y-3">
-      <p v-if="feed.description" class="text-sm text-gray-600 dark:text-gray-400">
+      <p v-if="feed.description" class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
         {{ feed.description }}
       </p>
 
-      <div class="text-xs text-gray-500 dark:text-gray-500 space-y-1">
+      <div class="text-xs text-gray-600 dark:text-gray-400 space-y-2">
         <div class="flex items-center gap-2">
-          <UIcon name="i-heroicons-link" class="w-4 h-4" />
-          <a :href="feed.url" target="_blank" class="hover:underline truncate">
+          <UIcon name="i-heroicons-link" class="w-4 h-4 flex-shrink-0" />
+          <a :href="feed.url" target="_blank" class="hover:text-primary-600 dark:hover:text-primary-400 hover:underline truncate transition-colors">
             {{ feed.url }}
           </a>
         </div>
         <div v-if="feed.lastFetchedAt" class="flex items-center gap-2">
-          <UIcon name="i-heroicons-clock" class="w-4 h-4" />
+          <UIcon name="i-heroicons-clock" class="w-4 h-4 flex-shrink-0" />
           <span>Last updated: {{ formatDate(feed.lastFetchedAt) }}</span>
         </div>
       </div>
