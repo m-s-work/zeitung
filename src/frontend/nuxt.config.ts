@@ -17,8 +17,8 @@ export default defineNuxtConfig({
     },
   },
   colorMode: {
-    preference: 'light', // default light mode for better showcase
-    fallback: 'light',
+    preference: 'dark', // default dark mode as requested
+    fallback: 'dark',
   },
   ui: {
     primary: 'blue',

@@ -1,23 +1,22 @@
 <template>
-  <div class="bg-gradient-to-br from-white to-blue-50 dark:from-gray-900 dark:to-blue-950 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-[1.01] border border-blue-200/50 dark:border-blue-800/50 overflow-hidden">
-    <div class="p-6 space-y-4">
+  <UCard class="hover:shadow-lg transition-shadow duration-200">
+    <div class="space-y-4">
       <!-- Article Header -->
       <div class="flex items-start justify-between gap-4">
         <div class="flex-1 min-w-0">
-          <h3 class="text-2xl font-black text-gray-900 dark:text-white line-clamp-2 mb-3 hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer">
+          <h3 class="text-xl font-bold text-gray-900 dark:text-white line-clamp-2 mb-2">
             {{ article.title }}
           </h3>
           <div class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 flex-wrap">
             <UBadge 
-              color="blue" 
-              variant="soft" 
-              size="sm"
-              class="font-bold"
+              color="primary" 
+              variant="subtle" 
+              size="xs"
             >
               {{ article.feedName }}
             </UBadge>
-            <span class="text-gray-400 dark:text-gray-600">•</span>
-            <time :datetime="article.publishedDate" class="flex items-center gap-1 font-medium">
+            <span>•</span>
+            <time :datetime="article.publishedDate" class="flex items-center gap-1">
               <UIcon name="i-heroicons-clock" class="w-4 h-4" />
               {{ formatDate(article.publishedDate) }}
             </time>
@@ -27,17 +26,16 @@
         <!-- Quick Like Action -->
         <UButton
           :icon="article.isLiked ? 'i-heroicons-heart-solid' : 'i-heroicons-heart'"
-          size="lg"
+          size="sm"
           :color="article.isLiked ? 'red' : 'gray'"
-          :variant="article.isLiked ? 'soft' : 'ghost'"
+          variant="ghost"
           @click="handleLike"
           :loading="liking"
-          class="shrink-0 hover:scale-110 transition-transform"
         />
       </div>
 
       <!-- Description -->
-      <p v-if="article.description" class="text-base text-gray-700 dark:text-gray-300 line-clamp-3 leading-relaxed">
+      <p v-if="article.description" class="text-gray-700 dark:text-gray-300 line-clamp-3">
         {{ article.description }}
       </p>
 
@@ -46,59 +44,53 @@
         <UBadge
           v-for="tag in article.tags"
           :key="tag.id"
-          color="purple"
+          color="primary"
           variant="soft"
-          size="sm"
-          class="font-semibold"
+          size="xs"
         >
-          <UIcon name="i-heroicons-hashtag" class="w-3 h-3" />
           {{ tag.name }}
-          <span v-if="showConfidence" class="ml-1 opacity-70 text-xs">
-            {{ Math.round(tag.confidence * 100) }}%
+          <span v-if="showConfidence" class="ml-1 opacity-70">
+            ({{ Math.round(tag.confidence * 100) }}%)
           </span>
         </UBadge>
       </div>
 
       <!-- Actions Bar -->
-      <div class="flex items-center justify-between pt-4 border-t border-blue-200/50 dark:border-blue-800/50">
+      <div class="flex items-center justify-between pt-3 border-t border-gray-200 dark:border-gray-800">
         <div class="flex gap-2">
           <UButton
             icon="i-heroicons-hand-thumb-up"
-            size="sm"
-            :color="article.userVote === 1 ? 'blue' : 'gray'"
-            :variant="article.userVote === 1 ? 'solid' : 'soft'"
+            size="xs"
+            :color="article.userVote === 1 ? 'primary' : 'gray'"
+            :variant="article.userVote === 1 ? 'soft' : 'ghost'"
             @click="handleVote(1)"
             :loading="voting"
-            class="font-bold"
           >
             <span class="hidden sm:inline">Upvote</span>
           </UButton>
           <UButton
             icon="i-heroicons-hand-thumb-down"
-            size="sm"
+            size="xs"
             :color="article.userVote === -1 ? 'red' : 'gray'"
-            :variant="article.userVote === -1 ? 'solid' : 'soft'"
+            :variant="article.userVote === -1 ? 'soft' : 'ghost'"
             @click="handleVote(-1)"
             :loading="voting"
-            class="font-bold"
           >
             <span class="hidden sm:inline">Downvote</span>
           </UButton>
         </div>
 
         <UButton
-          label="Read Article"
-          size="md"
-          color="blue"
-          variant="solid"
+          label="Read"
+          size="xs"
+          color="primary"
           icon="i-heroicons-arrow-top-right-on-square"
           trailing
           @click="handleRead"
-          class="font-bold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all"
         />
       </div>
     </div>
-  </div>
+  </UCard>
 </template>
 
 <script setup lang="ts">

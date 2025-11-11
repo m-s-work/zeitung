@@ -3,36 +3,18 @@
     <UContainer class="py-12">
       <div class="space-y-12">
         <!-- Hero Section -->
-        <div class="text-center max-w-4xl mx-auto space-y-6">
-          <div class="inline-block">
-            <div class="flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-2xl shadow-2xl mb-6 mx-auto animate-pulse">
-              <UIcon name="i-heroicons-newspaper" class="w-10 h-10 text-white" />
-            </div>
-          </div>
-          <h1 class="text-5xl sm:text-6xl lg:text-7xl font-black">
-            <span class="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-              Your Personalized
-            </span>
-            <br />
-            <span class="bg-gradient-to-r from-pink-600 via-purple-600 to-blue-600 bg-clip-text text-transparent">
-              News Feed
-            </span>
+        <div class="text-center max-w-3xl mx-auto space-y-4">
+          <h1 class="text-4xl sm:text-5xl font-bold text-gray-900 dark:text-white">
+            Your Personalized Feed
           </h1>
-          <p class="text-xl sm:text-2xl text-gray-700 dark:text-gray-300 font-medium max-w-2xl mx-auto">
-            Discover articles tailored to your interests with 
-            <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 font-bold">AI-powered recommendations</span>
+          <p class="text-lg text-gray-600 dark:text-gray-400">
+            Discover articles tailored to your interests with AI-powered recommendations
           </p>
         </div>
 
         <!-- Loading State -->
-        <div v-if="pending" class="space-y-6 max-w-5xl mx-auto">
-          <div v-for="i in 3" :key="i" class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-xl animate-pulse">
-            <div class="space-y-4">
-              <div class="h-6 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
-              <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
-              <div class="h-20 bg-gray-200 dark:bg-gray-700 rounded"></div>
-            </div>
-          </div>
+        <div v-if="pending" class="space-y-4 max-w-4xl mx-auto">
+          <USkeleton v-for="i in 3" :key="i" class="h-48 rounded-xl" />
         </div>
 
         <!-- Error State -->
@@ -43,11 +25,11 @@
           title="Failed to load articles"
           :description="error.message"
           icon="i-heroicons-exclamation-circle"
-          class="max-w-5xl mx-auto shadow-xl"
+          class="max-w-4xl mx-auto"
         />
 
         <!-- Articles List -->
-        <div v-else-if="articles.length > 0" class="space-y-6 max-w-5xl mx-auto">
+        <div v-else-if="articles.length > 0" class="space-y-4 max-w-4xl mx-auto">
           <ArticleCard
             v-for="article in articles"
             :key="article.id"
@@ -60,63 +42,38 @@
           />
 
           <!-- Pagination -->
-          <div v-if="totalPages > 1" class="flex justify-center pt-8">
+          <div v-if="totalPages > 1" class="flex justify-center pt-6">
             <UPagination
               v-model="currentPage"
               :total="totalArticles"
               :page-count="pageSize"
-              :ui="{ rounded: 'rounded-full' }"
             />
           </div>
         </div>
 
         <!-- Empty State -->
-        <div v-else class="max-w-3xl mx-auto">
-          <div class="bg-gradient-to-br from-white to-blue-50 dark:from-gray-900 dark:to-blue-950 rounded-3xl shadow-2xl p-12 text-center border border-blue-200/50 dark:border-blue-800/50">
-            <div class="w-32 h-32 mx-auto mb-8 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-full flex items-center justify-center shadow-2xl animate-bounce">
-              <UIcon name="i-heroicons-newspaper" class="w-16 h-16 text-white" />
+        <div v-else class="max-w-2xl mx-auto">
+          <UCard class="shadow-lg">
+            <div class="text-center py-12">
+              <div class="w-20 h-20 mx-auto mb-6 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center">
+                <UIcon name="i-heroicons-newspaper" class="w-10 h-10 text-gray-600 dark:text-gray-400" />
+              </div>
+              <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-3">
+                No articles yet
+              </h3>
+              <p class="text-gray-600 dark:text-gray-400 mb-6">
+                Start your reading journey by adding some RSS feeds
+              </p>
+              <UButton 
+                to="/feeds" 
+                color="primary"
+                size="lg"
+                icon="i-heroicons-plus"
+              >
+                Add Your First Feed
+              </UButton>
             </div>
-            <h3 class="text-3xl font-black text-gray-900 dark:text-white mb-4">
-              No articles yet
-            </h3>
-            <p class="text-lg text-gray-600 dark:text-gray-400 mb-8 max-w-md mx-auto leading-relaxed">
-              Start your reading journey by adding some RSS feeds to discover interesting content tailored just for you
-            </p>
-            <UButton 
-              to="/feeds" 
-              color="blue" 
-              size="xl"
-              icon="i-heroicons-plus"
-              class="font-bold shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all"
-            >
-              Add Your First Feed
-            </UButton>
-            
-            <!-- Feature highlights -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
-              <div class="text-center p-4">
-                <div class="w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center mx-auto mb-3 shadow-lg">
-                  <UIcon name="i-heroicons-sparkles" class="w-6 h-6 text-white" />
-                </div>
-                <h4 class="font-bold text-gray-900 dark:text-white mb-1">AI-Powered</h4>
-                <p class="text-sm text-gray-600 dark:text-gray-400">Smart recommendations</p>
-              </div>
-              <div class="text-center p-4">
-                <div class="w-12 h-12 bg-purple-500 rounded-xl flex items-center justify-center mx-auto mb-3 shadow-lg">
-                  <UIcon name="i-heroicons-bolt" class="w-6 h-6 text-white" />
-                </div>
-                <h4 class="font-bold text-gray-900 dark:text-white mb-1">Lightning Fast</h4>
-                <p class="text-sm text-gray-600 dark:text-gray-400">Instant updates</p>
-              </div>
-              <div class="text-center p-4">
-                <div class="w-12 h-12 bg-pink-500 rounded-xl flex items-center justify-center mx-auto mb-3 shadow-lg">
-                  <UIcon name="i-heroicons-heart" class="w-6 h-6 text-white" />
-                </div>
-                <h4 class="font-bold text-gray-900 dark:text-white mb-1">Personalized</h4>
-                <p class="text-sm text-gray-600 dark:text-gray-400">Just for you</p>
-              </div>
-            </div>
-          </div>
+          </UCard>
         </div>
       </div>
 
