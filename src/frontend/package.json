@@ -11,7 +11,12 @@
     "postinstall": "nuxt prepare",
     "test": "npm run postinstall && vitest run",
     "test:e2e": "playwright test",
-    "test:e2e:install": "playwright install --with-deps chromium"
+    "test:e2e:install": "playwright install --with-deps chromium",
+    "tauri": "tauri",
+    "tauri:dev": "tauri dev",
+    "tauri:build": "tauri build",
+    "tauri:build:android": "tauri android build",
+    "tauri:build:windows": "tauri build --target x86_64-pc-windows-msvc"
   },
   "dependencies": {
     "@nuxt/ui": "^4.1.0",
@@ -22,6 +27,7 @@
   "devDependencies": {
     "@nuxt/test-utils": "^3.20.1",
     "@playwright/test": "^1.56.1",
+    "@tauri-apps/cli": "^2.9.4",
     "@vitejs/plugin-vue": "^6.0.1",
     "@vitest/coverage-v8": "^3.2.4",
     "happy-dom": "^20.0.10",
