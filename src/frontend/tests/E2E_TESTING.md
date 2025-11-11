@@ -177,32 +177,40 @@ npx playwright show-trace test-results/*/trace.zip
 
 ### GitHub Actions Example
 
+The repository includes a complete CI/CD workflow in `.github/workflows/ci-cd.yml`. Key steps for E2E tests:
+
 ```yaml
-- name: Install dependencies
-  run: |
-    cd src/frontend
-    npm ci
+- name: Setup .NET
+  uses: actions/setup-dotnet@v4
+  with:
+    dotnet-version: '9.0.x'
 
-- name: Install Playwright
+- name: Generate OpenAPI schema
+  working-directory: src/backend
   run: |
-    cd src/frontend
-    npm run test:e2e:install
-
-- name: Generate OpenAPI
-  run: |
-    cd src/backend
+    chmod +x generate-openapi.sh
     ./generate-openapi.sh
 
-- name: Build frontend
-  run: |
-    cd src/frontend
-    npm run build
+- name: Install frontend dependencies
+  working-directory: src/frontend
+  run: npm ci
 
-- name: Run E2E tests
-  run: |
-    cd src/frontend
-    CI=true npm run test:e2e
+- name: Install Playwright browsers
+  working-directory: src/frontend
+  run: npx playwright install --with-deps chromium
+
+- name: Build frontend
+  working-directory: src/frontend
+  run: npm run build
+
+- name: Run Playwright tests
+  working-directory: src/frontend
+  run: npm run test:e2e
+  env:
+    CI: true
 ```
+
+**Important:** The OpenAPI schema must be generated before building the frontend, as the frontend depends on the generated types.
 
 ## Key Differences: Agent vs CI Mode
 
