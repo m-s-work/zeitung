@@ -1,1 +1,8 @@
 @import "tailwindcss";
+
+/* Custom styles for enhanced visuals */
+@layer utilities {
+  .text-gradient {
+    @apply bg-gradient-to-r bg-clip-text text-transparent;
+  }
+}
