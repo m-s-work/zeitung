@@ -89,10 +89,6 @@ jobs:
         working-directory: src/frontend
         run: npm ci
       
-      - name: Install Playwright browsers
-        working-directory: src/frontend
-        run: npx playwright install --with-deps chromium
-      
       - name: Build frontend
         working-directory: src/frontend
         run: npm run build

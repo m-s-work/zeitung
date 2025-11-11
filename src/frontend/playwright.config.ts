@@ -10,10 +10,11 @@ import { defineConfig, devices } from '@playwright/test';
  * - Uses Playwright-managed Chromium browser
  * - Install with: npm run test:e2e:install
  * - Browser is downloaded to ~/.cache/ms-playwright/
- * - No system Chrome/Chromium required
  * 
- * CI/CD Mode:
- * - Same configuration - uses Playwright-managed Chromium
+ * CI/CD Mode (GitHub Actions):
+ * - Uses pre-installed Chrome from the runner OS
+ * - No browser installation required (faster pipeline)
+ * - GitHub Actions ubuntu-latest includes Chrome
  * - Set CI=true environment variable
  * - Automatically retries failed tests (2 retries)
  * - Runs tests serially (workers: 1) for stability
@@ -50,8 +51,9 @@ export default defineConfig({
       name: 'chromium',
       use: { 
         ...devices['Desktop Chrome'],
-        // Uses Playwright-managed Chromium (not system Chrome)
-        // This ensures consistent browser version across environments
+        // In CI/CD: Use system Chrome (pre-installed on GitHub Actions runners)
+        // Locally: Use Playwright-managed Chromium (install with npm run test:e2e:install)
+        ...(process.env.CI && { channel: 'chrome' }),
       },
     },
   ],

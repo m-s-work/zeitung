@@ -20,13 +20,9 @@ npm run test:e2e
 
 ## Browser Configuration
 
-### Standard Setup (Local & CI/CD)
+### Standard Setup (Local Development)
 
-The project uses **Playwright-managed Chromium** for all environments. This ensures:
-- ✅ Consistent browser version across all environments
-- ✅ No system browser dependencies
-- ✅ Automatic browser updates with Playwright
-- ✅ Works in sandboxed/restricted environments
+For local development and agent mode, the project uses **Playwright-managed Chromium**:
 
 **Installation:**
 ```bash
@@ -34,6 +30,15 @@ npm run test:e2e:install
 ```
 
 This downloads Chromium to `~/.cache/ms-playwright/` (Linux/Mac) or `%USERPROFILE%\AppData\Local\ms-playwright\` (Windows).
+
+### CI/CD Setup (GitHub Actions)
+
+For CI/CD pipelines, the project uses the **pre-installed Chrome browser** on GitHub Actions runners. This approach:
+- ✅ Skips browser download (faster pipeline)
+- ✅ Uses system Chrome already present on ubuntu-latest runners
+- ✅ No additional installation step required
+
+The Playwright config automatically detects CI mode via the `CI=true` environment variable and switches to `channel: 'chrome'` to use the system browser.
 
 ### Local Development / Agent Mode
 
@@ -62,6 +67,7 @@ CI=true npm run test:e2e
 - Automatic retries on failure (`retries: 2`)
 - Fails if `test.only` is found in code
 - Starts fresh preview server
+- **Uses system Chrome** (pre-installed on GitHub Actions runners, no download needed)
 
 ## Test Structure
 
@@ -195,10 +201,6 @@ The repository includes a complete CI/CD workflow in `.github/workflows/ci-cd.ym
   working-directory: src/frontend
   run: npm ci
 
-- name: Install Playwright browsers
-  working-directory: src/frontend
-  run: npx playwright install --with-deps chromium
-
 - name: Build frontend
   working-directory: src/frontend
   run: npm run build
@@ -210,17 +212,20 @@ The repository includes a complete CI/CD workflow in `.github/workflows/ci-cd.ym
     CI: true
 ```
 
-**Important:** The OpenAPI schema must be generated before building the frontend, as the frontend depends on the generated types.
+**Important Notes:**
+- The OpenAPI schema must be generated before building the frontend, as the frontend depends on the generated types.
+- **No browser installation required** - GitHub Actions ubuntu-latest runners come with Chrome pre-installed.
+- The Playwright config automatically uses system Chrome when `CI=true` is set.
 
 ## Key Differences: Agent vs CI Mode
 
-| Aspect | Agent Mode | CI Mode |
-|--------|-----------|---------|
-| Browser | Playwright Chromium | Playwright Chromium |
-| Installation | `npm run test:e2e:install` | `npm run test:e2e:install` |
+| Aspect | Agent/Local Mode | CI Mode |
+|--------|------------------|---------|
+| Browser | Playwright Chromium | System Chrome (pre-installed) |
+| Installation | `npm run test:e2e:install` | Not required |
 | Execution | Parallel | Serial |
 | Retries | None | 2 retries |
 | Workers | Multiple | 1 |
 | Server | Reuses if running | Starts fresh |
 
-**Note:** Both modes use the same Playwright-managed Chromium browser. No system Chrome/Chromium installation required.
+**Note:** CI mode uses the Chrome browser that comes pre-installed on GitHub Actions runners, which is faster than downloading Playwright's browsers.
