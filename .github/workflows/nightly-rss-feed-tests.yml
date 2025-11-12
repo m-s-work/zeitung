@@ -1,0 +1,177 @@
+name: Nightly RSS Feed Tests
+
+on:
+  schedule:
+    # Run nightly at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch: # Allow manual trigger
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  test-rss-feeds:
+    name: Test RSS Feeds
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+    
+    defaults:
+      run:
+        working-directory: src/backend
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+      
+      - name: Restore dependencies
+        run: dotnet restore Zeitung.sln
+      
+      - name: Build backend
+        run: dotnet build Zeitung.sln --configuration Release --no-restore
+      
+      - name: Run RSS Feed Integration Tests
+        id: rss_tests
+        continue-on-error: true
+        run: |
+          dotnet test Zeitung.sln --configuration Release --no-build --verbosity normal \
+            --logger "trx;LogFileName=rss-feed-test-results.trx" \
+            --filter "TestCategory=IntegrationTest&FullyQualifiedName~RssFeedIntegrationTests"
+        env:
+          ASPNETCORE_ENVIRONMENT: ci
+          DOTNET_ENVIRONMENT: ci
+      
+      - name: Publish Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: always()
+        with:
+          files: |
+            src/backend/**/rss-feed-test-results.trx
+          check_name: RSS Feed Test Results
+          comment_title: RSS Feed Test Results
+      
+      - name: Parse Test Results
+        id: parse_results
+        if: always()
+        run: |
+          # Check if test results file exists
+          if [ -f "Zeitung.Worker.Tests/TestResults/rss-feed-test-results.trx" ]; then
+            # Parse the TRX file to extract failed tests
+            echo "Parsing test results..."
+            
+            # Extract failed test names (simplified parsing)
+            failed_tests=$(grep -oP 'testName="\K[^"]+' Zeitung.Worker.Tests/TestResults/rss-feed-test-results.trx | grep "RssFeed_ShouldBeIngestible" || echo "")
+            
+            if [ -n "$failed_tests" ]; then
+              echo "failed_feeds<<EOF" >> $GITHUB_OUTPUT
+              echo "$failed_tests" >> $GITHUB_OUTPUT
+              echo "EOF" >> $GITHUB_OUTPUT
+              echo "has_failures=true" >> $GITHUB_OUTPUT
+            else
+              echo "has_failures=false" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "Test results file not found"
+            echo "has_failures=false" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Create Issue for Failed Feeds
+        if: steps.parse_results.outputs.has_failures == 'true'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const failedFeeds = `${{ steps.parse_results.outputs.failed_feeds }}`.split('\n').filter(f => f);
+            
+            for (const feedTest of failedFeeds) {
+              // Extract feed name from test name (e.g., "RssFeed_ShouldBeIngestible_BBC_News" -> "BBC News")
+              const feedName = feedTest.replace('RssFeed_ShouldBeIngestible_', '').replace(/_/g, ' ');
+              
+              const issueTitle = `RSS Feed Failed: ${feedName}`;
+              const issueBody = `## RSS Feed Failure Report
+              
+              The RSS feed \`${feedName}\` failed during nightly integration testing.
+              
+              **Test Name:** \`${feedTest}\`
+              **Date:** ${new Date().toISOString()}
+              **Workflow Run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+              
+              ### What to do next:
+              1. Check if the feed URL is still valid
+              2. Verify the feed is returning valid RSS/XML content
+              3. Test the feed manually: Check the configuration in \`src/backend/Zeitung.Worker/appsettings.json\`
+              4. If the feed is permanently unavailable, consider removing it from the configuration
+              
+              ### Configuration
+              Please check the feed configuration in \`src/backend/Zeitung.Worker/appsettings.json\` for the URL and details.
+              `;
+              
+              // Check if an issue already exists for this feed
+              const existingIssues = await github.rest.issues.listForRepo({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                state: 'open',
+                labels: ['rss-feed-failure'],
+                per_page: 100
+              });
+              
+              const existingIssue = existingIssues.data.find(issue => 
+                issue.title.includes(feedName)
+              );
+              
+              if (existingIssue) {
+                // Add a comment to the existing issue
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: existingIssue.number,
+                  body: `## Feed Still Failing
+                  
+                  The RSS feed \`${feedName}\` continues to fail.
+                  
+                  **Date:** ${new Date().toISOString()}
+                  **Workflow Run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+                  
+                  This issue remains unresolved. Please investigate and fix the feed configuration or remove the feed if it's permanently unavailable.`
+                });
+                
+                console.log(`Added comment to existing issue #${existingIssue.number} for feed: ${feedName}`);
+              } else {
+                // Create a new issue
+                const newIssue = await github.rest.issues.create({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  title: issueTitle,
+                  body: issueBody,
+                  labels: ['rss-feed-failure', 'bug'],
+                  assignees: ['copilot']
+                });
+                
+                console.log(`Created new issue #${newIssue.data.number} for feed: ${feedName}`);
+              }
+            }
+      
+      - name: Create Summary
+        if: always()
+        run: |
+          echo "## RSS Feed Test Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ steps.rss_tests.outcome }}" == "success" ]; then
+            echo "✅ All RSS feeds are working correctly!" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Some RSS feeds failed. Check the test results and issues for details." >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Workflow Run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_STEP_SUMMARY
