@@ -1,65 +1,77 @@
 <template>
-  <UCard>
+  <UCard class="hover:shadow-xl transition-all duration-300 border border-gray-200 dark:border-gray-800" :ui="{ rounded: 'rounded-xl' }">
     <template #header>
-      <div class="flex items-center justify-between">
-        <h3 class="text-lg font-semibold">{{ feed.name }}</h3>
-        <div class="flex gap-2">
-          <UBadge v-if="feed.isApproved" color="green" variant="soft">
+      <div class="flex items-start justify-between gap-3">
+        <div class="flex-1 min-w-0">
+          <h3 class="text-lg font-bold text-gray-900 dark:text-white">{{ feed.name }}</h3>
+        </div>
+        <div class="flex gap-2 flex-wrap justify-end">
+          <UBadge v-if="feed.isApproved" color="green" variant="soft" size="sm">
+            <UIcon name="i-heroicons-check-circle" class="w-3 h-3" />
             Approved
           </UBadge>
-          <UBadge v-if="feed.isSubscribed" color="primary" variant="soft">
+          <UBadge v-if="feed.isSubscribed" color="primary" variant="soft" size="sm">
+            <UIcon name="i-heroicons-bookmark" class="w-3 h-3" />
             Subscribed
           </UBadge>
         </div>
       </div>
     </template>
 
-    <div class="space-y-3">
-      <p v-if="feed.description" class="text-sm text-gray-600 dark:text-gray-400">
+    <div class="space-y-4">
+      <p v-if="feed.description" class="text-gray-700 dark:text-gray-300 leading-relaxed">
         {{ feed.description }}
       </p>
 
-      <div class="text-xs text-gray-500 dark:text-gray-500 space-y-1">
+      <div class="text-sm text-gray-600 dark:text-gray-400 space-y-2">
         <div class="flex items-center gap-2">
-          <UIcon name="i-heroicons-link" class="w-4 h-4" />
-          <a :href="feed.url" target="_blank" class="hover:underline truncate">
+          <UIcon name="i-heroicons-link" class="w-4 h-4 shrink-0" />
+          <a 
+            :href="feed.url" 
+            target="_blank" 
+            class="hover:text-primary-600 dark:hover:text-primary-400 transition-colors truncate font-mono text-xs"
+          >
             {{ feed.url }}
           </a>
         </div>
         <div v-if="feed.lastFetchedAt" class="flex items-center gap-2">
-          <UIcon name="i-heroicons-clock" class="w-4 h-4" />
+          <UIcon name="i-heroicons-arrow-path" class="w-4 h-4 shrink-0" />
           <span>Last updated: {{ formatDate(feed.lastFetchedAt) }}</span>
         </div>
       </div>
 
       <!-- Relevant Tags for Recommendations -->
-      <div v-if="isRecommendation && feed.relevantTags?.length" class="flex flex-wrap gap-2 pt-2">
+      <div v-if="isRecommendation && feed.relevantTags?.length" class="flex flex-wrap gap-2 pt-2 border-t border-gray-200 dark:border-gray-800">
         <UBadge
           v-for="tag in feed.relevantTags"
           :key="tag"
           color="primary"
           variant="soft"
-          size="xs"
+          size="sm"
         >
+          <UIcon name="i-heroicons-hashtag" class="w-3 h-3" />
           {{ tag }}
         </UBadge>
       </div>
     </div>
 
     <template #footer>
-      <div class="flex justify-between items-center">
-        <div v-if="isRecommendation" class="text-sm text-gray-600 dark:text-gray-400">
-          Match: {{ Math.round((feed.relevanceScore || 0) * 100) }}%
+      <div class="flex justify-between items-center gap-3 flex-wrap">
+        <div v-if="isRecommendation" class="flex items-center gap-2">
+          <UIcon name="i-heroicons-sparkles" class="w-4 h-4 text-amber-500" />
+          <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
+            {{ Math.round((feed.relevanceScore || 0) * 100) }}% match
+          </span>
         </div>
-        <div v-else class="text-xs text-gray-500">
+        <div v-else class="text-xs text-gray-500 dark:text-gray-400">
           Added {{ formatDate(feed.createdAt) }}
         </div>
 
-        <div class="flex gap-2">
+        <div class="flex gap-2 ml-auto">
           <UButton
             v-if="!feed.isSubscribed"
             icon="i-heroicons-plus"
-            size="xs"
+            size="sm"
             color="primary"
             @click="$emit('subscribe', feed.id)"
             :loading="loading"
@@ -69,7 +81,7 @@
           <UButton
             v-else
             icon="i-heroicons-minus"
-            size="xs"
+            size="sm"
             color="gray"
             variant="ghost"
             @click="$emit('unsubscribe', feed.id)"
@@ -81,7 +93,7 @@
           <UButton
             v-if="canPromote && !feed.isApproved"
             icon="i-heroicons-arrow-up-circle"
-            size="xs"
+            size="sm"
             color="green"
             variant="soft"
             @click="$emit('promote', feed.id)"
@@ -93,7 +105,7 @@
           <UButton
             v-if="feed.isSubscribed && !feed.isApproved"
             icon="i-heroicons-trash"
-            size="xs"
+            size="sm"
             color="red"
             variant="ghost"
             @click="$emit('delete', feed.id)"

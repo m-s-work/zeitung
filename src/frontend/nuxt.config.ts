@@ -3,6 +3,7 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   compatibilityDate: '2024-11-01',
   modules: ['nuxt-open-fetch', '@nuxt/ui'],
+  css: ['~/assets/css/tailwind.css'],
   openFetch: {
     clients: {
       zeitungApi: {
@@ -17,4 +18,12 @@ export default defineNuxtConfig({
   },
   // SSG mode for Tauri compatibility
   ssr: process.env.TAURI_BUILD === 'true' ? false : true,
+  colorMode: {
+    preference: 'dark', // default dark mode as requested
+    fallback: 'dark',
+  },
+  ui: {
+    primary: 'blue',
+    gray: 'slate',
+  },
 })

@@ -1,6 +1,10 @@
 # Smart RSS Feed Reader
 
-Zeitung is an intelligent RSS feed reader that uses AI to tag and recommend articles based on user interests.
+Zeitung (German for "newspaper") is a smart RSS feed reader that uses AI to tag and recommend articles based on user interests.
+
+## 📚 Documentation
+
+**[View Full Documentation](https://m-s-work.github.io/zeitung/)** (GitHub Pages)
 
 ## Platforms
 

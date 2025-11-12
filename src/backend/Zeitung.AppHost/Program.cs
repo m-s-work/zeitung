@@ -7,6 +7,9 @@ var builder = DistributedApplication.CreateBuilder(args);
 // Check if running in CI environment
 var isCI = builder.Configuration.GetValue<bool>("CI");
 
+// Check if frontend should be included (disabled in CI by default)
+var includeFrontend = builder.Configuration.GetValue<bool>("IncludeFrontend", !isCI);
+
 // Add external services (RSS feeds and OpenRouter)
 // These are used by the worker to know when external dependencies are available
 var bbcNews = builder.AddExternalService("bbc-news", "http://feeds.bbci.co.uk")
@@ -98,6 +101,26 @@ if (!isCI)
         .WithReference(golem)
         .WithReference(orf)
         .WithReference(openRouter);
+}
+
+// Add the frontend npm app if not in CI mode
+// In CI/CD tests, we skip the frontend to avoid npm install overhead in C# integration tests
+if (includeFrontend)
+{
+    // Get the path to the frontend directory (relative to AppHost or absolute)
+    var frontendPath = Path.Combine("..", "..", "frontend");
+    var frontendFullPath = Path.GetFullPath(frontendPath);
+
+
+    // Run npm ci to install dependencies before starting the frontend
+    var npmInstall = builder.AddExecutable("npm-install", "npm", frontendPath, "ci");
+    
+    var frontend = builder.AddNpmApp("frontend", frontendPath, "dev")
+        .WithHttpEndpoint(env: "PORT")
+        .WithExternalHttpEndpoints()
+        .WithReference(api)
+        .WaitFor(api)
+        .WaitForCompletion(npmInstall); // Wait for npm ci to complete before starting
 }
 
 builder.Build().Run();
