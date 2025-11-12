@@ -22,15 +22,12 @@ graph TD
 ### Frontend
 Modern web interface built with Nuxt 4:
 - Responsive design that works on all devices
-- Fast page loads with server-side rendering
 - Type-safe API integration
 
 ### Backend API
 RESTful API built with .NET 9:
 - Handles user authentication
 - Manages feeds and articles
-- Powers the recommendation engine
-- Tracks user interactions
 
 ### Worker Service
 Background service that:
@@ -48,9 +45,7 @@ PostgreSQL stores:
 
 ### Cache
 Redis speeds up the app by caching:
-- User sessions
 - Frequently accessed data
-- Recommendation scores
 
 ## How It Works
 
