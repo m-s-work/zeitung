@@ -25,13 +25,10 @@ public class RssFeedIntegrationTests
     [OneTimeSetUp]
     public async Task OneTimeSetUpAsync()
     {
-        // Load RSS feeds from configuration
-        var config = new ConfigurationBuilder()
-            .SetBasePath(Path.Combine(Directory.GetCurrentDirectory(), "..", "..", "..", ".."))
-            .AddJsonFile("Zeitung.Worker/appsettings.json", optional: false)
-            .Build();
-
-        _rssFeeds = config.GetSection("RssFeeds").Get<List<RssFeed>>() ?? new List<RssFeed>();
+        // Load RSS feeds from separate feeds.json file
+        var feedsPath = Path.Combine(Directory.GetCurrentDirectory(), "TestData", "feeds.json");
+        var feedsJson = await File.ReadAllTextAsync(feedsPath);
+        _rssFeeds = System.Text.Json.JsonSerializer.Deserialize<List<RssFeed>>(feedsJson) ?? new List<RssFeed>();
 
         // Create and start the distributed application
         var appHost = await DistributedApplicationTestingBuilder
@@ -59,9 +56,6 @@ public class RssFeedIntegrationTests
         _builder = appHost;
         _app = await appHost.BuildAsync();
         await _app.StartAsync();
-
-        // Wait for services to be ready
-        await Task.Delay(TimeSpan.FromSeconds(15));
     }
 
     [OneTimeTearDown]
@@ -93,19 +87,16 @@ public class RssFeedIntegrationTests
     }
 
     /// <summary>
-    /// Provides test cases for each RSS feed configured in appsettings.json
+    /// Provides test cases for each RSS feed configured in feeds.json
     /// </summary>
     public static IEnumerable<TestCaseData> RssFeedTestCases
     {
         get
         {
-            // Load RSS feeds from configuration
-            var config = new ConfigurationBuilder()
-                .SetBasePath(Path.Combine(Directory.GetCurrentDirectory(), "..", "..", "..", ".."))
-                .AddJsonFile("Zeitung.Worker/appsettings.json", optional: false)
-                .Build();
-
-            var rssFeeds = config.GetSection("RssFeeds").Get<List<RssFeed>>() ?? new List<RssFeed>();
+            // Load RSS feeds from separate feeds.json file
+            var feedsPath = Path.Combine(Directory.GetCurrentDirectory(), "TestData", "feeds.json");
+            var feedsJson = File.ReadAllText(feedsPath);
+            var rssFeeds = System.Text.Json.JsonSerializer.Deserialize<List<RssFeed>>(feedsJson) ?? new List<RssFeed>();
             
             foreach (var feed in rssFeeds)
             {

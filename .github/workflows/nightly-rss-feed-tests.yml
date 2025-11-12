@@ -5,6 +5,7 @@ on:
     # Run nightly at 2 AM UTC
     - cron: '0 2 * * *'
   workflow_dispatch: # Allow manual trigger
+  pull_request: # Run on pull requests
 
 permissions:
   contents: write
@@ -109,11 +110,11 @@ jobs:
               ### What to do next:
               1. Check if the feed URL is still valid
               2. Verify the feed is returning valid RSS/XML content
-              3. Test the feed manually: Check the configuration in \`src/backend/Zeitung.Worker/appsettings.json\`
+              3. Test the feed manually: Check the configuration in \`src/backend/Zeitung.Worker.Tests/TestData/feeds.json\`
               4. If the feed is permanently unavailable, consider removing it from the configuration
               
               ### Configuration
-              Please check the feed configuration in \`src/backend/Zeitung.Worker/appsettings.json\` for the URL and details.
+              Please check the feed configuration in \`src/backend/Zeitung.Worker.Tests/TestData/feeds.json\` for the URL and details.
               `;
               
               // Check if an issue already exists for this feed
@@ -130,22 +131,39 @@ jobs:
               );
               
               if (existingIssue) {
-                // Add a comment to the existing issue
-                await github.rest.issues.createComment({
+                // Check if we already commented on this run to avoid duplicates
+                const comments = await github.rest.issues.listComments({
                   owner: context.repo.owner,
                   repo: context.repo.repo,
                   issue_number: existingIssue.number,
-                  body: `## Feed Still Failing
-                  
-                  The RSS feed \`${feedName}\` continues to fail.
-                  
-                  **Date:** ${new Date().toISOString()}
-                  **Workflow Run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-                  
-                  This issue remains unresolved. Please investigate and fix the feed configuration or remove the feed if it's permanently unavailable.`
+                  per_page: 100
                 });
                 
-                console.log(`Added comment to existing issue #${existingIssue.number} for feed: ${feedName}`);
+                const runId = '${{ github.run_id }}';
+                const alreadyCommented = comments.data.some(comment => 
+                  comment.body && comment.body.includes(runId)
+                );
+                
+                if (!alreadyCommented) {
+                  // Add a comment to the existing issue
+                  await github.rest.issues.createComment({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: existingIssue.number,
+                    body: `## Feed Still Failing
+                    
+                    The RSS feed \`${feedName}\` continues to fail.
+                    
+                    **Date:** ${new Date().toISOString()}
+                    **Workflow Run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+                    
+                    This issue remains unresolved. Please investigate and fix the feed configuration or remove the feed if it's permanently unavailable.`
+                  });
+                  
+                  console.log(`Added comment to existing issue #${existingIssue.number} for feed: ${feedName}`);
+                } else {
+                  console.log(`Skipping duplicate comment for issue #${existingIssue.number} (run ${runId})`);
+                }
               } else {
                 // Create a new issue
                 const newIssue = await github.rest.issues.create({

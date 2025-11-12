@@ -1,0 +1,22 @@
+[
+  {
+    "Name": "BBC News",
+    "Url": "http://feeds.bbci.co.uk/news/rss.xml",
+    "Description": "BBC News - World"
+  },
+  {
+    "Name": "Heise Online",
+    "Url": "https://www.heise.de/rss/heise-atom.xml",
+    "Description": "Heise Online News"
+  },
+  {
+    "Name": "Golem.de",
+    "Url": "https://rss.golem.de/rss.php?feed=RSS2.0",
+    "Description": "Golem.de IT News"
+  },
+  {
+    "Name": "ORF.at",
+    "Url": "https://rss.orf.at/news.xml",
+    "Description": "ORF.at News"
+  }
+]
