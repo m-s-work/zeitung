@@ -80,6 +80,7 @@
 const colorMode = useColorMode()
 
 const toggleColorMode = () => {
-  colorMode.preference = colorMode.value === 'dark' ? 'light' : 'dark'
+  const newMode = colorMode.value === 'dark' ? 'light' : 'dark'
+  colorMode.preference = newMode
 }
 </script>
