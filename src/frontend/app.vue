@@ -22,7 +22,7 @@
               color="gray"
               variant="ghost"
               size="sm"
-              class="hidden sm:flex"
+              class="hidden sm:flex text-gray-700 dark:text-gray-200"
             >
               Feeds
             </UButton>
@@ -32,7 +32,7 @@
               color="gray"
               variant="ghost"
               size="sm"
-              class="hidden sm:flex"
+              class="hidden sm:flex text-gray-700 dark:text-gray-200"
             >
               Tags
             </UButton>
@@ -45,6 +45,7 @@
                 variant="ghost"
                 size="sm"
                 aria-label="Toggle color mode"
+                class="text-gray-700 dark:text-gray-200"
                 @click="toggleColorMode"
               />
             </ClientOnly>

@@ -13,11 +13,12 @@
                   color="gray"
                   variant="ghost"
                   size="sm"
+                  class="text-gray-700 dark:text-gray-200"
                 >
                   <span class="hidden sm:inline">Back</span>
                 </UButton>
               </div>
-              <h1 class="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-primary-600 to-primary-900 dark:from-primary-400 dark:to-primary-600 bg-clip-text text-transparent">
+              <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white">
                 Feed Management
               </h1>
               <p class="mt-2 text-gray-600 dark:text-gray-400">
