@@ -110,14 +110,14 @@ if (includeFrontend)
     // Get the path to the frontend directory (relative to AppHost or absolute)
     var frontendPath = Path.Combine("..", "..", "..", "frontend");
     
+    // Run npm ci to install dependencies before starting the frontend
+    var npmInstall = builder.AddExecutable("npm-install", "npm", frontendPath, "ci");
+    
     var frontend = builder.AddNpmApp("frontend", frontendPath, "dev")
         .WithHttpEndpoint(env: "PORT")
         .WithExternalHttpEndpoints()
         .WithReference(api)
-        .WithNpmPackageInstallation(); // Ensures npm install is run before starting
-    
-    // Note: For production deployments, use npm ci with --frozen-lockfile in the Dockerfile
-    // to ensure exact dependency versions. This is handled outside of Aspire.
+        .WaitForCompletion(npmInstall); // Wait for npm ci to complete before starting
 }
 
 builder.Build().Run();
