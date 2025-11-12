@@ -116,31 +116,6 @@ Configure authentication settings in `appsettings.json`:
 5. **Token Rotation**: Refresh tokens are automatically rotated on each refresh request
 6. **Token Revocation**: Old refresh tokens are revoked when new ones are issued
 
-## Database Tables
-
-### Users
-- Id (Guid, PK)
-- Email (string, unique)
-- CreatedAt (DateTime)
-- LastLoginAt (DateTime, nullable)
-- IsActive (bool)
-
-### MagicLinks
-- Id (Guid, PK)
-- Email (string)
-- Token (string, unique)
-- CreatedAt (DateTime)
-- ExpiresAt (DateTime)
-- UsedAt (DateTime, nullable)
-
-### RefreshTokens
-- Id (Guid, PK)
-- UserId (Guid, FK)
-- Token (string, unique)
-- CreatedAt (DateTime)
-- ExpiresAt (DateTime)
-- RevokedAt (DateTime, nullable)
-
 ## Using the Access Token
 
 Include the JWT access token in the Authorization header:
@@ -154,12 +129,3 @@ Example with curl:
 curl -H "Authorization: Bearer eyJhbGciOiJIUzI1..." http://localhost:8080/api/protected-endpoint
 ```
 
-## Testing
-
-Run the authentication service tests:
-```bash
-cd src/backend
-dotnet test Zeitung.Api.Tests
-```
-
-All 17 tests should pass.

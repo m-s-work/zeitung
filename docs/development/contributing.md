@@ -25,6 +25,7 @@ Thank you for your interest in contributing to Zeitung! This document provides g
 - `test`: Test additions or modifications
 - `build`: Build system changes
 - `ci`: CI/CD changes
+- `cicd`: CI/CD changes
 - `chore`: Other changes
 
 #### Examples
