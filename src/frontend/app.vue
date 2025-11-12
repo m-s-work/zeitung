@@ -15,13 +15,13 @@
           </NuxtLink>
 
           <!-- Actions -->
-          <div class="flex items-center gap-2">
+          <div class="flex items-center gap-3">
             <UButton
               to="/feeds"
               icon="i-heroicons-rss"
               color="gray"
               variant="ghost"
-              size="sm"
+              size="md"
               class="hidden sm:flex text-gray-700 dark:text-gray-200"
             >
               Feeds
@@ -31,7 +31,7 @@
               icon="i-heroicons-tag"
               color="gray"
               variant="ghost"
-              size="sm"
+              size="md"
               class="hidden sm:flex text-gray-700 dark:text-gray-200"
             >
               Tags
@@ -43,7 +43,7 @@
                 :icon="colorMode.value === 'dark' ? 'i-heroicons-moon' : 'i-heroicons-sun'"
                 color="gray"
                 variant="ghost"
-                size="sm"
+                size="md"
                 aria-label="Toggle color mode"
                 class="text-gray-700 dark:text-gray-200"
                 @click="toggleColorMode"

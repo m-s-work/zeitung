@@ -113,8 +113,8 @@
       </div>
 
       <!-- Add Feed Modal -->
-      <UModal v-model="showAddModal" :ui="{ width: 'sm:max-w-2xl' }">
-        <UCard>
+      <UModal v-model="showAddModal" :ui="{ width: 'sm:max-w-lg' }">
+        <UCard :ui="{ body: { padding: 'p-6' } }">
           <template #header>
             <div class="flex items-center justify-between">
               <h3 class="text-xl font-bold text-gray-900 dark:text-white">Add New Feed</h3>
@@ -129,7 +129,7 @@
           </template>
 
           <div class="space-y-5">
-            <UFormGroup label="Feed URL" required>
+            <UFormGroup label="Feed URL" required :ui="{ label: { base: 'text-gray-900 dark:text-white' } }">
               <UInput
                 v-model="newFeed.url"
                 placeholder="https://example.com/feed.xml"
@@ -139,7 +139,7 @@
               />
             </UFormGroup>
 
-            <UFormGroup label="Name" required>
+            <UFormGroup label="Name" required :ui="{ label: { base: 'text-gray-900 dark:text-white' } }">
               <UInput
                 v-model="newFeed.name"
                 placeholder="My Awesome Blog"
@@ -148,7 +148,7 @@
               />
             </UFormGroup>
 
-            <UFormGroup label="Description">
+            <UFormGroup label="Description" :ui="{ label: { base: 'text-gray-900 dark:text-white' } }">
               <UTextarea
                 v-model="newFeed.description"
                 placeholder="Optional description"
