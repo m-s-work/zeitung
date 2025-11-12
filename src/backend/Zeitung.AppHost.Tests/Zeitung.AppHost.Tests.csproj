@@ -21,6 +21,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Zeitung.AppHost\Zeitung.AppHost.csproj" />
+    <ProjectReference Include="..\Zeitung.Core\Zeitung.Core.csproj" />
+    <ProjectReference Include="..\Zeitung.Worker\Zeitung.Worker.csproj" />
   </ItemGroup>
 
 </Project>
