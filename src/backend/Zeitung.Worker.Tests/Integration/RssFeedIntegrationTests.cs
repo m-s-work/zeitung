@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Zeitung.Core.Models;
 using Zeitung.Worker.Models;
+using Zeitung.Worker.Services;
 
 namespace Zeitung.Worker.Tests.Integration;
 
@@ -50,7 +51,7 @@ public class RssFeedIntegrationTests
         {
             http.AddStandardResilienceHandler(options =>
             {
-                options.TotalRequestTimeout.Timeout = TimeSpan.FromSeconds(60);
+                options.TotalRequestTimeout.Timeout = TimeSpan.FromSeconds(90);
                 options.AttemptTimeout.Timeout = TimeSpan.FromSeconds(30);
             });
         });
@@ -60,7 +61,7 @@ public class RssFeedIntegrationTests
         await _app.StartAsync();
 
         // Wait for services to be ready
-        await Task.Delay(TimeSpan.FromSeconds(10));
+        await Task.Delay(TimeSpan.FromSeconds(15));
     }
 
     [OneTimeTearDown]
@@ -115,20 +116,16 @@ public class RssFeedIntegrationTests
     }
 
     /// <summary>
-    /// Tests that each configured RSS feed can be successfully fetched and ingested into the database.
+    /// Tests that each configured RSS feed can be successfully fetched and parsed.
     /// This test validates:
     /// 1. The feed URL is accessible
-    /// 2. The feed can be parsed
-    /// 3. Articles are ingested into the database
+    /// 2. The feed returns valid XML/RSS content
+    /// 3. The feed can be parsed successfully
     /// </summary>
     [TestCaseSource(nameof(RssFeedTestCases))]
     public async Task RssFeed_ShouldBeSuccessfullyIngested(RssFeed feed)
     {
-        // Arrange
-        var app = _app!;
-        
-        // Act - Test feed accessibility and parseability
-        
+        // Arrange - Test feed accessibility and parseability
         using var httpClient = new HttpClient();
         httpClient.Timeout = TimeSpan.FromSeconds(30);
         
@@ -144,7 +141,7 @@ public class RssFeedIntegrationTests
             fetchException = ex;
         }
 
-        // Assert
+        // Assert - Feed should be accessible
         if (fetchException != null)
         {
             Assert.Fail($"Failed to fetch RSS feed '{feed.Name}' from {feed.Url}. Error: {fetchException.Message}");
@@ -160,6 +157,24 @@ public class RssFeedIntegrationTests
         // Verify content looks like RSS/XML
         Assert.That(content.TrimStart(), Does.StartWith("<?xml").Or.StartsWith("<rss").Or.StartsWith("<feed"),
             $"Feed '{feed.Name}' should return valid XML/RSS content");
+        
+        // Test parsing the feed
+        try
+        {
+            var parser = new RssFeedParser(
+                new MockHttpClientFactory(content),
+                new MockLogger<RssFeedParser>());
+            
+            var articles = await parser.ParseFeedAsync(feed);
+            
+            Assert.That(articles, Is.Not.Null, $"Feed '{feed.Name}' should be parseable");
+            Assert.That(articles.Count, Is.GreaterThan(0), 
+                $"Feed '{feed.Name}' should contain at least one article");
+        }
+        catch (Exception ex)
+        {
+            Assert.Fail($"Failed to parse RSS feed '{feed.Name}'. Error: {ex.Message}");
+        }
     }
 
     [Test]
@@ -213,4 +228,55 @@ public class RssFeedIntegrationTests
             Assert.That(() => new Uri(feed.Url), Throws.Nothing, $"Feed URL '{feed.Url}' should be valid");
         }
     }
+}
+
+/// <summary>
+/// Mock HttpClientFactory for testing
+/// </summary>
+internal class MockHttpClientFactory : IHttpClientFactory
+{
+    private readonly string _content;
+
+    public MockHttpClientFactory(string content)
+    {
+        _content = content;
+    }
+
+    public HttpClient CreateClient(string name)
+    {
+        var messageHandler = new MockHttpMessageHandler(_content);
+        return new HttpClient(messageHandler);
+    }
+}
+
+/// <summary>
+/// Mock HttpMessageHandler for testing
+/// </summary>
+internal class MockHttpMessageHandler : HttpMessageHandler
+{
+    private readonly string _content;
+
+    public MockHttpMessageHandler(string content)
+    {
+        _content = content;
+    }
+
+    protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+    {
+        return Task.FromResult(new HttpResponseMessage
+        {
+            StatusCode = System.Net.HttpStatusCode.OK,
+            Content = new StringContent(_content)
+        });
+    }
+}
+
+/// <summary>
+/// Mock logger for testing
+/// </summary>
+internal class MockLogger<T> : ILogger<T>
+{
+    public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
+    public bool IsEnabled(LogLevel logLevel) => true;
+    public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter) { }
 }
