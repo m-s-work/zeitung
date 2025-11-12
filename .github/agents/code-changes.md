@@ -18,7 +18,7 @@ When making changes to the Zeitung codebase, follow these principles to maintain
 
 ## Helper Functions and Utilities
 
-- Avoid duplicating helper functions across files
+- Avoid duplicating helper functions or code across files
 - If a helper is used in multiple places, consider extracting it to a shared location
 - Keep helpers close to where they're used for better maintainability
 
@@ -27,6 +27,7 @@ When making changes to the Zeitung codebase, follow these principles to maintain
 - **One class per file** - Each file should contain a single class or component
 - Name the file after the class it contains (e.g., `UserService.cs` contains `UserService` class)
 - Group related files in appropriate directories
+  - models, services, controllers, etc.
 - Follow the existing project structure
 
 ## Code Style
