@@ -1,9 +1,12 @@
 using Elastic.Clients.Elasticsearch;
 using Microsoft.EntityFrameworkCore;
+using TickerQ.DependencyInjection;
+using TickerQ.EntityFrameworkCore;
 using Zeitung.Worker;
 using Zeitung.Core.Models;
 using Zeitung.Worker.Services;
 using Zeitung.Worker.Strategies;
+using Zeitung.Worker.Jobs;
 
 var builder = Host.CreateApplicationBuilder(args);
 
@@ -48,7 +51,17 @@ switch (taggingStrategy)
         break;
 }
 
-// Register the background worker service - this only runs when `RunAsync();` is called
+// Configure TickerQ for job scheduling
+builder.Services.AddTickerQ(options =>
+{
+    options.SetMaxConcurrency(5);
+});
+
+// Register TickerQ job classes
+builder.Services.AddScoped<RssFeedIngestionJobs>();
+
+// Register the background worker service - Keep for backward compatibility
+// This will be replaced by TickerQ in continuous mode but can co-exist
 builder.Services.AddHostedService<RssFeedIngestWorker>();
 
 // Check if running in one-off mode (e.g., for K8s CronJob)
@@ -90,7 +103,8 @@ if (runOnce)
 }
 else
 {
-    // Continuous background service mode
+    // Continuous background service mode with TickerQ
+    logger.LogInformation("Running in continuous mode with TickerQ scheduler");
     await host.RunAsync();
     return 0;
 }
