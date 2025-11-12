@@ -113,7 +113,7 @@
       </div>
 
       <!-- Add Feed Modal -->
-      <UModal v-model="showAddModal" :ui="{ width: 'sm:max-w-md' }">
+      <UModal v-model="showAddModal" :ui="{ width: 'sm:max-w-2xl' }">
         <UCard>
           <template #header>
             <div class="flex items-center justify-between">
@@ -122,6 +122,7 @@
                 color="gray"
                 variant="ghost"
                 icon="i-heroicons-x-mark"
+                class="text-gray-700 dark:text-gray-200"
                 @click="showAddModal = false"
               />
             </div>

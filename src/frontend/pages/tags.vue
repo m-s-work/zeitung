@@ -29,7 +29,7 @@
           <template #header>
             <div class="flex items-center gap-2">
               <UIcon name="i-heroicons-star" class="w-5 h-5 text-primary-500" />
-              <h3 class="text-lg font-bold">Your Tag Interests</h3>
+              <h3 class="text-lg font-bold text-gray-900 dark:text-white">Your Tag Interests</h3>
             </div>
           </template>
 
@@ -83,7 +83,7 @@
             <div class="flex items-center justify-between gap-4 flex-wrap">
               <div class="flex items-center gap-2">
                 <UIcon name="i-heroicons-tag" class="w-5 h-5 text-primary-500" />
-                <h3 class="text-lg font-bold">All Tags</h3>
+                <h3 class="text-lg font-bold text-gray-900 dark:text-white">All Tags</h3>
               </div>
               <UInput
                 v-model="searchQuery"
