@@ -58,7 +58,7 @@
     <template #footer>
       <div class="flex justify-between items-center gap-3 flex-wrap">
         <div v-if="isRecommendation" class="flex items-center gap-2">
-          <UIcon name="i-heroicons-sparkles" class="w-4 h-4 text-amber-500" />
+          <UIcon name="i-heroicons-sparkles" class="w-4 h-4 text-amber-500 dark:text-amber-400" />
           <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
             {{ Math.round((feed.relevanceScore || 0) * 100) }}% match
           </span>

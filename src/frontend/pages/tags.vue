@@ -28,7 +28,7 @@
         <UCard v-if="!loadingUserTags && userTags.length > 0" class="max-w-4xl mx-auto shadow-lg" :ui="{ rounded: 'rounded-xl' }">
           <template #header>
             <div class="flex items-center gap-2">
-              <UIcon name="i-heroicons-star" class="w-5 h-5 text-primary-500" />
+              <UIcon name="i-heroicons-star" class="w-5 h-5 text-primary-500 dark:text-primary-400" />
               <h3 class="text-lg font-bold text-gray-900 dark:text-white">Your Tag Interests</h3>
             </div>
           </template>
@@ -82,7 +82,7 @@
           <template #header>
             <div class="flex items-center justify-between gap-4 flex-wrap">
               <div class="flex items-center gap-2">
-                <UIcon name="i-heroicons-tag" class="w-5 h-5 text-primary-500" />
+                <UIcon name="i-heroicons-tag" class="w-5 h-5 text-primary-500 dark:text-primary-400" />
                 <h3 class="text-lg font-bold text-gray-900 dark:text-white">All Tags</h3>
               </div>
               <UInput
@@ -151,7 +151,7 @@
           </div>
 
           <div v-else class="text-center py-12">
-            <UIcon name="i-heroicons-magnifying-glass" class="w-12 h-12 mx-auto text-gray-400 mb-3" />
+            <UIcon name="i-heroicons-magnifying-glass" class="w-12 h-12 mx-auto text-gray-400 dark:text-gray-500 mb-3" />
             <p class="text-gray-500 dark:text-gray-400">No tags found</p>
           </div>
         </UCard>
