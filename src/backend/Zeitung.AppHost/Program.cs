@@ -108,8 +108,10 @@ if (!isCI)
 if (includeFrontend)
 {
     // Get the path to the frontend directory (relative to AppHost or absolute)
-    var frontendPath = Path.Combine("..", "..", "..", "frontend");
-    
+    var frontendPath = Path.Combine("..", "..", "frontend");
+    var frontendFullPath = Path.GetFullPath(frontendPath);
+
+
     // Run npm ci to install dependencies before starting the frontend
     var npmInstall = builder.AddExecutable("npm-install", "npm", frontendPath, "ci");
     
@@ -117,6 +119,7 @@ if (includeFrontend)
         .WithHttpEndpoint(env: "PORT")
         .WithExternalHttpEndpoints()
         .WithReference(api)
+        .WaitFor(api)
         .WaitForCompletion(npmInstall); // Wait for npm ci to complete before starting
 }
 
