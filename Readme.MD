@@ -6,9 +6,9 @@ Zeitung (German for "newspaper") is a smart RSS feed reader that uses AI to help
 
 **[View Full Documentation](https://m-s-work.github.io/zeitung/)** (GitHub Pages)
 
-- [Getting Started](https://m-s-work.github.io/zeitung/guide/getting-started.html)
+- [Getting Started](https://m-s-work.github.io/zeitung/development/getting-started.html)
 - [API Reference](https://m-s-work.github.io/zeitung/api/overview.html)
-- [Architecture Guide](https://m-s-work.github.io/zeitung/guide/architecture.html)
+- [Architecture](https://m-s-work.github.io/zeitung/development/architecture.html)
 - [Contributing](https://m-s-work.github.io/zeitung/development/contributing.html)
 
 

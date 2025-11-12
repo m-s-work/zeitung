@@ -11,7 +11,7 @@ export default defineConfig({
     // https://vitepress.dev/reference/default-theme-config
     nav: [
       { text: 'Home', link: '/' },
-      { text: 'Guide', link: '/guide/getting-started' },
+      { text: 'Guide', link: '/development/getting-started' },
       { text: 'API', link: '/api/overview' }
     ],
 
@@ -20,8 +20,8 @@ export default defineConfig({
         text: 'Introduction',
         items: [
           { text: 'What is Zeitung?', link: '/guide/what-is-zeitung' },
-          { text: 'Getting Started', link: '/guide/getting-started' },
-          { text: 'Architecture', link: '/guide/architecture' }
+          { text: 'Getting Started', link: '/development/getting-started' },
+          { text: 'Architecture', link: '/development/architecture' }
         ]
       },
       {
