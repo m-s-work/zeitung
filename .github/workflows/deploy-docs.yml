@@ -7,14 +7,16 @@ on:
       - main
     paths:
       - 'docs/**'
-      - 'src/backend/Zeitung.Api/**'
+      #- 'src/backend/Zeitung.Api/**'
+      - 'src/frontend/openapi.json'
       - '.github/workflows/deploy-docs.yml'
   
   # Trigger on pull requests with docs changes
   pull_request:
     paths:
       - 'docs/**'
-      - 'src/backend/Zeitung.Api/**'
+      #- 'src/backend/Zeitung.Api/**'
+      - 'src/frontend/openapi.json'
       - '.github/workflows/deploy-docs.yml'
   
   # Allow manual trigger
