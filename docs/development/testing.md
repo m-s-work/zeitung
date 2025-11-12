@@ -314,3 +314,116 @@ Tests run automatically:
 
 Monitor test results in GitHub Actions and fix failures promptly.
 
+## Nightly RSS Feed Tests
+
+### Overview
+
+Zeitung includes automated nightly tests that verify all RSS feeds are working correctly. These tests run at 2 AM UTC every night and can also be triggered manually.
+
+### What the Tests Do
+
+The nightly feed tests:
+- Fetch each configured RSS feed
+- Parse the feed content
+- Verify the feed returns articles
+- Check that articles have required properties (title, link)
+
+### Running Nightly Tests Locally
+
+You can run the nightly RSS feed tests locally:
+
+```bash
+cd src/backend
+
+# Run only the nightly feed tests
+dotnet test Zeitung.sln --filter "TestCategory=NightlyFeedTest"
+
+# Run with detailed output
+dotnet test Zeitung.sln --filter "TestCategory=NightlyFeedTest" --logger "console;verbosity=detailed"
+```
+
+### Test Structure
+
+Tests are located in `Zeitung.AppHost.Tests/NightlyRssFeedTests.cs` and use:
+- **NUnit TestCaseSource**: Each feed has a separate test case
+- **Aspire Testing Framework**: Tests use the full application host with worker and database
+- **Integration Testing**: Tests fetch real RSS feeds from the internet
+
+Example test case:
+
+```csharp
+[Test]
+[TestCaseSource(nameof(RssFeedTestCases))]
+public async Task RssFeed_CanBeFetchedAndParsed_Successfully(RssFeed feed)
+{
+    // Test implementation that fetches and parses the feed
+}
+```
+
+### Automated Issue Creation
+
+When a feed fails, the workflow automatically:
+
+1. **Checks for existing issues**: Searches for open issues with the same feed name
+2. **Creates new issues**: If no issue exists, creates one with:
+   - Title: "RSS Feed Failure: [Feed Name]"
+   - Labels: `rss-feed-failure`, `automated`, `bug`
+   - Assignee: `@copilot`
+   - Details: Error message, timestamp, link to test run
+3. **Updates existing issues**: If an issue exists:
+   - Adds a comment with the new error (if different from last error)
+   - Skips comment if the error is the same
+
+### Triggering Tests Manually
+
+You can trigger the nightly tests manually:
+
+1. Go to the **Actions** tab in GitHub
+2. Select **Nightly RSS Feed Tests** workflow
+3. Click **Run workflow**
+4. Select the branch and click **Run workflow**
+
+This is useful for:
+- Testing changes to feed URLs
+- Verifying fixes for feed failures
+- Testing the workflow itself
+
+### Adding New Feeds to Test
+
+To add a new RSS feed to the nightly tests:
+
+1. Add the feed to `RssFeedTestCases` in `NightlyRssFeedTests.cs`:
+
+```csharp
+new RssFeed
+{
+    Name = "New Feed",
+    Url = "https://example.com/feed.xml",
+    Description = "Feed description"
+}
+```
+
+2. The test will automatically run for the new feed on the next nightly run
+
+### Monitoring Feed Health
+
+Feed health can be monitored through:
+- **GitHub Actions**: View test results in the Actions tab
+- **GitHub Issues**: Open issues indicate failing feeds
+- **Test Artifacts**: Download test results for detailed analysis
+
+### Troubleshooting Failed Feeds
+
+When a feed fails:
+
+1. **Check the issue**: Review the error message in the created issue
+2. **Test manually**: Try fetching the feed URL directly
+3. **Common issues**:
+   - Feed URL changed or moved
+   - Feed format changed
+   - Feed temporarily unavailable
+   - Network/firewall issues
+4. **Fix the feed**: Update feed URL in configuration or fix parser if needed
+5. **Verify**: Run tests manually to confirm the fix
+6. **Close issue**: Once fixed, close the issue
+
