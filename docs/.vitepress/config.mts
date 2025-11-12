@@ -29,10 +29,7 @@ export default defineConfig({
         items: [
           { text: 'Overview', link: '/api/overview' },
           { text: 'Authentication', link: '/api/authentication' },
-          { text: 'Feeds', link: '/api/feeds' },
-          { text: 'Articles', link: '/api/articles' },
-          { text: 'Tags', link: '/api/tags' },
-          { text: 'Users', link: '/api/users' }
+          { text: 'API Reference', link: '/api/reference' }
         ]
       },
       {
@@ -49,8 +46,8 @@ export default defineConfig({
     ],
 
     footer: {
-      message: 'Released under the MIT License.',
-      copyright: 'Copyright © 2024-present'
+      // message: 'Released under the MIT License.',
+      copyright: 'Copyright © 2025-present'
     }
   }
 })
