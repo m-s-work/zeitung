@@ -3,6 +3,7 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   compatibilityDate: '2024-11-01',
   modules: ['nuxt-open-fetch', '@nuxt/ui'],
+  css: ['~/assets/css/tailwind.css'],
   openFetch: {
     clients: {
       zeitungApi: {
@@ -14,5 +15,13 @@ export default defineNuxtConfig({
     public: {
       apiBase: process.env.API_BASE_URL || 'http://localhost:8080',
     },
+  },
+  colorMode: {
+    preference: 'dark', // default dark mode as requested
+    fallback: 'dark',
+  },
+  ui: {
+    primary: 'blue',
+    gray: 'slate',
   },
 })

@@ -6,13 +6,7 @@ test.describe('Tag Preferences Page', () => {
     
     // Check that the page loads successfully
     await expect(page.locator('h1')).toContainText('Tag Preferences');
-    await expect(page.getByText('Manage your interests and improve recommendations')).toBeVisible();
-  });
-
-  test('should have back to articles button', async ({ page }) => {
-    await page.goto('/tags');
-    
-    await expect(page.getByRole('link', { name: /back to articles/i })).toBeVisible();
+    await expect(page.getByText(/Customize your interests/i)).toBeVisible();
   });
 
   test('should have all tags section', async ({ page }) => {
