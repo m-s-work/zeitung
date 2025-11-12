@@ -1,5 +1,15 @@
 # Smart RSS Feed Reader
 
+Zeitung (German for "newspaper") is a smart RSS feed reader that uses AI to help you discover and read content that matters to you.
+
+## 📚 Documentation
+
+**[View Full Documentation](https://m-s-work.github.io/zeitung/)** (GitHub Pages)
+
+- [Getting Started](https://m-s-work.github.io/zeitung/development/getting-started.html)
+- [API Reference](https://m-s-work.github.io/zeitung/api/overview.html)
+- [Architecture](https://m-s-work.github.io/zeitung/development/architecture.html)
+- [Contributing](https://m-s-work.github.io/zeitung/development/contributing.html)
 
 
 

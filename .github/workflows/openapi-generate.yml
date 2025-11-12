@@ -1,0 +1,45 @@
+name: "OpenAPI: generate"
+on:
+  push:
+    paths:
+      - 'src/backend/**'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  openapi:
+    name: Generate OpenAPI JSON
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Make generate script executable
+        run: chmod +x src/backend/generate-openapi.sh
+
+      - name: Generate OpenAPI JSON
+        env:
+          DOTNET_ENVIRONMENT: Development
+        run: |
+          bash src/backend/generate-openapi.sh
+
+      - name: Detect and commit generated OpenAPI JSON
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git add src/frontend/openapi.json || true
+          if git diff --staged --quiet; then
+            echo "No OpenAPI changes detected; nothing to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "chore: OpenAPI spec updated"
+          git push "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}" "HEAD:${{ github.ref_name }}"
