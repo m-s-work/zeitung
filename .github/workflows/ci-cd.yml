@@ -332,6 +332,8 @@ jobs:
       
       - name: Build Tauri app
         working-directory: src/frontend
+        env:
+          TAURI_BUILD: 'true'
         run: npm run tauri build -- ${{ matrix.args }}
       
       - name: Upload build artifacts
@@ -384,7 +386,9 @@ jobs:
       
       - name: Build Android APK
         working-directory: src/frontend
-        run: npm run tauri android build -- --apk
+        env:
+          TAURI_BUILD: 'true'
+        run: npm run tauri android build -- --apk true
       
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
@@ -445,6 +449,8 @@ jobs:
       
       - name: Build Tauri app
         working-directory: src/frontend
+        env:
+          TAURI_BUILD: 'true'
         run: npm run tauri build -- ${{ matrix.args }}
       
       - name: Upload Release Assets
@@ -503,7 +509,9 @@ jobs:
       
       - name: Build Android APK
         working-directory: src/frontend
-        run: npm run tauri android build -- --apk
+        env:
+          TAURI_BUILD: 'true'
+        run: npm run tauri android build -- --apk true
       
       - name: Upload Release Assets
         uses: softprops/action-gh-release@v2

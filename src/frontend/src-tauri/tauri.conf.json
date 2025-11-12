@@ -7,7 +7,7 @@
     "frontendDist": "../.output/public",
     "devUrl": "http://localhost:3000",
     "beforeDevCommand": "npm run dev",
-    "beforeBuildCommand": "TAURI_BUILD=true npm run generate"
+    "beforeBuildCommand": "npm run generate"
   },
   "app": {
     "windows": [
