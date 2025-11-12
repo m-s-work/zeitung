@@ -1,0 +1,94 @@
+name: Deploy Documentation
+
+on:
+  # Trigger on push to main with docs changes
+  push:
+    branches:
+      - main
+    paths:
+      - 'docs/**'
+      #- 'src/backend/Zeitung.Api/**'
+      - 'src/frontend/openapi.json'
+      - '.github/workflows/deploy-docs.yml'
+  
+  # Trigger on pull requests with docs changes
+  pull_request:
+    paths:
+      - 'docs/**'
+      #- 'src/backend/Zeitung.Api/**'
+      - 'src/frontend/openapi.json'
+      - '.github/workflows/deploy-docs.yml'
+  
+  # Allow manual trigger
+  workflow_dispatch:
+
+# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow only one concurrent deployment
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  # Build job
+  build:
+    name: Build Documentation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Not needed if lastUpdated is not enabled
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: docs/package-lock.json
+      
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+      
+      - name: Generate OpenAPI spec
+        working-directory: src/backend
+        run: |
+          chmod +x generate-openapi.sh
+          ./generate-openapi.sh
+          cp ../frontend/openapi.json ../../docs/openapi.json
+      
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+      
+      - name: Install dependencies
+        run: npm ci
+        working-directory: docs
+      
+      - name: Build with VitePress
+        run: npm run docs:build
+        working-directory: docs
+      
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs/.vitepress/dist
+
+  # Deploy job - only on main branch
+  deploy:
+    name: Deploy to GitHub Pages
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
