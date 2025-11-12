@@ -17,7 +17,10 @@ public class HealthCheckTests
     public async Task OneTimeSetUpAsync()
     {
         var appHost = await DistributedApplicationTestingBuilder
-            .CreateAsync<Projects.Zeitung_AppHost>();
+            .CreateAsync<Projects.Zeitung_AppHost>(
+            [
+                "--environment=ci"
+            ]);
 
         // Configure logging to reduce DCP noise
         appHost.Services.AddLogging(logging => logging
