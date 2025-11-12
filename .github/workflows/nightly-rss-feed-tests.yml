@@ -1,0 +1,224 @@
+name: Nightly RSS Feed Tests
+
+on:
+  schedule:
+    # Run every night at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch: # Allow manual triggering for testing
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  test-rss-feeds:
+    name: Test RSS Feeds
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+      
+      - name: Restore dependencies
+        working-directory: src/backend
+        run: dotnet restore Zeitung.sln
+      
+      - name: Build backend
+        working-directory: src/backend
+        run: dotnet build Zeitung.sln --configuration Release --no-restore
+      
+      - name: Run RSS Feed Tests
+        id: feed_tests
+        working-directory: src/backend
+        run: |
+          dotnet test Zeitung.sln \
+            --configuration Release \
+            --no-build \
+            --verbosity normal \
+            --logger "trx;LogFileName=feed-test-results.trx" \
+            --logger "console;verbosity=detailed" \
+            --filter "TestCategory=NightlyFeedTest" || echo "TESTS_FAILED=true" >> $GITHUB_ENV
+        env:
+          ASPNETCORE_ENVIRONMENT: ci
+          DOTNET_ENVIRONMENT: ci
+        continue-on-error: true
+      
+      - name: Parse Test Results
+        id: parse_results
+        if: always()
+        shell: bash
+        run: |
+          # Check if test results file exists
+          if [ ! -f "src/backend/Zeitung.AppHost.Tests/TestResults/feed-test-results.trx" ]; then
+            echo "Test results file not found"
+            exit 0
+          fi
+          
+          # Parse the TRX file to extract failed tests
+          # We'll create a simple JSON structure with failed tests
+          python3 - <<'EOF'
+          import xml.etree.ElementTree as ET
+          import json
+          import os
+          
+          try:
+              tree = ET.parse('src/backend/Zeitung.AppHost.Tests/TestResults/feed-test-results.trx')
+              root = tree.getroot()
+              
+              # Define namespace
+              ns = {'ns': 'http://microsoft.com/schemas/VisualStudio/TeamTest/2010'}
+              
+              failed_tests = []
+              
+              # Find all test results
+              for result in root.findall('.//ns:UnitTestResult', ns):
+                  outcome = result.get('outcome')
+                  if outcome == 'Failed':
+                      test_name = result.get('testName')
+                      
+                      # Extract error message
+                      error_msg = ""
+                      output = result.find('.//ns:Output', ns)
+                      if output is not None:
+                          error_info = output.find('.//ns:ErrorInfo', ns)
+                          if error_info is not None:
+                              message = error_info.find('ns:Message', ns)
+                              if message is not None:
+                                  error_msg = message.text or ""
+                      
+                      # Extract feed name from test name
+                      # Test name format: "Feed_BBC_News" or similar
+                      feed_name = test_name.replace("Feed_", "").replace("_", " ")
+                      
+                      failed_tests.append({
+                          'test_name': test_name,
+                          'feed_name': feed_name,
+                          'error': error_msg[:500]  # Limit error message length
+                      })
+              
+              # Write results to a file for later steps
+              with open('failed_tests.json', 'w') as f:
+                  json.dump(failed_tests, f, indent=2)
+              
+              print(f"Found {len(failed_tests)} failed tests")
+              
+              # Set output for GitHub Actions
+              with open(os.environ['GITHUB_ENV'], 'a') as f:
+                  f.write(f"FAILED_TEST_COUNT={len(failed_tests)}\n")
+                  if len(failed_tests) > 0:
+                      f.write("HAS_FAILURES=true\n")
+          
+          except Exception as e:
+              print(f"Error parsing test results: {e}")
+              exit(0)
+          EOF
+      
+      - name: Create or Update Issues for Failed Feeds
+        if: env.HAS_FAILURES == 'true'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            
+            // Read failed tests
+            let failedTests = [];
+            try {
+              const data = fs.readFileSync('failed_tests.json', 'utf8');
+              failedTests = JSON.parse(data);
+            } catch (error) {
+              console.log('No failed tests file found or error reading it:', error);
+              return;
+            }
+            
+            console.log(`Processing ${failedTests.length} failed feeds`);
+            
+            for (const test of failedTests) {
+              const feedName = test.feed_name;
+              const errorMessage = test.error;
+              const issueTitle = `RSS Feed Failure: ${feedName}`;
+              
+              // Check if an issue already exists for this feed
+              const existingIssues = await github.rest.issues.listForRepo({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                state: 'open',
+                labels: ['rss-feed-failure', 'automated'],
+                per_page: 100
+              });
+              
+              const existingIssue = existingIssues.data.find(issue => 
+                issue.title === issueTitle
+              );
+              
+              const timestamp = new Date().toISOString();
+              const runUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+              
+              if (existingIssue) {
+                console.log(`Found existing issue #${existingIssue.number} for ${feedName}`);
+                
+                // Check if the last comment has the same error
+                const comments = await github.rest.issues.listComments({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: existingIssue.number,
+                  per_page: 1,
+                  sort: 'created',
+                  direction: 'desc'
+                });
+                
+                const lastComment = comments.data[0];
+                const shouldAddComment = !lastComment || !lastComment.body.includes(errorMessage.substring(0, 100));
+                
+                if (shouldAddComment) {
+                  // Add a comment with the new error
+                  await github.rest.issues.createComment({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: existingIssue.number,
+                    body: `## Feed Still Failing\n\n**Timestamp:** ${timestamp}\n\n**Error:**\n\`\`\`\n${errorMessage}\n\`\`\`\n\n**Test Run:** ${runUrl}`
+                  });
+                  console.log(`Added comment to issue #${existingIssue.number}`);
+                } else {
+                  console.log(`Same error as last comment, skipping update for issue #${existingIssue.number}`);
+                }
+              } else {
+                // Create a new issue
+                console.log(`Creating new issue for ${feedName}`);
+                const newIssue = await github.rest.issues.create({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  title: issueTitle,
+                  body: `## RSS Feed Failure Detected\n\n**Feed Name:** ${feedName}\n**Timestamp:** ${timestamp}\n\nThe nightly RSS feed test has detected that this feed is failing.\n\n**Error:**\n\`\`\`\n${errorMessage}\n\`\`\`\n\n**Test Run:** ${runUrl}\n\n### Possible Causes\n- Feed URL is unreachable\n- Feed format has changed\n- Feed returns HTTP error\n- Feed contains no items\n\n### Next Steps\n1. Check if the feed URL is still valid\n2. Verify the feed format hasn't changed\n3. Test the feed manually to confirm the issue\n4. Update the feed URL or parser if needed`,
+                  labels: ['rss-feed-failure', 'automated', 'bug'],
+                  assignees: ['copilot']
+                });
+                console.log(`Created issue #${newIssue.data.number} for ${feedName}`);
+              }
+            }
+            
+            console.log('Finished processing all failed feeds');
+      
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: feed-test-results
+          path: |
+            src/backend/**/feed-test-results.trx
+            failed_tests.json
+          retention-days: 30
+      
+      - name: Publish Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: always()
+        with:
+          files: |
+            src/backend/**/feed-test-results.trx
+          check_name: Nightly RSS Feed Test Results
+          comment_title: Nightly RSS Feed Test Results
