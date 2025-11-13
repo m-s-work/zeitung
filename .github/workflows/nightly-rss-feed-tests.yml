@@ -70,15 +70,43 @@ jobs:
         run: |
           # Check if test results file exists
           if [ -f "Zeitung.Worker.Tests/TestResults/rss-feed-test-results.trx" ]; then
-            # Parse the TRX file to extract failed tests
             echo "Parsing test results..."
             
-            # Extract failed test names (simplified parsing)
-            failed_tests=$(grep -oP 'testName="\K[^"]+' Zeitung.Worker.Tests/TestResults/rss-feed-test-results.trx | grep "RssFeed_ShouldBeIngestible" || echo "")
+            # Extract failed test names and error messages
+            # Use xmllint or grep to parse TRX XML
+            failed_data=""
             
-            if [ -n "$failed_tests" ]; then
-              echo "failed_feeds<<EOF" >> $GITHUB_OUTPUT
-              echo "$failed_tests" >> $GITHUB_OUTPUT
+            # Find all failed tests
+            while IFS= read -r line; do
+              if echo "$line" | grep -q 'outcome="Failed"'; then
+                # Extract test name
+                test_name=$(echo "$line" | grep -oP 'testName="\K[^"]+' || echo "")
+                
+                # Try to extract error message from the next few lines
+                error_message=""
+                for i in {1..20}; do
+                  next_line=$(sed -n "$(($(grep -n "$line" Zeitung.Worker.Tests/TestResults/rss-feed-test-results.trx | head -1 | cut -d: -f1) + i))p" Zeitung.Worker.Tests/TestResults/rss-feed-test-results.trx)
+                  if echo "$next_line" | grep -q "<Message>"; then
+                    error_message=$(echo "$next_line" | sed 's/<[^>]*>//g' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+                    break
+                  fi
+                done
+                
+                if [ -n "$test_name" ] && echo "$test_name" | grep -q "RssFeed_ShouldBeIngestible"; then
+                  # Store test name and error message separated by ||| delimiter
+                  if [ -n "$failed_data" ]; then
+                    failed_data="$failed_data
+$test_name|||${error_message:-Unknown error}"
+                  else
+                    failed_data="$test_name|||${error_message:-Unknown error}"
+                  fi
+                fi
+              fi
+            done < <(grep 'UnitTestResult' Zeitung.Worker.Tests/TestResults/rss-feed-test-results.trx)
+            
+            if [ -n "$failed_data" ]; then
+              echo "failed_feeds_data<<EOF" >> $GITHUB_OUTPUT
+              echo "$failed_data" >> $GITHUB_OUTPUT
               echo "EOF" >> $GITHUB_OUTPUT
               echo "has_failures=true" >> $GITHUB_OUTPUT
             else
@@ -95,20 +123,38 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const failedFeeds = `${{ steps.parse_results.outputs.failed_feeds }}`.split('\n').filter(f => f);
+            const failedFeedsData = `${{ steps.parse_results.outputs.failed_feeds_data }}`.split('\n').filter(f => f);
             
-            for (const feedTest of failedFeeds) {
+            // Extract PR/branch/commit information
+            const prNumber = context.payload.pull_request?.number || 'N/A';
+            const branch = context.ref.replace('refs/heads/', '');
+            const commit = context.sha.substring(0, 7);
+            const commitUrl = `${{ github.server_url }}/${{ github.repository }}/commit/${context.sha}`;
+            
+            for (const feedData of failedFeedsData) {
+              const [feedTest, errorMessage] = feedData.split('|||');
+              
               // Extract feed name from test name (e.g., "RssFeed_ShouldBeIngestible_BBC_News" -> "BBC News")
               const feedName = feedTest.replace('RssFeed_ShouldBeIngestible_', '').replace(/_/g, ' ');
               
               const issueTitle = `RSS Feed Failed: ${feedName}`;
               const issueBody = `## RSS Feed Failure Report
               
-              The RSS feed \`${feedName}\` failed during nightly integration testing.
+              The RSS feed \`${feedName}\` failed during integration testing.
               
               **Test Name:** \`${feedTest}\`
               **Date:** ${new Date().toISOString()}
               **Workflow Run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+              
+              ### Error Message
+              \`\`\`
+              ${errorMessage || 'No error message captured'}
+              \`\`\`
+              
+              ### Source Information
+              - **Branch:** \`${branch}\`
+              - **Commit:** [\`${commit}\`](${commitUrl})
+              ${prNumber !== 'N/A' ? `- **Pull Request:** #${prNumber}` : ''}
               
               ### What to do next:
               1. Check if the feed URL is still valid
@@ -134,7 +180,7 @@ jobs:
               );
               
               if (existingIssue) {
-                // Check if we already commented on this run to avoid duplicates
+                // Check if we already have a comment with this error message
                 const comments = await github.rest.issues.listComments({
                   owner: context.repo.owner,
                   repo: context.repo.repo,
@@ -142,30 +188,51 @@ jobs:
                   per_page: 100
                 });
                 
-                const runId = '${{ github.run_id }}';
-                const alreadyCommented = comments.data.some(comment => 
-                  comment.body && comment.body.includes(runId)
-                );
+                // Normalize error message for comparison (remove extra whitespace)
+                const normalizedError = (errorMessage || '').trim().replace(/\s+/g, ' ');
                 
-                if (!alreadyCommented) {
-                  // Add a comment to the existing issue
+                const isDuplicateError = comments.data.some(comment => {
+                  if (!comment.body) return false;
+                  // Extract error from comment and normalize
+                  const errorMatch = comment.body.match(/### Error Message\s*```\s*([^`]+)\s*```/s);
+                  if (errorMatch) {
+                    const commentError = errorMatch[1].trim().replace(/\s+/g, ' ');
+                    return commentError === normalizedError;
+                  }
+                  return false;
+                });
+                
+                if (!isDuplicateError) {
+                  // Add a comment to the existing issue with new error
+                  const commentBody = `## Feed Still Failing
+                  
+                  The RSS feed \`${feedName}\` continues to fail with a different or new error.
+                  
+                  **Date:** ${new Date().toISOString()}
+                  **Workflow Run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+                  
+                  ### Error Message
+                  \`\`\`
+                  ${errorMessage || 'No error message captured'}
+                  \`\`\`
+                  
+                  ### Source Information
+                  - **Branch:** \`${branch}\`
+                  - **Commit:** [\`${commit}\`](${commitUrl})
+                  ${prNumber !== 'N/A' ? `- **Pull Request:** #${prNumber}` : ''}
+                  
+                  This issue remains unresolved. Please investigate and fix the feed configuration or remove the feed if it's permanently unavailable.`;
+                  
                   await github.rest.issues.createComment({
                     owner: context.repo.owner,
                     repo: context.repo.repo,
                     issue_number: existingIssue.number,
-                    body: `## Feed Still Failing
-                    
-                    The RSS feed \`${feedName}\` continues to fail.
-                    
-                    **Date:** ${new Date().toISOString()}
-                    **Workflow Run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-                    
-                    This issue remains unresolved. Please investigate and fix the feed configuration or remove the feed if it's permanently unavailable.`
+                    body: commentBody
                   });
                   
                   console.log(`Added comment to existing issue #${existingIssue.number} for feed: ${feedName}`);
                 } else {
-                  console.log(`Skipping duplicate comment for issue #${existingIssue.number} (run ${runId})`);
+                  console.log(`Skipping duplicate error comment for issue #${existingIssue.number} (same error already reported)`);
                 }
               } else {
                 // Create a new issue
