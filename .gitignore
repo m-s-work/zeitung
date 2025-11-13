@@ -22,6 +22,7 @@ build/
 .output/
 playwright-report/
 test-results/
+vitest-ctrf/
 
 # Backend specific
 bin/
@@ -30,6 +31,7 @@ obj/
 *.suo
 *.userosscache
 *.sln.docstates
+TestResults/
 
 # Test coverage
 coverage/
