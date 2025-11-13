@@ -188,7 +188,7 @@ jobs:
         run: dotnet build Zeitung.sln --configuration Release --no-restore
       
       - name: Run tests
-        run: dotnet test Zeitung.sln --configuration Release --no-build --verbosity normal --logger "trx;LogFileName=test-results.trx" --filter "TestCategory=IntegrationTest"
+        run: dotnet test Zeitung.sln --configuration Release --no-build --verbosity normal --logger "trx;LogFileName=test-results.trx" --filter "TestCategory=IntegrationTest" --collect:"XPlat Code Coverage" --results-directory ./TestResults
         env:
           ASPNETCORE_ENVIRONMENT: ci
           DOTNET_ENVIRONMENT: ci
@@ -208,7 +208,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           comment-title: 'Unit Test Results'
           results-path: src/backend/**/test-results.trx
-          coverage-path: ./TestResults/coverage.xml # TODO add coverage generation
+          coverage-path: src/backend/TestResults/**/coverage.cobertura.xml
           coverage-threshold: 80
 
   release-please:
