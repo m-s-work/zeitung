@@ -15,8 +15,8 @@
     "Description": "Golem.de IT News"
   },
   {
-    "Name": "ORF.at",
-    "Url": "https://rss.orf.at/news.xml",
-    "Description": "ORF.at News"
+    "Name": "The Guardian",
+    "Url": "https://www.theguardian.com/world/rss",
+    "Description": "The Guardian - World News"
   }
 ]
