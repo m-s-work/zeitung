@@ -1,35 +1,35 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
-    <UContainer class="py-8">
+  <div class="min-h-screen">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div class="space-y-8">
         <!-- Header -->
-        <div class="max-w-4xl mx-auto">
-          <div class="flex items-center gap-3 mb-4">
+        <div>
+          <div class="mb-4">
             <UButton
               to="/"
               icon="i-heroicons-arrow-left"
               color="gray"
               variant="ghost"
               size="sm"
-              class="text-gray-700 dark:text-gray-200"
+              class="text-gray-700 dark:text-gray-300"
             >
               <span class="hidden sm:inline">Back</span>
             </UButton>
           </div>
-          <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white">
+          <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
             Tag Preferences
           </h1>
-          <p class="mt-2 text-gray-600 dark:text-gray-400">
+          <p class="text-base text-gray-600 dark:text-gray-400">
             Customize your interests to receive better article recommendations
           </p>
         </div>
 
         <!-- User Tag Stats -->
-        <UCard v-if="!loadingUserTags && userTags.length > 0" class="max-w-4xl mx-auto shadow-lg" :ui="{ rounded: 'rounded-xl' }">
+        <UCard v-if="!loadingUserTags && userTags.length > 0" class="shadow-md" :ui="{ rounded: 'rounded-xl' }">
           <template #header>
             <div class="flex items-center gap-2">
-              <UIcon name="i-heroicons-star" class="w-5 h-5 text-primary-500" />
-              <h3 class="text-lg font-bold text-gray-900 dark:text-white">Your Tag Interests</h3>
+              <UIcon name="i-heroicons-star" class="w-5 h-5 text-blue-500" />
+              <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100">Your Tag Interests</h3>
             </div>
           </template>
 
@@ -78,12 +78,12 @@
         </UCard>
 
         <!-- All Tags -->
-        <UCard class="max-w-4xl mx-auto shadow-lg" :ui="{ rounded: 'rounded-xl' }">
+        <UCard class="shadow-md" :ui="{ rounded: 'rounded-xl' }">
           <template #header>
             <div class="flex items-center justify-between gap-4 flex-wrap">
               <div class="flex items-center gap-2">
-                <UIcon name="i-heroicons-tag" class="w-5 h-5 text-primary-500" />
-                <h3 class="text-lg font-bold text-gray-900 dark:text-white">All Tags</h3>
+                <UIcon name="i-heroicons-tag" class="w-5 h-5 text-blue-500" />
+                <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100">All Tags</h3>
               </div>
               <UInput
                 v-model="searchQuery"
@@ -152,11 +152,11 @@
 
           <div v-else class="text-center py-12">
             <UIcon name="i-heroicons-magnifying-glass" class="w-12 h-12 mx-auto text-gray-400 mb-3" />
-            <p class="text-gray-500 dark:text-gray-400">No tags found</p>
+            <p class="text-base text-gray-500 dark:text-gray-400">No tags found</p>
           </div>
         </UCard>
       </div>
-    </UContainer>
+    </div>
   </div>
 </template>
 
