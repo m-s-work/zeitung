@@ -2,7 +2,7 @@
 # AI Agent instructions for Zeitung repository
 
 ## Coding Guidelines
-see code change guidelines .github/agents/code-changes.md
+see code change guidelines .github/instructions/code-changes.instructions.md
 
 inform/alert user if rules are violated (by existing code or new code) like:
 - duplicating code/functions
@@ -16,7 +16,7 @@ inform/alert user if rules are violated (by existing code or new code) like:
 ## PR instructions
 Title format: <type>(<scope>): <description>
 while scope is optional
-further see .github/agents/pull-requests.md
+further see .github/instructions/pull-requests.instructions.md
 
 branch name should start with "agent/123-description-of-task" where 123 is the current PR id
 
