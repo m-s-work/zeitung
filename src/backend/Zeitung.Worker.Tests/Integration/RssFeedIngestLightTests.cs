@@ -1,80 +1,24 @@
-using Aspire.Hosting;
-using Aspire.Hosting.Testing;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Zeitung.Core.Models;
 using Zeitung.Worker.Models;
 using Zeitung.Worker.Services;
 
 namespace Zeitung.Worker.Tests.Integration;
 
 /// <summary>
-/// Integration tests for RSS feed ingestion.
+/// Light tests for RSS feed ingestion.
 /// These tests validate that configured RSS feeds can be fetched and ingested into the database.
 /// </summary>
 [TestFixture]
-[Category("IntegrationTest")]
-[Ignore("same as Lite tests, but slower startup time")]
-public class RssFeedIntegrationTests
+public class RssFeedIngestLightTests
 {
-    private IDistributedApplicationTestingBuilder? _builder;
-    private DistributedApplication? _app;
     private List<RssFeed> _rssFeeds = new();
 
     [OneTimeSetUp]
     public async Task OneTimeSetUpAsync()
     {
         // Load RSS feeds from separate feeds.json file
-        var feedsPath = Path.Combine(Directory.GetCurrentDirectory(), "TestData", "feeds.json5");
+        var feedsPath = Path.Combine(Directory.GetCurrentDirectory(), "TestData", "feeds.json");
         var feedsJson = await File.ReadAllTextAsync(feedsPath);
         _rssFeeds = System.Text.Json.JsonSerializer.Deserialize<List<RssFeed>>(feedsJson) ?? new List<RssFeed>();
-
-        var appHost = await DistributedApplicationTestingBuilder.CreateAsync<Projects.Zeitung_AppHost>();
-
-        // Configure HTTP client resilience/timeouts
-        //appHost.Services.ConfigureHttpClientDefaults(http =>
-        //{
-        //    http.AddStandardResilienceHandler(options =>
-        //    {
-        //        options.TotalRequestTimeout.Timeout = TimeSpan.FromSeconds(90);
-        //        options.AttemptTimeout.Timeout = TimeSpan.FromSeconds(30);
-        //        options.CircuitBreaker.SamplingDuration = TimeSpan.FromSeconds(60);
-        //    });
-        //});
-
-        _builder = appHost;
-        _app = await appHost.BuildAsync();
-        await _app.StartAsync();
-    }
-
-    [OneTimeTearDown]
-    public async Task OneTimeTearDownAsync()
-    {
-        if (_app != null)
-        {
-            try
-            {
-                await _app.StopAsync();
-            }
-            catch
-            {
-                // Ignore stop failures during teardown
-            }
-
-            try
-            {
-                await _app.DisposeAsync();
-            }
-            catch
-            {
-                // Ignore dispose failures during teardown
-            }
-
-            _app = null;
-            _builder = null;
-        }
     }
 
     /// <summary>
@@ -85,7 +29,7 @@ public class RssFeedIntegrationTests
         get
         {
             // Load RSS feeds from separate feeds.json file
-            var feedsPath = Path.Combine(Directory.GetCurrentDirectory(), "TestData", "feeds.json");
+            var feedsPath = Path.Combine(Directory.GetCurrentDirectory(), "TestData", "feeds.json5");
             var feedsJson = File.ReadAllText(feedsPath);
             var rssFeeds = System.Text.Json.JsonSerializer.Deserialize<List<RssFeed>>(feedsJson) ?? new List<RssFeed>();
             
