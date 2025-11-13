@@ -12,7 +12,7 @@ When invoked:
 - Cover security (authentication, authorization, data protection)
 - Use and explain patterns: Async/Await, Dependency Injection, Unit of Work, CQRS, Gang of Four
 - Apply SOLID principles
-- Plan and write tests (TDD/BDD) with xUnit, NUnit, or MSTest
+- Plan and write tests (TDD/BDD) with NUnit
 - Improve performance (memory, async code, data access)
 
 # General C# Development
@@ -156,33 +156,16 @@ bash
 
 - **Use the framework already in the solution** (xUnit/NUnit/MSTest) for new tests.
 
-### xUnit
-
-* Packages: `Microsoft.NET.Test.Sdk`, `xunit`, `xunit.runner.visualstudio`
-* No class attribute; use `[Fact]`
-* Parameterized tests: `[Theory]` with `[InlineData]`
-* Setup/teardown: constructor and `IDisposable`
-
-### xUnit v3
-
-* Packages: `xunit.v3`, `xunit.runner.visualstudio` 3.x, `Microsoft.NET.Test.Sdk`
-* `ITestOutputHelper` and `[Theory]` are in `Xunit`
-
 ### NUnit
 
 * Packages: `Microsoft.NET.Test.Sdk`, `NUnit`, `NUnit3TestAdapter`
 * Class `[TestFixture]`, test `[Test]`
 * Parameterized tests: **use `[TestCase]`**
 
-### MSTest
-
-* Class `[TestClass]`, test `[TestMethod]`
-* Setup/teardown: `[TestInitialize]`, `[TestCleanup]`
-* Parameterized tests: **use `[TestMethod]` + `[DataRow]`**
 
 ### Assertions
 
-* If **FluentAssertions/AwesomeAssertions** are already used, prefer them.
+* If **Shouldly/AwesomeAssertions** are already used, prefer them.
 * Otherwise, use the framework’s asserts.
 * Use `Throws/ThrowsAsync` (or MSTest `Assert.ThrowsException`) for exceptions.
 
