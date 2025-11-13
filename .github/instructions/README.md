@@ -4,9 +4,9 @@ This directory contains instruction files for GitHub Copilot agents working on t
 
 ## Files
 
-- **code-changes.md** - Guidelines for making code changes (minimal changes, preserving comments, file organization)
-- **pull-requests.md** - Pull request conventions (conventional commits, PR format)
-- **playwright-setup.md** - Important setup instructions for Playwright tests in agent mode
+- **code-changes.instructions.md** - Guidelines for making code changes (minimal changes, preserving comments, file organization)
+- **pull-requests.instructions.md** - Pull request conventions (conventional commits, PR format)
+- **playwright-setup.instructions.md** - Important setup instructions for Playwright tests in agent mode
 
 ## Usage
 
