@@ -98,7 +98,7 @@ public class RssFeedIngestionJobsTests
     }
 
     [Test]
-    public async Task IngestRssFeeds_HandlesCancellation()
+    public void IngestRssFeeds_HandlesCancellation()
     {
         // Arrange
         using var cts = new CancellationTokenSource();
@@ -110,7 +110,9 @@ public class RssFeedIngestionJobsTests
             .ThrowsAsync(new OperationCanceledException());
 
         // Act & Assert
-        Assert.ThrowsAsync<OperationCanceledException>(
+        var exception = Assert.ThrowsAsync<OperationCanceledException>(
             async () => await _job.IngestRssFeeds(cancellationToken));
+        
+        Assert.That(exception, Is.Not.Null);
     }
 }
