@@ -13,34 +13,35 @@ public class RssFeedIngestLightTests
     private List<RssFeed> _rssFeeds = new();
 
     [OneTimeSetUp]
-    public async Task OneTimeSetUpAsync()
+    public void OneTimeSetUpAsync()
     {
-        // Load RSS feeds from separate feeds.json file
-        var feedsPath = Path.Combine(Directory.GetCurrentDirectory(), "TestData", "feeds.json");
-        var feedsJson = await File.ReadAllTextAsync(feedsPath);
-        _rssFeeds = System.Text.Json.JsonSerializer.Deserialize<List<RssFeed>>(feedsJson) ?? new List<RssFeed>();
+        _rssFeeds = ReadRssFeedConfig();
     }
-
-    /// <summary>
-    /// Provides test cases for each RSS feed configured in feeds.json
-    /// </summary>
+    
     public static IEnumerable<TestCaseData> RssFeedTestCases
     {
         get
         {
-            // Load RSS feeds from separate feeds.json file
-            var feedsPath = Path.Combine(Directory.GetCurrentDirectory(), "TestData", "feeds.json5");
-            var feedsJson = File.ReadAllText(feedsPath);
-            var rssFeeds = System.Text.Json.JsonSerializer.Deserialize<List<RssFeed>>(feedsJson) ?? new List<RssFeed>();
-            
+            var rssFeeds = ReadRssFeedConfig();
+
             foreach (var feed in rssFeeds)
             {
-                yield return new TestCaseData(feed)
-                    .SetArgDisplayNames(feed.Name.Replace(" ", "_").Replace(".", "_"))
-                    //.SetName($"RssFeed_ShouldBeIngestible_{feed.Name.Replace(" ", "_").Replace(".", "_")}")
-                    ;
+                yield return new TestCaseData(feed).SetArgDisplayNames(feed.Name.Replace(" ", "_").Replace(".", "_"));
             }
         }
+    }
+
+    private static List<RssFeed> ReadRssFeedConfig()
+    {
+        var feedsPath = Path.Combine(Directory.GetCurrentDirectory(), "TestData", "feeds.json5");
+        var feedsJson = File.ReadAllText(feedsPath);
+        //var rssFeeds = System.Text.Json.JsonSerializer.Deserialize<List<RssFeed>>(feedsJson) ?? new List<RssFeed>();
+        var jsonSerializerOptions = new System.Text.Json.JsonSerializerOptions
+        {
+            ReadCommentHandling = System.Text.Json.JsonCommentHandling.Skip
+        };
+        var rssFeeds = System.Text.Json.JsonSerializer.Deserialize<List<RssFeed>>(feedsJson, jsonSerializerOptions) ?? new List<RssFeed>();
+        return rssFeeds;
     }
 
     /// <summary>
@@ -97,26 +98,18 @@ public class RssFeedIngestLightTests
         }
         
         // Test parsing the feed
-        try
-        {
-            var parser = new RssFeedParser(
-                new MockHttpClientFactory(content),
-                new MockLogger<RssFeedParser>());
-            
-            var articles = await parser.ParseFeedAsync(feed);
-            
-            Assert.That(articles, Is.Not.Null, $"Feed '{feed.Name}' should be parseable");
-            
-            if (articles.Count == 0)
-            {
-                var contentPreview = content.Length > 1000 ? content.Substring(0, 1000) + "..." : content;
-                Assert.Fail($"Feed '{feed.Name}' parsed successfully but contained no articles. Raw XML preview: {contentPreview}");
-            }
-        }
-        catch (Exception ex)
+        var parser = new RssFeedParser(
+            new MockHttpClientFactory(content),
+            new MockLogger<RssFeedParser>());
+        
+        var articles = await parser.ParseFeedAsync(feed);
+        
+        Assert.That(articles, Is.Not.Null, $"Feed '{feed.Name}' should be parseable");
+        
+        if (articles.Count == 0)
         {
             var contentPreview = content.Length > 1000 ? content.Substring(0, 1000) + "..." : content;
-            Assert.Fail($"Failed to parse RSS feed '{feed.Name}'. Error: {ex.Message}\n\nRaw XML preview: {contentPreview}");
+            Assert.Fail($"Feed '{feed.Name}' parsed successfully but contained no articles. Raw XML preview: {contentPreview}");
         }
     }
 

@@ -16,7 +16,8 @@ namespace Zeitung.Worker.Tests.Integration;
 /// </summary>
 [TestFixture]
 [Category("IntegrationTest")]
-[Ignore("same as Lite tests, but slower startup time")]
+[Ignore("same as Lite tests, but slower startup time")] // TODO we need to change/refactor it so here full ingest into DB is done
+// TODO also cleanup stuff like in light tests (rss feed config read)
 public class RssFeedIntegrationTests
 {
     private IDistributedApplicationTestingBuilder? _builder;
