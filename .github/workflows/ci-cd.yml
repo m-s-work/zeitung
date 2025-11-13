@@ -147,7 +147,7 @@ jobs:
         run: dotnet build Zeitung.sln --configuration Release --no-restore
       
       - name: Run tests
-        run: dotnet test Zeitung.sln --configuration Release --no-build --verbosity normal --logger "trx;LogFileName=test-results.trx" --filter "TestCategory!=IntegrationTest"
+        run: dotnet test Zeitung.sln --configuration Release --no-build --verbosity normal --logger "trx;LogFileName=test-results.trx" --filter "TestCategory!=IntegrationTest" --collect:"XPlat Code Coverage" --results-directory ./TestResults
       
       - name: Publish Test Results
         uses: EnricoMi/publish-unit-test-result-action@v2
@@ -157,6 +157,16 @@ jobs:
             src/backend/**/test-results.trx
           check_name: Backend Test Results
           comment_title: Backend Test Results
+      
+      - name: Publish Test Results and Coverage
+        uses: bibipkins/dotnet-test-reporter@v1.4.0
+        if: always()
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          comment-title: 'Backend Unit Test Results'
+          results-path: src/backend/**/test-results.trx
+          coverage-path: src/backend/TestResults/**/coverage.cobertura.xml
+          coverage-threshold: 80
   
   test-backend-integration:
     name: Test Backend Integration
@@ -204,9 +214,10 @@ jobs:
 
       - name: Publish Test Results and Coverage
         uses: bibipkins/dotnet-test-reporter@v1.4.0
+        if: always()
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          comment-title: 'Unit Test Results'
+          comment-title: 'Backend Integration Test Results'
           results-path: src/backend/**/test-results.trx
           coverage-path: src/backend/TestResults/**/coverage.cobertura.xml
           coverage-threshold: 80
