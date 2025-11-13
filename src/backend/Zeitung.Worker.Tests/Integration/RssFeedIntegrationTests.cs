@@ -156,9 +156,11 @@ public class RssFeedIntegrationTests
         // Test parsing the feed
         try
         {
+            var rdfParser = new RdfFeedParser(new MockLogger<RdfFeedParser>());
             var parser = new RssFeedParser(
                 new MockHttpClientFactory(content),
-                new MockLogger<RssFeedParser>());
+                new MockLogger<RssFeedParser>(),
+                rdfParser);
             
             var articles = await parser.ParseFeedAsync(feed);
             

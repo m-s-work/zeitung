@@ -13,6 +13,7 @@ public class RssFeedParserTests
 {
     private Mock<IHttpClientFactory> _httpClientFactoryMock = null!;
     private Mock<ILogger<RssFeedParser>> _loggerMock = null!;
+    private Mock<IRdfFeedParser> _rdfFeedParserMock = null!;
     private RssFeedParser _parser = null!;
 
     [SetUp]
@@ -20,7 +21,8 @@ public class RssFeedParserTests
     {
         _httpClientFactoryMock = new Mock<IHttpClientFactory>();
         _loggerMock = new Mock<ILogger<RssFeedParser>>();
-        _parser = new RssFeedParser(_httpClientFactoryMock.Object, _loggerMock.Object);
+        _rdfFeedParserMock = new Mock<IRdfFeedParser>();
+        _parser = new RssFeedParser(_httpClientFactoryMock.Object, _loggerMock.Object, _rdfFeedParserMock.Object);
     }
 
     [Test]
