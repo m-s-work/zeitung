@@ -16,17 +16,7 @@ public class HealthCheckTests
     [OneTimeSetUp]
     public async Task OneTimeSetUpAsync()
     {
-        var appHost = await DistributedApplicationTestingBuilder
-            .CreateAsync<Projects.Zeitung_AppHost>(
-            [
-                "--environment=ci"
-            ]);
-
-        // Configure logging to reduce DCP noise
-        appHost.Services.AddLogging(logging => logging
-            .AddFilter("Default", LogLevel.Information)
-            .AddFilter("Microsoft.AspNetCore", LogLevel.Warning)
-            .AddFilter("Aspire.Hosting.Dcp", LogLevel.Warning));
+        var appHost = await DistributedApplicationTestingBuilder.CreateAsync<Projects.Zeitung_AppHost>();
 
         // Configure default HTTP client resilience/timeouts used by tests.
         // Doing this here ensures all tests use consistent timeouts.

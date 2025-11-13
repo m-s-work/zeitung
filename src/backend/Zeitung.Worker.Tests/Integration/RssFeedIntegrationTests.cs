@@ -30,28 +30,18 @@ public class RssFeedIntegrationTests
         var feedsJson = await File.ReadAllTextAsync(feedsPath);
         _rssFeeds = System.Text.Json.JsonSerializer.Deserialize<List<RssFeed>>(feedsJson) ?? new List<RssFeed>();
 
-        // Create and start the distributed application
-        var appHost = await DistributedApplicationTestingBuilder
-            .CreateAsync<Projects.Zeitung_AppHost>(
-            [
-                "--environment=ci"
-            ]);
-
-        // Configure logging
-        appHost.Services.AddLogging(logging => logging
-            .AddFilter("Default", LogLevel.Information)
-            .AddFilter("Microsoft.AspNetCore", LogLevel.Warning)
-            .AddFilter("Aspire.Hosting.Dcp", LogLevel.Warning));
+        var appHost = await DistributedApplicationTestingBuilder.CreateAsync<Projects.Zeitung_AppHost>();
 
         // Configure HTTP client resilience/timeouts
-        appHost.Services.ConfigureHttpClientDefaults(http =>
-        {
-            http.AddStandardResilienceHandler(options =>
-            {
-                options.TotalRequestTimeout.Timeout = TimeSpan.FromSeconds(90);
-                options.AttemptTimeout.Timeout = TimeSpan.FromSeconds(30);
-            });
-        });
+        //appHost.Services.ConfigureHttpClientDefaults(http =>
+        //{
+        //    http.AddStandardResilienceHandler(options =>
+        //    {
+        //        options.TotalRequestTimeout.Timeout = TimeSpan.FromSeconds(90);
+        //        options.AttemptTimeout.Timeout = TimeSpan.FromSeconds(30);
+        //        options.CircuitBreaker.SamplingDuration = TimeSpan.FromSeconds(60);
+        //    });
+        //});
 
         _builder = appHost;
         _app = await appHost.BuildAsync();
