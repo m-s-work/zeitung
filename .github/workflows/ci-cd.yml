@@ -47,7 +47,7 @@ jobs:
         with:
           files: |
             src/frontend/test-results/junit.xml
-          check_name: Frontend Test Results
+          #check_name: Frontend Test Results
           comment_title: Frontend Test Results
       
       - name: Build frontend
@@ -106,7 +106,7 @@ jobs:
         with:
           files: |
             src/frontend/test-results/junit.xml
-          check_name: Frontend E2E Test Results
+          #check_name: Frontend E2E Test Results
           comment_title: Frontend E2E Test Results
       
       - name: Upload Playwright Report
@@ -155,7 +155,7 @@ jobs:
         with:
           files: |
             src/backend/**/test-results.trx
-          check_name: Backend Test Results
+          #check_name: Backend Test Results
           comment_title: Backend Test Results
   
   test-backend-integration:
@@ -199,7 +199,7 @@ jobs:
         with:
           files: |
             src/backend/**/test-results.trx
-          check_name: Backend Integration Test Results
+          #check_name: Backend Integration Test Results
           comment_title: Backend Integration Test Results
 
   release-please:
