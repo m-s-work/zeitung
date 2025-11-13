@@ -3,7 +3,7 @@
     <UCard :ui="{ rounded: 'rounded-2xl' }">
       <template #header>
         <div class="flex items-center justify-between">
-          <h3 class="text-xl font-bold text-gray-900 dark:text-white">Rate This Article</h3>
+          <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100">Rate This Article</h3>
           <UButton
             color="gray"
             variant="ghost"
@@ -18,10 +18,10 @@
           <div class="flex items-center justify-center gap-2 mb-4 text-sm text-gray-600 dark:text-gray-400">
             <UIcon name="i-heroicons-clock" class="w-4 h-4" />
             <p>
-              You spent <span class="font-semibold text-primary-600 dark:text-primary-400">{{ formatReadingTime(readingTime) }}</span> reading
+              You spent <span class="font-semibold text-blue-600 dark:text-blue-400">{{ formatReadingTime(readingTime) }}</span> reading
             </p>
           </div>
-          <p class="text-center text-base font-medium text-gray-900 dark:text-white mb-4">
+          <p class="text-center text-base font-medium text-gray-900 dark:text-gray-100 mb-4">
             How would you rate it?
           </p>
           
@@ -33,7 +33,7 @@
               @click="rating = star"
               @mouseenter="hoverRating = star"
               @mouseleave="hoverRating = 0"
-              class="transition-all duration-200 hover:scale-125 focus:outline-none focus:ring-2 focus:ring-primary-500 rounded-full"
+              class="transition-all duration-200 hover:scale-125 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-full"
             >
               <UIcon
                 :name="(hoverRating || rating) >= star ? 'i-heroicons-star-solid' : 'i-heroicons-star'"

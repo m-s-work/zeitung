@@ -1,27 +1,27 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
-    <UContainer class="py-8">
+  <div class="min-h-screen">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div class="space-y-8">
         <!-- Header -->
-        <div class="max-w-4xl mx-auto">
-          <div class="flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <div class="flex items-start justify-between gap-4 flex-wrap mb-6">
             <div class="flex-1">
-              <div class="flex items-center gap-3 mb-4">
+              <div class="mb-4">
                 <UButton
                   to="/"
                   icon="i-heroicons-arrow-left"
                   color="gray"
                   variant="ghost"
                   size="sm"
-                  class="text-gray-700 dark:text-gray-200"
+                  class="text-gray-700 dark:text-gray-300"
                 >
                   <span class="hidden sm:inline">Back</span>
                 </UButton>
               </div>
-              <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white">
+              <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
                 Feed Management
               </h1>
-              <p class="mt-2 text-gray-600 dark:text-gray-400">
+              <p class="text-base text-gray-600 dark:text-gray-400">
                 Manage your RSS feed subscriptions and discover new content
               </p>
             </div>
@@ -30,7 +30,7 @@
               icon="i-heroicons-plus"
               color="primary"
               size="lg"
-              class="shadow-lg"
+              class="shadow-md"
               @click="showAddModal = true"
             >
               Add Feed
@@ -39,7 +39,7 @@
         </div>
 
         <!-- Tabs -->
-        <div class="max-w-4xl mx-auto">
+        <div>
           <UTabs v-model="activeTab" :items="tabs" class="w-full">
             <!-- My Feeds -->
             <template #feeds>
@@ -59,15 +59,15 @@
                 />
               </div>
 
-              <UCard v-else class="mt-6 shadow-lg">
-                <div class="text-center py-16">
-                  <div class="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-primary-100 to-primary-200 dark:from-primary-900/30 dark:to-primary-800/30 flex items-center justify-center">
-                    <UIcon name="i-heroicons-rss" class="w-10 h-10 text-primary-600 dark:text-primary-400" />
+              <UCard v-else class="mt-6 shadow-md">
+                <div class="text-center py-12">
+                  <div class="w-16 h-16 mx-auto mb-6 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                    <UIcon name="i-heroicons-rss" class="w-8 h-8 text-blue-600 dark:text-blue-400" />
                   </div>
-                  <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-3">
+                  <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-3">
                     No feeds yet
                   </h3>
-                  <p class="text-gray-600 dark:text-gray-400 mb-6">
+                  <p class="text-base text-gray-600 dark:text-gray-400 mb-6">
                     Start by adding your first RSS feed to begin reading
                   </p>
                   <UButton color="primary" size="lg" icon="i-heroicons-plus" @click="showAddModal = true">
@@ -94,15 +94,15 @@
                 />
               </div>
 
-              <UCard v-else class="mt-6 shadow-lg">
-                <div class="text-center py-16">
-                  <div class="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-amber-100 to-amber-200 dark:from-amber-900/30 dark:to-amber-800/30 flex items-center justify-center">
-                    <UIcon name="i-heroicons-light-bulb" class="w-10 h-10 text-amber-600 dark:text-amber-400" />
+              <UCard v-else class="mt-6 shadow-md">
+                <div class="text-center py-12">
+                  <div class="w-16 h-16 mx-auto mb-6 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
+                    <UIcon name="i-heroicons-light-bulb" class="w-8 h-8 text-amber-600 dark:text-amber-400" />
                   </div>
-                  <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-3">
+                  <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-3">
                     No recommendations yet
                   </h3>
-                  <p class="text-gray-600 dark:text-gray-400">
+                  <p class="text-base text-gray-600 dark:text-gray-400">
                     Add some feeds and interact with articles to receive personalized recommendations
                   </p>
                 </div>
@@ -117,19 +117,19 @@
         <UCard :ui="{ body: { padding: 'p-6' } }">
           <template #header>
             <div class="flex items-center justify-between">
-              <h3 class="text-xl font-bold text-gray-900 dark:text-white">Add New Feed</h3>
+              <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100">Add New Feed</h3>
               <UButton
                 color="gray"
                 variant="ghost"
                 icon="i-heroicons-x-mark"
-                class="text-gray-700 dark:text-gray-200"
+                class="text-gray-700 dark:text-gray-300"
                 @click="showAddModal = false"
               />
             </div>
           </template>
 
           <div class="space-y-5">
-            <UFormGroup label="Feed URL" required :ui="{ label: { base: 'text-gray-900 dark:text-white' } }">
+            <UFormGroup label="Feed URL" required :ui="{ label: { base: 'text-gray-900 dark:text-gray-100 font-medium' } }">
               <UInput
                 v-model="newFeed.url"
                 placeholder="https://example.com/feed.xml"
@@ -139,7 +139,7 @@
               />
             </UFormGroup>
 
-            <UFormGroup label="Name" required :ui="{ label: { base: 'text-gray-900 dark:text-white' } }">
+            <UFormGroup label="Name" required :ui="{ label: { base: 'text-gray-900 dark:text-gray-100 font-medium' } }">
               <UInput
                 v-model="newFeed.name"
                 placeholder="My Awesome Blog"
@@ -148,7 +148,7 @@
               />
             </UFormGroup>
 
-            <UFormGroup label="Description" :ui="{ label: { base: 'text-gray-900 dark:text-white' } }">
+            <UFormGroup label="Description" :ui="{ label: { base: 'text-gray-900 dark:text-gray-100 font-medium' } }">
               <UTextarea
                 v-model="newFeed.description"
                 placeholder="Optional description"
@@ -175,7 +175,7 @@
           </template>
         </UCard>
       </UModal>
-    </UContainer>
+    </div>
   </div>
 </template>
 

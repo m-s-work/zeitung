@@ -1,9 +1,9 @@
 <template>
-  <UCard class="hover:shadow-xl transition-all duration-300 border border-gray-200 dark:border-gray-800" :ui="{ rounded: 'rounded-xl' }">
+  <UCard class="hover:shadow-xl transition-all duration-300 border border-gray-200 dark:border-gray-700" :ui="{ rounded: 'rounded-xl' }">
     <template #header>
       <div class="flex items-start justify-between gap-3">
         <div class="flex-1 min-w-0">
-          <h3 class="text-lg font-bold text-gray-900 dark:text-white">{{ feed.name }}</h3>
+          <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100">{{ feed.name }}</h3>
         </div>
         <div class="flex gap-2 flex-wrap justify-end">
           <UBadge v-if="feed.isApproved" color="green" variant="soft" size="sm">
@@ -19,7 +19,7 @@
     </template>
 
     <div class="space-y-4">
-      <p v-if="feed.description" class="text-gray-700 dark:text-gray-300 leading-relaxed">
+      <p v-if="feed.description" class="text-gray-700 dark:text-gray-300 leading-relaxed text-sm">
         {{ feed.description }}
       </p>
 
@@ -29,7 +29,7 @@
           <a 
             :href="feed.url" 
             target="_blank" 
-            class="hover:text-primary-600 dark:hover:text-primary-400 transition-colors truncate font-mono text-xs"
+            class="hover:text-blue-600 dark:hover:text-blue-400 transition-colors truncate font-mono text-xs"
           >
             {{ feed.url }}
           </a>
@@ -41,7 +41,7 @@
       </div>
 
       <!-- Relevant Tags for Recommendations -->
-      <div v-if="isRecommendation && feed.relevantTags?.length" class="flex flex-wrap gap-2 pt-2 border-t border-gray-200 dark:border-gray-800">
+      <div v-if="isRecommendation && feed.relevantTags?.length" class="flex flex-wrap gap-2 pt-2 border-t border-gray-200 dark:border-gray-700">
         <UBadge
           v-for="tag in feed.relevantTags"
           :key="tag"

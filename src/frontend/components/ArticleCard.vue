@@ -4,7 +4,7 @@
       <!-- Article Header -->
       <div class="flex items-start justify-between gap-4">
         <div class="flex-1 min-w-0">
-          <h3 class="text-xl font-bold text-gray-900 dark:text-white line-clamp-2 mb-2">
+          <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 line-clamp-2 mb-2">
             {{ article.title }}
           </h3>
           <div class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 flex-wrap">
@@ -35,7 +35,7 @@
       </div>
 
       <!-- Description -->
-      <p v-if="article.description" class="text-gray-700 dark:text-gray-300 line-clamp-3">
+      <p v-if="article.description" class="text-gray-700 dark:text-gray-300 line-clamp-3 text-sm">
         {{ article.description }}
       </p>
 
@@ -56,7 +56,7 @@
       </div>
 
       <!-- Actions Bar -->
-      <div class="flex items-center justify-between pt-3 border-t border-gray-200 dark:border-gray-800">
+      <div class="flex items-center justify-between pt-3 border-t border-gray-200 dark:border-gray-700">
         <div class="flex gap-2">
           <UButton
             icon="i-heroicons-hand-thumb-up"
