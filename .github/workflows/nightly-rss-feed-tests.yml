@@ -171,8 +171,7 @@ jobs:
                   repo: context.repo.repo,
                   title: issueTitle,
                   body: issueBody,
-                  labels: ['rss-feed-failure', 'bug'],
-                  assignees: ['copilot']
+                  labels: ['rss-feed-failure', 'bug']
                 });
                 
                 console.log(`Created new issue #${newIssue.data.number} for feed: ${feedName}`);
