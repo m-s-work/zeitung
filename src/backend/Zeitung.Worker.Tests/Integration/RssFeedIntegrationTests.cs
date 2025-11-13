@@ -112,6 +112,7 @@ public class RssFeedIntegrationTests
         
         HttpResponseMessage? response = null;
         Exception? fetchException = null;
+        string? content = null;
         
         try
         {
@@ -129,15 +130,24 @@ public class RssFeedIntegrationTests
         }
 
         Assert.That(response, Is.Not.Null, $"Feed '{feed.Name}' should return a response");
-        Assert.That(response!.IsSuccessStatusCode, Is.True, 
-            $"Feed '{feed.Name}' should return success status code. Status: {response.StatusCode}");
+        
+        if (!response!.IsSuccessStatusCode)
+        {
+            content = await response.Content.ReadAsStringAsync();
+            var contentPreview = content.Length > 500 ? content.Substring(0, 500) + "..." : content;
+            Assert.Fail($"Feed '{feed.Name}' returned error status code: {response.StatusCode}. Content preview: {contentPreview}");
+        }
 
-        var content = await response.Content.ReadAsStringAsync();
+        content = await response.Content.ReadAsStringAsync();
         Assert.That(content, Is.Not.Empty, $"Feed '{feed.Name}' should return non-empty content");
         
         // Verify content looks like RSS/XML
-        Assert.That(content.TrimStart(), Does.StartWith("<?xml").Or.StartsWith("<rss").Or.StartsWith("<feed"),
-            $"Feed '{feed.Name}' should return valid XML/RSS content");
+        var trimmedContent = content.TrimStart();
+        if (!trimmedContent.StartsWith("<?xml") && !trimmedContent.StartsWith("<rss") && !trimmedContent.StartsWith("<feed"))
+        {
+            var contentPreview = content.Length > 1000 ? content.Substring(0, 1000) + "..." : content;
+            Assert.Fail($"Feed '{feed.Name}' did not return valid XML/RSS content. Content starts with: {contentPreview}");
+        }
         
         // Test parsing the feed
         try
@@ -149,12 +159,17 @@ public class RssFeedIntegrationTests
             var articles = await parser.ParseFeedAsync(feed);
             
             Assert.That(articles, Is.Not.Null, $"Feed '{feed.Name}' should be parseable");
-            Assert.That(articles.Count, Is.GreaterThan(0), 
-                $"Feed '{feed.Name}' should contain at least one article");
+            
+            if (articles.Count == 0)
+            {
+                var contentPreview = content.Length > 1000 ? content.Substring(0, 1000) + "..." : content;
+                Assert.Fail($"Feed '{feed.Name}' parsed successfully but contained no articles. Raw XML preview: {contentPreview}");
+            }
         }
         catch (Exception ex)
         {
-            Assert.Fail($"Failed to parse RSS feed '{feed.Name}'. Error: {ex.Message}");
+            var contentPreview = content.Length > 1000 ? content.Substring(0, 1000) + "..." : content;
+            Assert.Fail($"Failed to parse RSS feed '{feed.Name}'. Error: {ex.Message}\n\nRaw XML preview: {contentPreview}");
         }
     }
 

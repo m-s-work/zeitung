@@ -17,6 +17,7 @@ jobs:
   test-rss-feeds:
     name: Test RSS Feeds
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     
     permissions:
       contents: read
