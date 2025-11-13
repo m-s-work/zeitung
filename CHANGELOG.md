@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.1.0](https://github.com/m-s-work/zeitung/compare/v1.0.0...v1.1.0) (2025-11-13)
+
+
+### Features
+
+* Add Tauri v2 desktop and mobile apps with conditional release publishing ([#25](https://github.com/m-s-work/zeitung/issues/25)) ([b9c5d5b](https://github.com/m-s-work/zeitung/commit/b9c5d5b799d7800d26dad3ddd4ada3b3e3d9a557))
+* added TickerQ job scheduler for RSS feed ingestion ([#34](https://github.com/m-s-work/zeitung/issues/34)) ([8fe1637](https://github.com/m-s-work/zeitung/commit/8fe16379eb564972712122f8bf868ba94bd98224))
+* **docs:** add minimal user-focused VitePress documentation with OpenAPI-generated API reference ([#37](https://github.com/m-s-work/zeitung/issues/37)) ([4510554](https://github.com/m-s-work/zeitung/commit/4510554913bf21e7098be7a2a45df44d717d2082))
+* frontend design for improved UI/UX ([#43](https://github.com/m-s-work/zeitung/issues/43)) ([0923e0d](https://github.com/m-s-work/zeitung/commit/0923e0d39f26c8925ffc7af091649f2b01845904))
+* implemented UI for Feed Reader in Nuxt4 with OpenAPI type generation ([#21](https://github.com/m-s-work/zeitung/issues/21)) ([47b2936](https://github.com/m-s-work/zeitung/commit/47b2936e9fe05725748becd172cff59a26ed5e81))
+
+
+### Bug Fixes
+
+* apsire npm ci path ([#38](https://github.com/m-s-work/zeitung/issues/38)) ([1d37613](https://github.com/m-s-work/zeitung/commit/1d376136034cec3dc9c880ab6b9e80d2a5a4781a))
+
 ## 1.0.0 (2025-11-10)
 
 
