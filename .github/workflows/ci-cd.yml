@@ -147,9 +147,9 @@ jobs:
         run: dotnet build Zeitung.sln --configuration Release --no-restore
       
       - name: Run tests
-        run: dotnet test Zeitung.sln --configuration Release --no-build --verbosity normal --logger "junit;LogFileName=test-results.xml" --filter "TestCategory!=IntegrationTest"
+        run: dotnet test Zeitung.sln --configuration Release --no-build --verbosity normal --logger "trx;LogFileName=test-results.trx" --logger "junit;LogFileName=test-results.xml" --collect:"XPlat Code Coverage;Format=cobertura" --results-directory ./TestResults --filter "TestCategory!=IntegrationTest"
       
-      - name: Publish Test Results
+      - name: Publish Test Results (CTRF)
         uses: ctrf-io/github-test-reporter@v1
         if: always()
         with:
@@ -164,6 +164,16 @@ jobs:
             }
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Publish Test Results (Dotnet)
+        uses: bibipkins/dotnet-test-reporter@v1.4.2
+        if: always()
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          comment-title: 'Backend Test Results'
+          results-path: 'src/backend/TestResults/*.trx'
+          coverage-path: 'src/backend/TestResults/**/coverage.cobertura.xml'
+          coverage-type: 'cobertura'
   
   test-backend-integration:
     name: Test Backend Integration
@@ -195,12 +205,12 @@ jobs:
         run: dotnet build Zeitung.sln --configuration Release --no-restore
       
       - name: Run tests
-        run: dotnet test Zeitung.sln --configuration Release --no-build --verbosity normal --logger "junit;LogFileName=test-results.xml" --filter "TestCategory=IntegrationTest"
+        run: dotnet test Zeitung.sln --configuration Release --no-build --verbosity normal --logger "trx;LogFileName=test-results.trx" --logger "junit;LogFileName=test-results.xml" --collect:"XPlat Code Coverage;Format=cobertura" --results-directory ./TestResults --filter "TestCategory=IntegrationTest"
         env:
           ASPNETCORE_ENVIRONMENT: ci
           DOTNET_ENVIRONMENT: ci
       
-      - name: Publish Test Results
+      - name: Publish Test Results (CTRF)
         uses: ctrf-io/github-test-reporter@v1
         if: always()
         with:
@@ -215,6 +225,16 @@ jobs:
             }
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Publish Test Results (Dotnet)
+        uses: bibipkins/dotnet-test-reporter@v1.4.2
+        if: always()
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          comment-title: 'Backend Integration Test Results'
+          results-path: 'src/backend/TestResults/*.trx'
+          coverage-path: 'src/backend/TestResults/**/coverage.cobertura.xml'
+          coverage-type: 'cobertura'
 
   release-please:
     name: Release Please
