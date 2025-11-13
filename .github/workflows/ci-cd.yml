@@ -288,7 +288,7 @@ jobs:
 
   build-tauri-apps-pr:
     name: Build Tauri Apps (PR)
-    if: github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'build-tauri'))
     strategy:
       fail-fast: false
       matrix:
@@ -346,7 +346,7 @@ jobs:
 
   build-tauri-android-pr:
     name: Build Tauri Android App (PR)
-    if: github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'build-tauri'))
     runs-on: ubuntu-latest
     
     steps:
