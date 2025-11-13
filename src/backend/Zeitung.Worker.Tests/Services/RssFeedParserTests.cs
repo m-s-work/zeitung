@@ -171,4 +171,32 @@ public class RssFeedParserTests
         Assert.That(articles, Is.Not.Null);
         Assert.That(articles, Is.Empty);
     }
+
+    [Test]
+    public void ParseFeedAsync_WithHttpError_ThrowsException()
+    {
+        // Arrange
+        var feed = new RssFeed
+        {
+            Name = "Error Feed",
+            Url = "https://example.com/error"
+        };
+
+        var messageHandler = new Mock<HttpMessageHandler>();
+        messageHandler.Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync(new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.InternalServerError
+            });
+
+        var httpClient = new HttpClient(messageHandler.Object);
+        _httpClientFactoryMock.Setup(f => f.CreateClient(It.IsAny<string>())).Returns(httpClient);
+
+        // Act & Assert
+        Assert.ThrowsAsync<HttpRequestException>(async () => await _parser.ParseFeedAsync(feed));
+    }
 }
