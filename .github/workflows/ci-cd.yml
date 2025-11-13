@@ -202,6 +202,15 @@ jobs:
           check_name: Backend Integration Test Results
           comment_title: Backend Integration Test Results
 
+      - name: Publish Test Results and Coverage
+        uses: bibipkins/dotnet-test-reporter@v1.4.0
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          comment-title: 'Unit Test Results'
+          results-path: src/backend/**/test-results.trx
+          coverage-path: ./TestResults/coverage.xml # TODO add coverage generation
+          coverage-threshold: 80
+
   release-please:
     name: Release Please
     runs-on: ubuntu-latest
