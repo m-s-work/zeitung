@@ -1,0 +1,14 @@
+<Project>
+  <PropertyGroup>
+    <!-- Treat all warnings as errors -->
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    
+    <!-- Warnings to NOT treat as errors (unused variables) -->
+    <WarningsNotAsErrors>
+      CS0168;  <!-- Variable is declared but never used -->
+      CS0219;  <!-- Variable is assigned but its value is never used -->
+      CS0414;  <!-- Field is assigned but its value is never used -->
+      CS8321   <!-- Local function is declared but never used -->
+    </WarningsNotAsErrors>
+  </PropertyGroup>
+</Project>
