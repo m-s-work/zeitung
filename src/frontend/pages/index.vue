@@ -1,19 +1,19 @@
 <template>
   <div class="min-h-screen">
-    <UContainer class="py-12">
-      <div class="space-y-12">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+      <div class="space-y-10">
         <!-- Hero Section -->
-        <div class="text-center max-w-3xl mx-auto space-y-4">
-          <h1 class="text-4xl sm:text-5xl font-bold text-gray-900 dark:text-white">
+        <div class="text-center space-y-4">
+          <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-gray-100">
             Your Personalized Feed
           </h1>
-          <p class="text-lg text-gray-600 dark:text-gray-400">
+          <p class="text-base text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
             Discover articles tailored to your interests with AI-powered recommendations
           </p>
         </div>
 
         <!-- Loading State -->
-        <div v-if="pending" class="space-y-4 max-w-4xl mx-auto">
+        <div v-if="pending" class="space-y-4">
           <USkeleton v-for="i in 3" :key="i" class="h-48 rounded-xl" />
         </div>
 
@@ -25,11 +25,10 @@
           title="Failed to load articles"
           :description="error.message"
           icon="i-heroicons-exclamation-circle"
-          class="max-w-4xl mx-auto"
         />
 
         <!-- Articles List -->
-        <div v-else-if="articles.length > 0" class="space-y-4 max-w-4xl mx-auto">
+        <div v-else-if="articles.length > 0" class="space-y-4">
           <ArticleCard
             v-for="article in articles"
             :key="article.id"
@@ -52,16 +51,16 @@
         </div>
 
         <!-- Empty State -->
-        <div v-else class="max-w-2xl mx-auto">
-          <UCard class="shadow-lg">
+        <div v-else>
+          <UCard class="shadow-md">
             <div class="text-center py-12">
-              <div class="w-20 h-20 mx-auto mb-6 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center">
-                <UIcon name="i-heroicons-newspaper" class="w-10 h-10 text-gray-600 dark:text-gray-400" />
+              <div class="w-16 h-16 mx-auto mb-6 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center">
+                <UIcon name="i-heroicons-newspaper" class="w-8 h-8 text-gray-500 dark:text-gray-400" />
               </div>
-              <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-3">
+              <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-3">
                 No articles yet
               </h3>
-              <p class="text-gray-600 dark:text-gray-400 mb-6">
+              <p class="text-base text-gray-600 dark:text-gray-400 mb-6">
                 Start your reading journey by adding some RSS feeds
               </p>
               <UButton 
@@ -85,7 +84,7 @@
         :reading-time="ratingArticle.readingTime"
         @rated="handleRated"
       />
-    </UContainer>
+    </div>
   </div>
 </template>
 
