@@ -140,6 +140,7 @@ public class RssFeedParserTests
     }
 
     [Test]
+    [Ignore("OBSOLETE: we want failure to actually fail now, not hide it with empty list")]
     public async Task ParseFeedAsync_WithHttpError_ReturnsEmptyList()
     {
         // Arrange
