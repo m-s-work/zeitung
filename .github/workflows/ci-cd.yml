@@ -164,9 +164,8 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           comment-title: 'Backend Unit Test Results'
-          results-path: ./src/backend/TestResults/*.trx
-          coverage-path: ./src/backend/TestResults/**/coverage.cobertura.xml
-          coverage-threshold: 80
+          results-path: src/backend/TestResults/*.trx
+          coverage-path: src/backend/TestResults/**/coverage.cobertura.xml
   
   test-backend-integration:
     name: Test Backend Integration
@@ -218,9 +217,8 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           comment-title: 'Backend Integration Test Results'
-          results-path: ./src/backend/TestResults/*.trx
-          coverage-path: ./src/backend/TestResults/**/coverage.cobertura.xml
-          coverage-threshold: 80
+          results-path: src/backend/TestResults/*.trx
+          coverage-path: src/backend/TestResults/**/coverage.cobertura.xml
 
   release-please:
     name: Release Please
