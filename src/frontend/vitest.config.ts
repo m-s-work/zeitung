@@ -16,7 +16,11 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
     },
-    reporters: ['default', 'junit'],
+    reporters: [
+      'default',
+      'junit',
+      ['vitest-ctrf-json-reporter', { outputDir: './test-results', outputFile: 'ctrf-report.json' }]
+    ],
     outputFile: {
       junit: './test-results/junit.xml',
     },

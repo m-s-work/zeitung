@@ -42,13 +42,13 @@ jobs:
         run: npm test
       
       - name: Publish Test Results
-        uses: EnricoMi/publish-unit-test-result-action@v2
+        uses: ctrf-io/github-test-reporter@v1
         if: always()
         with:
-          files: |
-            src/frontend/test-results/junit.xml
-          check_name: Frontend Test Results
-          comment_title: Frontend Test Results
+          report-path: 'src/frontend/test-results/ctrf-report.json'
+          summary-report: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
       - name: Build frontend
         run: npm run build
@@ -101,13 +101,13 @@ jobs:
           BASE_URL: http://localhost:3000
       
       - name: Publish Playwright Test Results
-        uses: EnricoMi/publish-unit-test-result-action@v2
+        uses: ctrf-io/github-test-reporter@v1
         if: always()
         with:
-          files: |
-            src/frontend/test-results/junit.xml
-          check_name: Frontend E2E Test Results
-          comment_title: Frontend E2E Test Results
+          report-path: 'src/frontend/test-results/ctrf-report.json'
+          summary-report: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
       - name: Upload Playwright Report
         uses: actions/upload-artifact@v4
@@ -147,16 +147,23 @@ jobs:
         run: dotnet build Zeitung.sln --configuration Release --no-restore
       
       - name: Run tests
-        run: dotnet test Zeitung.sln --configuration Release --no-build --verbosity normal --logger "trx;LogFileName=test-results.trx" --filter "TestCategory!=IntegrationTest"
+        run: dotnet test Zeitung.sln --configuration Release --no-build --verbosity normal --logger "junit;LogFileName=test-results.xml" --filter "TestCategory!=IntegrationTest"
       
       - name: Publish Test Results
-        uses: EnricoMi/publish-unit-test-result-action@v2
+        uses: ctrf-io/github-test-reporter@v1
         if: always()
         with:
-          files: |
-            src/backend/**/test-results.trx
-          check_name: Backend Test Results
-          comment_title: Backend Test Results
+          report-path: 'src/backend/**/test-results.xml'
+          summary-report: true
+          integrations-config: |
+            {
+              "junit-to-ctrf": {
+                "enabled": true,
+                "action": "convert"
+              }
+            }
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   
   test-backend-integration:
     name: Test Backend Integration
@@ -188,19 +195,26 @@ jobs:
         run: dotnet build Zeitung.sln --configuration Release --no-restore
       
       - name: Run tests
-        run: dotnet test Zeitung.sln --configuration Release --no-build --verbosity normal --logger "trx;LogFileName=test-results.trx" --filter "TestCategory=IntegrationTest"
+        run: dotnet test Zeitung.sln --configuration Release --no-build --verbosity normal --logger "junit;LogFileName=test-results.xml" --filter "TestCategory=IntegrationTest"
         env:
           ASPNETCORE_ENVIRONMENT: ci
           DOTNET_ENVIRONMENT: ci
       
       - name: Publish Test Results
-        uses: EnricoMi/publish-unit-test-result-action@v2
+        uses: ctrf-io/github-test-reporter@v1
         if: always()
         with:
-          files: |
-            src/backend/**/test-results.trx
-          check_name: Backend Integration Test Results
-          comment_title: Backend Integration Test Results
+          report-path: 'src/backend/**/test-results.xml'
+          summary-report: true
+          integrations-config: |
+            {
+              "junit-to-ctrf": {
+                "enabled": true,
+                "action": "convert"
+              }
+            }
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   release-please:
     name: Release Please
