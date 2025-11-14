@@ -16,9 +16,12 @@ public abstract class AspireIntegrationTestBase
     /// Sets up the Aspire application once for all tests in the fixture.
     /// Override to customize HTTP client configuration.
     /// </summary>
-    [OneTimeSetUp, CancelAfter(30_000)]
-    public async Task OneTimeSetUpAsync(CancellationToken cancellationToken)
+    [OneTimeSetUp]
+    public async Task OneTimeSetUpAsync()
     {
+        // create a token that cancels after 30 seconds
+        CancellationToken cancellationToken = new CancellationTokenSource(90_000).Token;
+
         // Configure Aspire to run in CI environment to use appsettings.ci.json
         // This skips frontend startup and external RSS feed health checks during tests
         var appHost = await DistributedApplicationTestingBuilder.CreateAsync<Projects.Zeitung_AppHost>(

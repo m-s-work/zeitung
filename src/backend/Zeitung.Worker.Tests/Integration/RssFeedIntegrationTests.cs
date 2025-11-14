@@ -17,17 +17,24 @@ namespace Zeitung.Worker.Tests.Integration;
 /// These tests validate that configured RSS feeds can be fetched, parsed, and ingested into the database.
 /// </summary>
 [TestFixture]
-[Category("IntegrationTest")]
-public class RssFeedIntegrationTests : AspireIntegrationTestBase
+//[Category("IntegrationTest")] // this is no integration test since we use in-memory db
+[Category("Db")]
+public class RssFeedIntegrationTests// : AspireIntegrationTestBase
 {
     private List<RssFeed> _rssFeeds = new();
     private const string TestDbName = "RssFeedIntegrationTests";
 
-    [OneTimeSetUp, CancelAfter(30_000)]
-    public new async Task OneTimeSetUpAsync(CancellationToken cancellationToken)
+    //[OneTimeSetUp, CancelAfter(30_000)]
+    //public new async Task OneTimeSetUpAsync(CancellationToken cancellationToken)
+    //{
+    //    _rssFeeds = ReadRssFeedConfig();
+    //    await base.OneTimeSetUpAsync(cancellationToken);
+    //}
+
+    [OneTimeSetUp]
+    public void OneTimeSetUpAsync()
     {
         _rssFeeds = ReadRssFeedConfig();
-        await base.OneTimeSetUpAsync(cancellationToken);
     }
 
     private static List<RssFeed> ReadRssFeedConfig()
