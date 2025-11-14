@@ -36,8 +36,9 @@ public class FeedIngestService : IFeedIngestService
         _elasticsearchService = elasticsearchService;
         _logger = logger;
         
-        // Load feeds from configuration
-        _feeds = configuration.GetSection("RssFeeds").Get<List<RssFeed>>() ?? new List<RssFeed>();
+        // Load feeds from configuration and expand URL patterns
+        var configuredFeeds = configuration.GetSection("RssFeeds").Get<List<RssFeed>>() ?? new List<RssFeed>();
+        _feeds = FeedExpander.ExpandFeeds(configuredFeeds);
     }
 
     public async Task IngestFeedsAsync(CancellationToken cancellationToken = default)

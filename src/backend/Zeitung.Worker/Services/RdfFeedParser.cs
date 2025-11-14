@@ -25,7 +25,7 @@ public class RdfFeedParser : IRdfFeedParser
         return feed.Type.Equals("rdf", StringComparison.OrdinalIgnoreCase);
     }
 
-    public async Task<List<Article>> ParseFeedAsync(RssFeed feed, CancellationToken cancellationToken = default)
+    public Task<List<Article>> ParseFeedAsync(RssFeed feed, CancellationToken cancellationToken = default)
     {
         throw new NotImplementedException("RdfFeedParser should be called through RssFeedParser which detects RDF format");
     }

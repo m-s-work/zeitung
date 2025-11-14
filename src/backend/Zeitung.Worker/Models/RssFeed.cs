@@ -15,4 +15,12 @@ public class RssFeed
     /// HTML5 parsing configuration (required when Type is "html5")
     /// </summary>
     public HtmlFeedConfig? HtmlConfig { get; init; }
+    
+    /// <summary>
+    /// URL patterns for generating multiple feeds from one configuration.
+    /// When specified, each pattern will create a separate feed with placeholders replaced.
+    /// Example: ["bau", "ittk", "3d-druck"] with URL template "https://example.com/{category}/"
+    /// </summary>
+    public List<string>? UrlPatterns { get; init; }
 }
+

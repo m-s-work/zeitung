@@ -45,6 +45,27 @@ HTML5 feeds require a `HtmlConfig` object that defines CSS selectors for extract
 }
 ```
 
+### URL Pattern Support
+
+For sites with multiple similar pages (e.g., different categories), use URL patterns to generate multiple feeds from a single configuration:
+
+```json
+{
+  "Name": "Site {pattern}",
+  "Url": "https://example.com/{pattern}/news",
+  "Type": "html5",
+  "UrlPatterns": ["tech", "business", "sports"],
+  "HtmlConfig": { ... }
+}
+```
+
+This will create three separate feeds:
+- `Site tech` → `https://example.com/tech/news`
+- `Site business` → `https://example.com/business/news`
+- `Site sports` → `https://example.com/sports/news`
+
+The `{pattern}` placeholder is replaced in both the `Name`, `Url`, and `Description` fields.
+
 ### Configuration Fields
 
 #### ItemsSelector (required)
@@ -134,12 +155,51 @@ Each field uses a `SelectorConfig` object:
 
 ### Ingenieur.de (German Engineering News)
 
+Single category example:
+
 ```json
 {
   "Name": "Ingenieur.de Bau",
   "Url": "https://www.ingenieur.de/technik/fachbereiche/bau/",
   "Description": "Engineering & Construction News (German)",
   "Type": "html5",
+  "HtmlConfig": {
+    "ItemsSelector": "article.article-teaser",
+    "Title": {
+      "Selector": "h2.headline a",
+      "Extractor": "text"
+    },
+    "Link": {
+      "Selector": "h2.headline a",
+      "Extractor": "href"
+    },
+    "Description": {
+      "Selector": "p.intro",
+      "Extractor": "text"
+    },
+    "PublishedAt": {
+      "Selector": "time",
+      "Extractor": "datetime"
+    },
+    "Category": {
+      "Selector": ".meta span.tag",
+      "Extractor": "text"
+    }
+  }
+}
+```
+
+### Ingenieur.de with URL Patterns (Multiple Categories)
+
+Using patterns to create feeds for multiple engineering categories:
+
+```json
+{
+  "Name": "Ingenieur.de {pattern}",
+  "Url": "https://www.ingenieur.de/technik/fachbereiche/{pattern}/",
+  "Description": "Engineering News - {pattern}",
+  "Type": "html5",
+  "UrlPatterns": ["bau", "ittk", "3d-druck"],
   "HtmlConfig": {
     "ItemsSelector": "article.article-teaser",
     "Title": {

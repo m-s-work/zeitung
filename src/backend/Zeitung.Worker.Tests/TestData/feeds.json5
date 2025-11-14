@@ -1,28 +1,97 @@
-// TODO: move to core or general project
+// Feed configurations for testing
+// Supports RSS, RDF, and HTML5 feeds with URL pattern expansion
 [
+  // Standard RSS/Atom feeds
   {
     "Name": "BBC News",
     "Url": "http://feeds.bbci.co.uk/news/rss.xml",
-    "Description": "BBC News - World"
+    "Description": "BBC News - World",
+    "Type": "rss"
   },
   {
     "Name": "Heise Online",
     "Url": "https://www.heise.de/rss/heise-atom.xml",
-    "Description": "Heise Online News"
+    "Description": "Heise Online News",
+    "Type": "rss"
   },
   {
     "Name": "Golem.de",
     "Url": "https://rss.golem.de/rss.php?feed=RSS2.0",
-    "Description": "Golem.de IT News"
+    "Description": "Golem.de IT News",
+    "Type": "rss"
   },
   {
     "Name": "The Guardian",
     "Url": "https://www.theguardian.com/world/rss",
-    "Description": "The Guardian - World News"
+    "Description": "The Guardian - World News",
+    "Type": "rss"
   },
+  // RDF/RSS 1.0 feed
   {
     "Name": "ORF.at",
     "Url": "https://rss.orf.at/news.xml",
-    "Description": "ORF.at News"
+    "Description": "ORF.at News",
+    "Type": "rss"
+  },
+  // HTML5 feeds with CSS selectors
+  {
+    "Name": "DerBrutkasten",
+    "Url": "https://brutkasten.com/news/newsticker",
+    "Description": "Austrian Startup & Tech News",
+    "Type": "html5",
+    "HtmlConfig": {
+      "ItemsSelector": "article.newsticker-item",
+      "Title": {
+        "Selector": "h3.title a",
+        "Extractor": "text"
+      },
+      "Link": {
+        "Selector": "h3.title a",
+        "Extractor": "href"
+      },
+      "Description": {
+        "Selector": "div.teaser",
+        "Extractor": "text"
+      },
+      "PublishedAt": {
+        "Selector": "time",
+        "Extractor": "datetime"
+      },
+      "Category": {
+        "Selector": "span.category",
+        "Extractor": "text"
+      }
+    }
+  },
+  // HTML5 feed with URL patterns for multiple categories
+  {
+    "Name": "Ingenieur.de {pattern}",
+    "Url": "https://www.ingenieur.de/technik/fachbereiche/{pattern}/",
+    "Description": "Engineering News - {pattern}",
+    "Type": "html5",
+    "UrlPatterns": ["bau", "ittk", "3d-druck"],
+    "HtmlConfig": {
+      "ItemsSelector": "article.article-teaser",
+      "Title": {
+        "Selector": "h2.headline a",
+        "Extractor": "text"
+      },
+      "Link": {
+        "Selector": "h2.headline a",
+        "Extractor": "href"
+      },
+      "Description": {
+        "Selector": "p.intro",
+        "Extractor": "text"
+      },
+      "PublishedAt": {
+        "Selector": "time",
+        "Extractor": "datetime"
+      },
+      "Category": {
+        "Selector": ".meta span.tag",
+        "Extractor": "text"
+      }
+    }
   }
 ]
