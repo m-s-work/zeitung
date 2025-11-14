@@ -24,7 +24,15 @@ Admins, Mods and Super Mods can approve feeds and therefore promote it to the gl
 The global feed list is fetched by the server.
 
 ## Feed Ingest
-The server fetches new feeds. Each fetched feed is tagged with an LLM via openrouter.
+The server fetches new feeds from multiple sources:
+- **RSS 2.0 / Atom feeds**: Standard XML-based syndication feeds
+- **RDF / RSS 1.0 feeds**: Older RSS format with RDF metadata  
+- **HTML5 pages**: Custom HTML pages using CSS selector configuration (similar to [html2rss](https://github.com/html2rss/html2rss))
+
+Each fetched feed is tagged with an LLM via openrouter.
+
+### HTML5 Feed Configuration
+For sites without RSS feeds, articles can be extracted from HTML pages using CSS selectors. See [HTML5 Feed Configuration Guide](docs/html5-feed-configuration.md) for examples and setup instructions.
 
 ## Tags
 Tags are stored in the DB. Tags can related to articles. Tags are also counted on how often they appear together so we can calculate similarity between tags.
