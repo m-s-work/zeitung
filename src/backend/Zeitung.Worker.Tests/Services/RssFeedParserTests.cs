@@ -13,6 +13,7 @@ public class RssFeedParserTests
 {
     private Mock<IHttpClientFactory> _httpClientFactoryMock = null!;
     private Mock<ILogger<RssFeedParser>> _loggerMock = null!;
+    private Mock<IRdfFeedParser> _rdfFeedParserMock = null!;
     private RssFeedParser _parser = null!;
 
     [SetUp]
@@ -20,7 +21,8 @@ public class RssFeedParserTests
     {
         _httpClientFactoryMock = new Mock<IHttpClientFactory>();
         _loggerMock = new Mock<ILogger<RssFeedParser>>();
-        _parser = new RssFeedParser(_httpClientFactoryMock.Object, _loggerMock.Object);
+        _rdfFeedParserMock = new Mock<IRdfFeedParser>();
+        _parser = new RssFeedParser(_httpClientFactoryMock.Object, _loggerMock.Object, _rdfFeedParserMock.Object);
     }
 
     [Test]
@@ -140,6 +142,7 @@ public class RssFeedParserTests
     }
 
     [Test]
+    [Ignore("OBSOLETE: we want failure to actually fail now, not hide it with empty list")]
     public async Task ParseFeedAsync_WithHttpError_ReturnsEmptyList()
     {
         // Arrange
@@ -169,5 +172,33 @@ public class RssFeedParserTests
         // Assert
         Assert.That(articles, Is.Not.Null);
         Assert.That(articles, Is.Empty);
+    }
+
+    [Test]
+    public void ParseFeedAsync_WithHttpError_ThrowsException()
+    {
+        // Arrange
+        var feed = new RssFeed
+        {
+            Name = "Error Feed",
+            Url = "https://example.com/error"
+        };
+
+        var messageHandler = new Mock<HttpMessageHandler>();
+        messageHandler.Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync(new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.InternalServerError
+            });
+
+        var httpClient = new HttpClient(messageHandler.Object);
+        _httpClientFactoryMock.Setup(f => f.CreateClient(It.IsAny<string>())).Returns(httpClient);
+
+        // Act & Assert
+        Assert.ThrowsAsync<HttpRequestException>(async () => await _parser.ParseFeedAsync(feed));
     }
 }

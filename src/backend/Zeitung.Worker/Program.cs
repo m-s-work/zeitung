@@ -32,6 +32,7 @@ builder.Services.AddHttpClient();
 builder.Services.AddScoped<IArticleRepository, ArticleRepository>();
 builder.Services.AddScoped<ITagRepository, PostgresTagRepository>();
 builder.Services.AddScoped<IElasticsearchService, ElasticsearchService>();
+builder.Services.AddScoped<IRdfFeedParser, RdfFeedParser>();
 builder.Services.AddScoped<IRssFeedParser, RssFeedParser>();
 builder.Services.AddScoped<IFeedIngestService, FeedIngestService>();
 

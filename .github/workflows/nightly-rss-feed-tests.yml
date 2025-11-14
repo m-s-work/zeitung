@@ -1,0 +1,264 @@
+name: Nightly RSS Feed Tests
+
+on:
+  schedule:
+    # Run nightly at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch: # Allow manual trigger
+  pull_request: # Run on pull requests
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+  checks: write
+
+jobs:
+  test-rss-feeds:
+    name: Test RSS Feeds
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    
+    permissions:
+      contents: read
+      checks: write
+      pull-requests: write
+      issues: write
+    
+    defaults:
+      run:
+        working-directory: src/backend
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+      
+      - name: Restore dependencies
+        run: dotnet restore Zeitung.sln
+      
+      - name: Build backend
+        run: dotnet build Zeitung.sln --configuration Release --no-restore
+      
+      - name: Run RSS Feed Integration Tests
+        id: rss_tests
+        continue-on-error: true
+        run: |
+          dotnet test Zeitung.sln --configuration Release --no-build --verbosity normal \
+            --logger "trx;LogFileName=rss-feed-test-results.trx" \
+            --filter "TestCategory=IntegrationTest&FullyQualifiedName~RssFeedIntegrationTests"
+        env:
+          ASPNETCORE_ENVIRONMENT: ci
+          DOTNET_ENVIRONMENT: ci
+      
+      - name: Publish Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: always()
+        with:
+          files: |
+            src/backend/**/rss-feed-test-results.trx
+          check_name: RSS Feed Test Results
+          comment_title: RSS Feed Test Results
+      
+      - name: Parse Test Results
+        id: parse_results
+        if: always()
+        run: |
+          # Check if test results file exists
+          if [ -f "Zeitung.Worker.Tests/TestResults/rss-feed-test-results.trx" ]; then
+            echo "Parsing test results..."
+            
+            # Extract failed test names and error messages
+            # Use xmllint or grep to parse TRX XML
+            failed_data=""
+            
+            # Find all failed tests
+            while IFS= read -r line; do
+              if echo "$line" | grep -q 'outcome="Failed"'; then
+                # Extract test name
+                test_name=$(echo "$line" | grep -oP 'testName="\K[^"]+' || echo "")
+                
+                # Try to extract error message from the next few lines
+                error_message=""
+                for i in {1..20}; do
+                  next_line=$(sed -n "$(($(grep -n "$line" Zeitung.Worker.Tests/TestResults/rss-feed-test-results.trx | head -1 | cut -d: -f1) + i))p" Zeitung.Worker.Tests/TestResults/rss-feed-test-results.trx)
+                  if echo "$next_line" | grep -q "<Message>"; then
+                    error_message=$(echo "$next_line" | sed 's/<[^>]*>//g' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+                    break
+                  fi
+                done
+                
+                if [ -n "$test_name" ] && echo "$test_name" | grep -q "RssFeed_ShouldBeIngestible"; then
+                  # Store test name and error message separated by ||| delimiter
+                  if [ -n "$failed_data" ]; then
+                    failed_data="$failed_data
+$test_name|||${error_message:-Unknown error}"
+                  else
+                    failed_data="$test_name|||${error_message:-Unknown error}"
+                  fi
+                fi
+              fi
+            done < <(grep 'UnitTestResult' Zeitung.Worker.Tests/TestResults/rss-feed-test-results.trx)
+            
+            if [ -n "$failed_data" ]; then
+              echo "failed_feeds_data<<EOF" >> $GITHUB_OUTPUT
+              echo "$failed_data" >> $GITHUB_OUTPUT
+              echo "EOF" >> $GITHUB_OUTPUT
+              echo "has_failures=true" >> $GITHUB_OUTPUT
+            else
+              echo "has_failures=false" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "Test results file not found"
+            echo "has_failures=false" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Create Issue for Failed Feeds
+        if: steps.parse_results.outputs.has_failures == 'true'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const failedFeedsData = `${{ steps.parse_results.outputs.failed_feeds_data }}`.split('\n').filter(f => f);
+            
+            // Extract PR/branch/commit information
+            const prNumber = context.payload.pull_request?.number || 'N/A';
+            const branch = context.ref.replace('refs/heads/', '');
+            const commit = context.sha.substring(0, 7);
+            const commitUrl = `${{ github.server_url }}/${{ github.repository }}/commit/${context.sha}`;
+            
+            for (const feedData of failedFeedsData) {
+              const [feedTest, errorMessage] = feedData.split('|||');
+              
+              // Extract feed name from test name (e.g., "RssFeed_ShouldBeIngestible_BBC_News" -> "BBC News")
+              const feedName = feedTest.replace('RssFeed_ShouldBeIngestible_', '').replace(/_/g, ' ');
+              
+              const issueTitle = `RSS Feed Failed: ${feedName}`;
+              const issueBody = `## RSS Feed Failure Report
+              
+              The RSS feed \`${feedName}\` failed during integration testing.
+              
+              **Test Name:** \`${feedTest}\`
+              **Date:** ${new Date().toISOString()}
+              **Workflow Run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+              
+              ### Error Message
+              \`\`\`
+              ${errorMessage || 'No error message captured'}
+              \`\`\`
+              
+              ### Source Information
+              - **Branch:** \`${branch}\`
+              - **Commit:** [\`${commit}\`](${commitUrl})
+              ${prNumber !== 'N/A' ? `- **Pull Request:** #${prNumber}` : ''}
+              
+              ### What to do next:
+              1. Check if the feed URL is still valid
+              2. Verify the feed is returning valid RSS/XML content
+              3. Test the feed manually: Check the configuration in \`src/backend/Zeitung.Worker.Tests/TestData/feeds.json\`
+              4. If the feed is permanently unavailable, consider removing it from the configuration
+              
+              ### Configuration
+              Please check the feed configuration in \`src/backend/Zeitung.Worker.Tests/TestData/feeds.json\` for the URL and details.
+              `;
+              
+              // Check if an issue already exists for this feed
+              const existingIssues = await github.rest.issues.listForRepo({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                state: 'open',
+                labels: ['rss-feed-failure'],
+                per_page: 100
+              });
+              
+              const existingIssue = existingIssues.data.find(issue => 
+                issue.title.includes(feedName)
+              );
+              
+              if (existingIssue) {
+                // Check if we already have a comment with this error message
+                const comments = await github.rest.issues.listComments({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: existingIssue.number,
+                  per_page: 100
+                });
+                
+                // Normalize error message for comparison (remove extra whitespace)
+                const normalizedError = (errorMessage || '').trim().replace(/\s+/g, ' ');
+                
+                const isDuplicateError = comments.data.some(comment => {
+                  if (!comment.body) return false;
+                  // Extract error from comment and normalize
+                  const errorMatch = comment.body.match(/### Error Message\s*```\s*([^`]+)\s*```/s);
+                  if (errorMatch) {
+                    const commentError = errorMatch[1].trim().replace(/\s+/g, ' ');
+                    return commentError === normalizedError;
+                  }
+                  return false;
+                });
+                
+                if (!isDuplicateError) {
+                  // Add a comment to the existing issue with new error
+                  const commentBody = `## Feed Still Failing
+                  
+                  The RSS feed \`${feedName}\` continues to fail with a different or new error.
+                  
+                  **Date:** ${new Date().toISOString()}
+                  **Workflow Run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+                  
+                  ### Error Message
+                  \`\`\`
+                  ${errorMessage || 'No error message captured'}
+                  \`\`\`
+                  
+                  ### Source Information
+                  - **Branch:** \`${branch}\`
+                  - **Commit:** [\`${commit}\`](${commitUrl})
+                  ${prNumber !== 'N/A' ? `- **Pull Request:** #${prNumber}` : ''}
+                  
+                  This issue remains unresolved. Please investigate and fix the feed configuration or remove the feed if it's permanently unavailable.`;
+                  
+                  await github.rest.issues.createComment({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: existingIssue.number,
+                    body: commentBody
+                  });
+                  
+                  console.log(`Added comment to existing issue #${existingIssue.number} for feed: ${feedName}`);
+                } else {
+                  console.log(`Skipping duplicate error comment for issue #${existingIssue.number} (same error already reported)`);
+                }
+              } else {
+                // Create a new issue
+                const newIssue = await github.rest.issues.create({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  title: issueTitle,
+                  body: issueBody,
+                  labels: ['rss-feed-failure', 'bug']
+                });
+                
+                console.log(`Created new issue #${newIssue.data.number} for feed: ${feedName}`);
+              }
+            }
+      
+      - name: Create Summary
+        if: always()
+        run: |
+          echo "## RSS Feed Test Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ steps.rss_tests.outcome }}" == "success" ]; then
+            echo "✅ All RSS feeds are working correctly!" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Some RSS feeds failed. Check the test results and issues for details." >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Workflow Run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_STEP_SUMMARY

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns="http://purl.org/rss/1.0/"
+         xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel rdf:about="https://rss.orf.at/news.xml">
+    <title>ORF.at News</title>
+    <link>https://orf.at</link>
+    <description>Aktuelle Nachrichten aus Österreich</description>
+    <items>
+      <rdf:Seq>
+        <rdf:li rdf:resource="https://orf.at/stories/3001234/"/>
+        <rdf:li rdf:resource="https://orf.at/stories/3001235/"/>
+      </rdf:Seq>
+    </items>
+  </channel>
+
+  <item rdf:about="https://orf.at/stories/3001234/">
+    <title>Österreich startet neue Klimainitiative</title>
+    <link>https://orf.at/stories/3001234/</link>
+    <description>Die Regierung kündigte heute eine umfassende Klimaschutzinitiative an, die bis 2030 die CO2-Emissionen deutlich reduzieren soll.</description>
+    <dc:date>2024-11-13T10:30:00+01:00</dc:date>
+    <dc:subject>Politik</dc:subject>
+    <dc:subject>Umwelt</dc:subject>
+  </item>
+
+  <item rdf:about="https://orf.at/stories/3001235/">
+    <title>Wiener Philharmoniker mit Jubiläumskonzert</title>
+    <link>https://orf.at/stories/3001235/</link>
+    <description>Die Wiener Philharmoniker feiern ihr 180-jähriges Jubiläum mit einem Galakonzert im Wiener Musikverein.</description>
+    <dc:date>2024-11-13T09:15:00+01:00</dc:date>
+    <dc:subject>Kultur</dc:subject>
+    <dc:subject>Musik</dc:subject>
+  </item>
+</rdf:RDF>
