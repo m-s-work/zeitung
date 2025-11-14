@@ -23,11 +23,11 @@ public class RssFeedIntegrationTests : AspireIntegrationTestBase
     private List<RssFeed> _rssFeeds = new();
     private const string TestDbName = "RssFeedIntegrationTests";
 
-    [OneTimeSetUp]
-    public new async Task OneTimeSetUpAsync()
+    [OneTimeSetUp, CancelAfter(30_000)]
+    public new async Task OneTimeSetUpAsync(CancellationToken cancellationToken)
     {
         _rssFeeds = ReadRssFeedConfig();
-        await base.OneTimeSetUpAsync();
+        await base.OneTimeSetUpAsync(cancellationToken);
     }
 
     private static List<RssFeed> ReadRssFeedConfig()

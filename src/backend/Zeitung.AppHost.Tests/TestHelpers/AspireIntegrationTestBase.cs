@@ -16,8 +16,8 @@ public abstract class AspireIntegrationTestBase
     /// Sets up the Aspire application once for all tests in the fixture.
     /// Override to customize HTTP client configuration.
     /// </summary>
-    [OneTimeSetUp]
-    public async Task OneTimeSetUpAsync()
+    [OneTimeSetUp, CancelAfter(30_000)]
+    public async Task OneTimeSetUpAsync(CancellationToken cancellationToken)
     {
         // Configure Aspire to run in CI environment to use appsettings.ci.json
         // This skips frontend startup and external RSS feed health checks during tests
@@ -27,14 +27,16 @@ public abstract class AspireIntegrationTestBase
             {
                 // Set environment to 'ci' to load appsettings.ci.json
                 settings.EnvironmentName = "ci";
-            });
+            },
+            cancellationToken: cancellationToken
+            );
 
         // Allow derived classes to configure the builder
         ConfigureBuilder(appHost);
 
         Builder = appHost;
-        App = await appHost.BuildAsync();
-        await App.StartAsync();
+        App = await appHost.BuildAsync(cancellationToken);
+        await App.StartAsync(cancellationToken);
     }
 
     /// <summary>

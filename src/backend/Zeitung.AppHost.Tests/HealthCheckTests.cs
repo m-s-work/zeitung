@@ -1,8 +1,5 @@
-using Aspire.Hosting;
 using Aspire.Hosting.Testing;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Diagnostics.HealthChecks;
-using Microsoft.Extensions.Logging;
 using Zeitung.AppHost.Tests.TestHelpers;
 
 namespace Zeitung.AppHost.Tests;
