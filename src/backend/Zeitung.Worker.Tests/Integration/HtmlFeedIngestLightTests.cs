@@ -8,7 +8,6 @@ namespace Zeitung.Worker.Tests.Integration;
 /// These tests validate that configured HTML5 feeds can be fetched and parsed using CSS selectors.
 /// </summary>
 [TestFixture]
-[Category("IntegrationTest")]
 public class HtmlFeedIngestLightTests
 {
     private List<RssFeed> _htmlFeeds = new();
@@ -57,7 +56,7 @@ public class HtmlFeedIngestLightTests
     /// 3. The feed can be parsed successfully with CSS selectors
     /// 4. At least one article is extracted
     /// </summary>
-    [TestCaseSource(nameof(HtmlFeedTestCases))]
+    [TestCaseSource(nameof(HtmlFeedTestCases)), Explicit("Requires network access")]
     public async Task HtmlFeed_ShouldBeSuccessfullyIngested(RssFeed feed)
     {
         // Arrange - Test feed accessibility and parseability
@@ -126,7 +125,7 @@ public class HtmlFeedIngestLightTests
         Assert.That(firstArticle.FeedSource, Is.EqualTo(feed.Name), $"Feed '{feed.Name}' articles should have correct source");
     }
 
-    [Test]
+    [Test, Explicit("Requires network access")]
     public async Task AllConfiguredHtmlFeeds_ShouldBeAccessible()
     {
         // Arrange
