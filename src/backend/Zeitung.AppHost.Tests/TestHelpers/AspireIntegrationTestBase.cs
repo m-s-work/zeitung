@@ -19,9 +19,15 @@ public abstract class AspireIntegrationTestBase
     [OneTimeSetUp]
     public async Task OneTimeSetUpAsync()
     {
-        // Configure Aspire to run in CI mode to avoid starting frontend and external service health checks
+        // Configure Aspire to run in CI environment to use appsettings.ci.json
+        // This skips frontend startup and external RSS feed health checks during tests
         var appHost = await DistributedApplicationTestingBuilder.CreateAsync<Projects.Zeitung_AppHost>(
-            ["--publisher:CI=true"]);
+            args: [],
+            configureBuilder: (options, settings) =>
+            {
+                // Set environment to 'ci' to load appsettings.ci.json
+                settings.EnvironmentName = "ci";
+            });
 
         // Allow derived classes to configure the builder
         ConfigureBuilder(appHost);
