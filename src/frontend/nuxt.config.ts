@@ -16,6 +16,8 @@ export default defineNuxtConfig({
       apiBase: process.env.API_BASE_URL || 'http://localhost:8080',
     },
   },
+  // SSG mode for Tauri compatibility
+  ssr: process.env.TAURI_BUILD === 'true' ? false : true,
   colorMode: {
     preference: 'system', // Let users choose, respecting system preference
     fallback: 'light',
