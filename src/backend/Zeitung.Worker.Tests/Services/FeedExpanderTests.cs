@@ -176,4 +176,85 @@ public class FeedExpanderTests
         Assert.That(expanded[0].HtmlConfig, Is.SameAs(htmlConfig));
         Assert.That(expanded[1].HtmlConfig, Is.SameAs(htmlConfig));
     }
+
+    [Test]
+    public void ExpandFeed_WithPatternNames_UsesDisplayNames()
+    {
+        // Arrange
+        var feed = new RssFeed
+        {
+            Name = "Site {pattern}",
+            Url = "https://example.com/{pattern}/",
+            Description = "{pattern} section",
+            Type = "html5",
+            UrlPatterns = new List<string> { "3d-druck", "ittk", "bau" },
+            PatternNames = new Dictionary<string, string>
+            {
+                { "3d-druck", "3D Printing" },
+                { "ittk", "IT & Communication" },
+                { "bau", "Construction" }
+            },
+            HtmlConfig = new HtmlFeedConfig
+            {
+                ItemsSelector = "article",
+                Title = new SelectorConfig { Selector = "h2", Extractor = "text" },
+                Link = new SelectorConfig { Selector = "a", Extractor = "href" }
+            }
+        };
+
+        // Act
+        var expanded = FeedExpander.ExpandFeed(feed);
+
+        // Assert
+        Assert.That(expanded, Has.Count.EqualTo(3));
+        
+        // URLs should use slugs
+        Assert.That(expanded[0].Url, Is.EqualTo("https://example.com/3d-druck/"));
+        Assert.That(expanded[1].Url, Is.EqualTo("https://example.com/ittk/"));
+        Assert.That(expanded[2].Url, Is.EqualTo("https://example.com/bau/"));
+        
+        // Names should use display names
+        Assert.That(expanded[0].Name, Is.EqualTo("Site 3D Printing"));
+        Assert.That(expanded[1].Name, Is.EqualTo("Site IT & Communication"));
+        Assert.That(expanded[2].Name, Is.EqualTo("Site Construction"));
+        
+        // Descriptions should use display names
+        Assert.That(expanded[0].Description, Is.EqualTo("3D Printing section"));
+        Assert.That(expanded[1].Description, Is.EqualTo("IT & Communication section"));
+        Assert.That(expanded[2].Description, Is.EqualTo("Construction section"));
+    }
+
+    [Test]
+    public void ExpandFeed_WithPatternNamesPartial_UsesDisplayNamesWhenAvailable()
+    {
+        // Arrange
+        var feed = new RssFeed
+        {
+            Name = "Site {pattern}",
+            Url = "https://example.com/{pattern}/",
+            Type = "html5",
+            UrlPatterns = new List<string> { "tech", "business", "sports" },
+            PatternNames = new Dictionary<string, string>
+            {
+                { "tech", "Technology" },
+                // "business" not mapped - should use slug
+                { "sports", "Sports & Recreation" }
+            },
+            HtmlConfig = new HtmlFeedConfig
+            {
+                ItemsSelector = "article",
+                Title = new SelectorConfig { Selector = "h2", Extractor = "text" },
+                Link = new SelectorConfig { Selector = "a", Extractor = "href" }
+            }
+        };
+
+        // Act
+        var expanded = FeedExpander.ExpandFeed(feed);
+
+        // Assert
+        Assert.That(expanded, Has.Count.EqualTo(3));
+        Assert.That(expanded[0].Name, Is.EqualTo("Site Technology"));
+        Assert.That(expanded[1].Name, Is.EqualTo("Site business")); // Falls back to slug
+        Assert.That(expanded[2].Name, Is.EqualTo("Site Sports & Recreation"));
+    }
 }

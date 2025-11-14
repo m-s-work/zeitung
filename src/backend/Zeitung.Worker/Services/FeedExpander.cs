@@ -24,9 +24,12 @@ public static class FeedExpander
 
         foreach (var pattern in feed.UrlPatterns)
         {
+            // Use pattern name if available, otherwise use the pattern itself
+            var patternName = feed.PatternNames?.GetValueOrDefault(pattern) ?? pattern;
+            
             var expandedUrl = feed.Url.Replace("{pattern}", pattern);
-            var expandedName = feed.Name.Replace("{pattern}", pattern);
-            var expandedDescription = feed.Description?.Replace("{pattern}", pattern);
+            var expandedName = feed.Name.Replace("{pattern}", patternName);
+            var expandedDescription = feed.Description?.Replace("{pattern}", patternName);
 
             var expandedFeed = new RssFeed
             {

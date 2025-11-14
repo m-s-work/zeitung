@@ -40,7 +40,11 @@ public class RssFeedIngestLightTests
         {
             ReadCommentHandling = System.Text.Json.JsonCommentHandling.Skip
         };
-        var rssFeeds = System.Text.Json.JsonSerializer.Deserialize<List<RssFeed>>(feedsJson, jsonSerializerOptions) ?? new List<RssFeed>();
+        var allFeeds = System.Text.Json.JsonSerializer.Deserialize<List<RssFeed>>(feedsJson, jsonSerializerOptions) ?? new List<RssFeed>();
+        
+        // Filter only RSS/RDF feeds (exclude HTML5 feeds)
+        var rssFeeds = allFeeds.Where(f => !f.Type.Equals("html5", StringComparison.OrdinalIgnoreCase)).ToList();
+        
         return rssFeeds;
     }
 

@@ -19,8 +19,15 @@ public class RssFeed
     /// <summary>
     /// URL patterns for generating multiple feeds from one configuration.
     /// When specified, each pattern will create a separate feed with placeholders replaced.
-    /// Example: ["bau", "ittk", "3d-druck"] with URL template "https://example.com/{category}/"
+    /// Can be a simple list of strings (slugs) or a dictionary mapping slugs to display names.
+    /// Example: ["bau", "ittk", "3d-druck"] or { "bau": "Construction", "ittk": "IT & Communication" }
     /// </summary>
     public List<string>? UrlPatterns { get; init; }
+    
+    /// <summary>
+    /// Optional display names for URL patterns. Maps pattern slug to human-readable name.
+    /// Example: { "3d-druck": "3D Printing", "ittk": "IT & Communication" }
+    /// </summary>
+    public Dictionary<string, string>? PatternNames { get; init; }
 }
 

@@ -66,6 +66,32 @@ This will create three separate feeds:
 
 The `{pattern}` placeholder is replaced in both the `Name`, `Url`, and `Description` fields.
 
+#### Human-Readable Pattern Names
+
+When URL slugs aren't user-friendly, use `PatternNames` to provide display names:
+
+```json
+{
+  "Name": "Engineering {pattern}",
+  "Url": "https://example.com/{pattern}/",
+  "Type": "html5",
+  "UrlPatterns": ["3d-druck", "ittk", "bau"],
+  "PatternNames": {
+    "3d-druck": "3D Printing",
+    "ittk": "IT & Communication",
+    "bau": "Construction"
+  },
+  "HtmlConfig": { ... }
+}
+```
+
+This creates feeds with:
+- URL: `https://example.com/3d-druck/` → Name: `Engineering 3D Printing`
+- URL: `https://example.com/ittk/` → Name: `Engineering IT & Communication`
+- URL: `https://example.com/bau/` → Name: `Engineering Construction`
+
+The URL uses the slug while the Name and Description use the display name.
+
 ### Configuration Fields
 
 #### ItemsSelector (required)

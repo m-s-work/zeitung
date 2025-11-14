@@ -70,6 +70,11 @@
     "Description": "Engineering News - {pattern}",
     "Type": "html5",
     "UrlPatterns": ["bau", "ittk", "3d-druck"],
+    "PatternNames": {
+      "bau": "Construction",
+      "ittk": "IT & Communication",
+      "3d-druck": "3D Printing"
+    },
     "HtmlConfig": {
       "ItemsSelector": "article.article-teaser",
       "Title": {
