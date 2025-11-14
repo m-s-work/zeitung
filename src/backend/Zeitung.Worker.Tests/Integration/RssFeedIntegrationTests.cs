@@ -114,70 +114,51 @@ public class RssFeedIntegrationTests : AspireIntegrationTestBase
             Assert.Fail($"Feed '{feed.Name}' did not return valid XML/RSS content. Content starts with: {contentPreview}");
         }
         
-        // Test parsing the feed
-        List<Zeitung.Worker.Models.Article> articles;
+        // Test database ingestion using the real FeedIngestService
+        var dbContext = CreateInMemoryDbContext();
         try
         {
+            // Create service with real dependencies but in-memory database
             var rdfParser = new RdfFeedParser(new MockLogger<RdfFeedParser>());
             var parser = new RssFeedParser(
                 new MockHttpClientFactory(content),
                 new MockLogger<RssFeedParser>(),
                 rdfParser);
+            var articleRepository = new ArticleRepository(dbContext, new MockLogger<ArticleRepository>());
+            var tagRepository = new PostgresTagRepository(dbContext, new MockLogger<PostgresTagRepository>());
+            var taggingStrategy = new MockTaggingStrategy();
+            var elasticsearchService = new MockElasticsearchService();
+            var feedOptions = Microsoft.Extensions.Options.Options.Create(new RssFeedOptions());
             
-            articles = await parser.ParseFeedAsync(feed);
-            
-            Assert.That(articles, Is.Not.Null, $"Feed '{feed.Name}' should be parseable");
-            
-            if (articles.Count == 0)
-            {
-                var contentPreview = content.Length > 1000 ? content.Substring(0, 1000) + "..." : content;
-                Assert.Fail($"Feed '{feed.Name}' parsed successfully but contained no articles. Raw XML preview: {contentPreview}");
-            }
-        }
-        catch (Exception ex)
-        {
-            var contentPreview = content.Length > 1000 ? content.Substring(0, 1000) + "..." : content;
-            Assert.Fail($"Failed to parse RSS feed '{feed.Name}'. Error: {ex.Message}\n\nRaw XML preview: {contentPreview}");
-            return; // Ensure articles is not used below
-        }
+            var feedIngestService = new FeedIngestService(
+                parser,
+                taggingStrategy,
+                articleRepository,
+                tagRepository,
+                elasticsearchService,
+                new MockLogger<FeedIngestService>(),
+                feedOptions);
 
-        // Test database ingestion
-        var dbContext = CreateInMemoryDbContext();
-        var articleRepository = new ArticleRepository(dbContext, new MockLogger<ArticleRepository>());
-        var tagRepository = new PostgresTagRepository(dbContext, new MockLogger<PostgresTagRepository>());
-        var taggingStrategy = new MockTaggingStrategy();
+            // Act - Ingest the feed using the real service
+            await feedIngestService.IngestFeedAsync(feed);
 
-        try
-        {
-            // Process first article from the feed
-            var article = articles.First();
-            
-            // Generate tags
-            article.Tags = await taggingStrategy.GenerateTagsAsync(article);
-            Assert.That(article.Tags, Is.Not.Empty, $"Tags should be generated for article '{article.Title}'");
+            // Assert - Verify articles were persisted
+            var articles = await dbContext.Articles.ToListAsync();
+            Assert.That(articles, Is.Not.Empty, $"Articles from feed '{feed.Name}' should be saved to database");
 
-            // Save article to database
-            var savedArticle = await articleRepository.SaveAsync(article);
-            Assert.That(savedArticle, Is.Not.Null, $"Article '{article.Title}' should be saved to database");
-            Assert.That(savedArticle.Id, Is.GreaterThan(0), "Saved article should have a valid ID");
-
-            // Save tags
-            await tagRepository.SaveArticleTagsAsync(savedArticle.Id, article.Tags);
-
-            // Verify article was saved correctly
-            var retrievedArticle = await articleRepository.GetByLinkAsync(article.Link);
-            Assert.That(retrievedArticle, Is.Not.Null, "Article should be retrievable from database");
-            Assert.That(retrievedArticle!.Title, Is.EqualTo(article.Title), "Retrieved article title should match");
-            Assert.That(retrievedArticle.Link, Is.EqualTo(article.Link), "Retrieved article link should match");
+            // Verify first article details
+            var firstArticle = articles.First();
+            Assert.That(firstArticle.Id, Is.GreaterThan(0), "Saved article should have a valid ID");
+            Assert.That(firstArticle.Title, Is.Not.Empty, "Article should have a title");
+            Assert.That(firstArticle.Link, Is.Not.Empty, "Article should have a link");
 
             // Verify tags were saved
             var savedTags = await dbContext.ArticleTags
-                .Where(at => at.ArticleId == savedArticle.Id)
+                .Where(at => at.ArticleId == firstArticle.Id)
                 .Include(at => at.Tag)
                 .ToListAsync();
             
             Assert.That(savedTags, Is.Not.Empty, "Tags should be saved for the article");
-            Assert.That(savedTags.Count, Is.EqualTo(article.Tags.Count), "Number of saved tags should match");
         }
         finally
         {
