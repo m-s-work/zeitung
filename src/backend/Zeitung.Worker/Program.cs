@@ -7,6 +7,7 @@ using Zeitung.Core.Models;
 using Zeitung.Worker.Services;
 using Zeitung.Worker.Strategies;
 using Zeitung.Worker.Jobs;
+using Zeitung.Worker.Models;
 
 var builder = Host.CreateApplicationBuilder(args);
 
@@ -27,6 +28,13 @@ builder.Services.AddSingleton(sp =>
 
 // Register HTTP client factory
 builder.Services.AddHttpClient();
+
+// Configure RSS feed options
+builder.Services.Configure<RssFeedOptions>(options =>
+{
+    var feeds = builder.Configuration.GetSection(RssFeedOptions.SectionName).Get<List<RssFeed>>() ?? new();
+    options.Feeds = feeds;
+});
 
 // Register repositories and services
 builder.Services.AddScoped<IArticleRepository, ArticleRepository>();
