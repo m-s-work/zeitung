@@ -6,7 +6,7 @@ namespace Zeitung.Worker.Services;
 /// <summary>
 /// Parser for RDF (RSS 1.0) format feeds.
 /// </summary>
-public interface IRdfFeedParser
+public interface IRdfFeedParser : IFeedParser
 {
     Task<List<Article>> ParseRdfFeedAsync(string xmlContent, RssFeed feed, CancellationToken cancellationToken = default);
 }
@@ -18,6 +18,16 @@ public class RdfFeedParser : IRdfFeedParser
     public RdfFeedParser(ILogger<RdfFeedParser> logger)
     {
         _logger = logger;
+    }
+
+    public bool CanHandle(RssFeed feed)
+    {
+        return feed.Type.Equals("rdf", StringComparison.OrdinalIgnoreCase);
+    }
+
+    public async Task<List<Article>> ParseFeedAsync(RssFeed feed, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException("RdfFeedParser should be called through RssFeedParser which detects RDF format");
     }
 
     public async Task<List<Article>> ParseRdfFeedAsync(string xmlContent, RssFeed feed, CancellationToken cancellationToken = default)

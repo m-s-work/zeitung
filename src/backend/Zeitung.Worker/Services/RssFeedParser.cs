@@ -4,9 +4,8 @@ using Zeitung.Worker.Models;
 
 namespace Zeitung.Worker.Services;
 
-public interface IRssFeedParser
+public interface IRssFeedParser : IFeedParser
 {
-    Task<List<Article>> ParseFeedAsync(RssFeed feed, CancellationToken cancellationToken = default);
 }
 
 public class RssFeedParser : IRssFeedParser
@@ -23,6 +22,15 @@ public class RssFeedParser : IRssFeedParser
         _httpClientFactory = httpClientFactory;
         _logger = logger;
         _rdfFeedParser = rdfFeedParser;
+    }
+
+    public bool CanHandle(RssFeed feed)
+    {
+        // Handle RSS/Atom feeds (default type) and RDF feeds
+        return string.IsNullOrEmpty(feed.Type) 
+               || feed.Type.Equals("rss", StringComparison.OrdinalIgnoreCase)
+               || feed.Type.Equals("atom", StringComparison.OrdinalIgnoreCase)
+               || feed.Type.Equals("rdf", StringComparison.OrdinalIgnoreCase);
     }
 
     public async Task<List<Article>> ParseFeedAsync(RssFeed feed, CancellationToken cancellationToken = default)
