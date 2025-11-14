@@ -19,7 +19,9 @@ public abstract class AspireIntegrationTestBase
     [OneTimeSetUp]
     public async Task OneTimeSetUpAsync()
     {
-        var appHost = await DistributedApplicationTestingBuilder.CreateAsync<Projects.Zeitung_AppHost>();
+        // Configure Aspire to run in CI mode to avoid starting frontend and external service health checks
+        var appHost = await DistributedApplicationTestingBuilder.CreateAsync<Projects.Zeitung_AppHost>(
+            ["--publisher:CI=true"]);
 
         // Allow derived classes to configure the builder
         ConfigureBuilder(appHost);
