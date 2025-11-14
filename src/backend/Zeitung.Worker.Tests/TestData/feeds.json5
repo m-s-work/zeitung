@@ -34,35 +34,36 @@
     "Type": "rss"
   },
   // HTML5 feeds with CSS selectors
-  {
-    "Name": "DerBrutkasten",
-    "Url": "https://brutkasten.com/news/newsticker",
-    "Description": "Austrian Startup & Tech News",
-    "Type": "html5",
-    "HtmlConfig": {
-      "ItemsSelector": "article.newsticker-item",
-      "Title": {
-        "Selector": "h3.title a",
-        "Extractor": "text"
-      },
-      "Link": {
-        "Selector": "h3.title a",
-        "Extractor": "href"
-      },
-      "Description": {
-        "Selector": "div.teaser",
-        "Extractor": "text"
-      },
-      "PublishedAt": {
-        "Selector": "time",
-        "Extractor": "datetime"
-      },
-      "Category": {
-        "Selector": "span.category",
-        "Extractor": "text"
-      }
-    }
-  },
+  // Disabled due to bot protection
+  // {
+  //   "Name": "DerBrutkasten",
+  //   "Url": "https://brutkasten.com/news/newsticker",
+  //   "Description": "Austrian Startup & Tech News",
+  //   "Type": "html5",
+  //   "HtmlConfig": {
+  //     "ItemsSelector": "article.newsticker-item",
+  //     "Title": {
+  //       "Selector": "h3.title a",
+  //       "Extractor": "text"
+  //     },
+  //     "Link": {
+  //       "Selector": "h3.title a",
+  //       "Extractor": "href"
+  //     },
+  //     "Description": {
+  //       "Selector": "div.teaser",
+  //       "Extractor": "text"
+  //     },
+  //     "PublishedAt": {
+  //       "Selector": "time",
+  //       "Extractor": "datetime"
+  //     },
+  //     "Category": {
+  //       "Selector": "span.category",
+  //       "Extractor": "text"
+  //     }
+  //   }
+  // },
   // HTML5 feed with URL patterns for multiple categories
   {
     "Name": "Ingenieur.de {pattern}",
