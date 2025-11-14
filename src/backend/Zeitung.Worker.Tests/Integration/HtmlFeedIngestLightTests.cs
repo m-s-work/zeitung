@@ -8,6 +8,7 @@ namespace Zeitung.Worker.Tests.Integration;
 /// These tests validate that configured HTML5 feeds can be fetched and parsed using CSS selectors.
 /// </summary>
 [TestFixture]
+[Category("IntegrationTest")]
 public class HtmlFeedIngestLightTests
 {
     private List<RssFeed> _htmlFeeds = new();

@@ -8,6 +8,7 @@ namespace Zeitung.Worker.Tests.Integration;
 /// These tests validate that configured RSS feeds can be fetched and ingested into the database.
 /// </summary>
 [TestFixture]
+[Category("IntegrationTest")]
 public class RssFeedIngestLightTests
 {
     private List<RssFeed> _rssFeeds = new();
