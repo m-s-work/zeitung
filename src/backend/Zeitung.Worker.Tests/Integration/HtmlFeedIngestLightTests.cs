@@ -87,7 +87,7 @@ public class HtmlFeedIngestLightTests
         if (!response!.IsSuccessStatusCode)
         {
             content = await response.Content.ReadAsStringAsync();
-            var contentPreview = content.Length > 500 ? content.Substring(0, 500) + "..." : content;
+            var contentPreview = content.Length > 3000 ? content.Substring(0, 3000) + "..." : content;
             Assert.Fail($"Feed '{feed.Name}' returned error status code: {response.StatusCode}. Content preview: {contentPreview}");
         }
 
@@ -99,7 +99,7 @@ public class HtmlFeedIngestLightTests
         if (!trimmedContent.StartsWith("<!DOCTYPE", StringComparison.OrdinalIgnoreCase) && 
             !trimmedContent.StartsWith("<html", StringComparison.OrdinalIgnoreCase))
         {
-            var contentPreview = content.Length > 1000 ? content.Substring(0, 1000) + "..." : content;
+            var contentPreview = content.Length > 5000 ? content.Substring(0, 5000) + "..." : content;
             Assert.Inconclusive($"Feed '{feed.Name}' may not be returning valid HTML content. Content starts with: {contentPreview}");
         }
         
@@ -114,7 +114,7 @@ public class HtmlFeedIngestLightTests
         
         if (articles.Count == 0)
         {
-            var contentPreview = content.Length > 2000 ? content.Substring(0, 2000) + "..." : content;
+            var contentPreview = content.Length > 5000 ? content.Substring(0, 5000) + "..." : content;
             Assert.Fail($"Feed '{feed.Name}' parsed successfully but contained no articles. Selectors may need adjustment. HTML preview: {contentPreview}");
         }
         
