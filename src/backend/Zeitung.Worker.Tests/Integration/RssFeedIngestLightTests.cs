@@ -8,6 +8,7 @@ namespace Zeitung.Worker.Tests.Integration;
 /// These tests validate that configured RSS feeds can be fetched and ingested into the database.
 /// </summary>
 [TestFixture]
+[Category("IntegrationTest")]
 public class RssFeedIngestLightTests
 {
     private List<RssFeed> _rssFeeds = new();
@@ -55,7 +56,7 @@ public class RssFeedIngestLightTests
     /// 2. The feed returns valid XML/RSS content
     /// 3. The feed can be parsed successfully
     /// </summary>
-    [TestCaseSource(nameof(RssFeedTestCases)), Explicit("Requires network access")]
+    [TestCaseSource(nameof(RssFeedTestCases))]
     public async Task RssFeed_ShouldBeSuccessfullyIngested(RssFeed feed)
     {
         // Arrange - Test feed accessibility and parseability
@@ -119,7 +120,7 @@ public class RssFeedIngestLightTests
         }
     }
 
-    [Test, Explicit("Requires network access")]
+    [Test]
     public async Task AllConfiguredFeeds_ShouldBeAccessible()
     {
         // Arrange
