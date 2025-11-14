@@ -26,6 +26,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Zeitung.Worker\Zeitung.Worker.csproj" />
     <ProjectReference Include="..\Zeitung.AppHost\Zeitung.AppHost.csproj" />
+    <ProjectReference Include="..\Zeitung.AppHost.Tests\Zeitung.AppHost.Tests.csproj" />
   </ItemGroup>
 
   <ItemGroup>

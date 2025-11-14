@@ -4,78 +4,42 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Zeitung.AppHost.Tests.TestHelpers;
 using Zeitung.Core.Models;
 using Zeitung.Worker.Models;
 using Zeitung.Worker.Services;
+using Zeitung.Worker.Strategies;
 
 namespace Zeitung.Worker.Tests.Integration;
 
 /// <summary>
 /// Integration tests for RSS feed ingestion.
-/// These tests validate that configured RSS feeds can be fetched and ingested into the database.
+/// These tests validate that configured RSS feeds can be fetched, parsed, and ingested into the database.
 /// </summary>
 [TestFixture]
 [Category("IntegrationTest")]
-[Ignore("same as Lite tests, but slower startup time")] // TODO we need to change/refactor it so here full ingest into DB is done
-// TODO also cleanup stuff like in light tests (rss feed config read)
-public class RssFeedIntegrationTests
+public class RssFeedIntegrationTests : AspireIntegrationTestBase
 {
-    private IDistributedApplicationTestingBuilder? _builder;
-    private DistributedApplication? _app;
     private List<RssFeed> _rssFeeds = new();
+    private const string TestDbName = "RssFeedIntegrationTests";
 
     [OneTimeSetUp]
-    public async Task OneTimeSetUpAsync()
+    public new async Task OneTimeSetUpAsync()
     {
-        // Load RSS feeds from separate feeds.json file
-        var feedsPath = Path.Combine(Directory.GetCurrentDirectory(), "TestData", "feeds.json5");
-        var feedsJson = await File.ReadAllTextAsync(feedsPath);
-        _rssFeeds = System.Text.Json.JsonSerializer.Deserialize<List<RssFeed>>(feedsJson) ?? new List<RssFeed>();
-
-        var appHost = await DistributedApplicationTestingBuilder.CreateAsync<Projects.Zeitung_AppHost>();
-
-        // Configure HTTP client resilience/timeouts
-        //appHost.Services.ConfigureHttpClientDefaults(http =>
-        //{
-        //    http.AddStandardResilienceHandler(options =>
-        //    {
-        //        options.TotalRequestTimeout.Timeout = TimeSpan.FromSeconds(90);
-        //        options.AttemptTimeout.Timeout = TimeSpan.FromSeconds(30);
-        //        options.CircuitBreaker.SamplingDuration = TimeSpan.FromSeconds(60);
-        //    });
-        //});
-
-        _builder = appHost;
-        _app = await appHost.BuildAsync();
-        await _app.StartAsync();
+        _rssFeeds = ReadRssFeedConfig();
+        await base.OneTimeSetUpAsync();
     }
 
-    [OneTimeTearDown]
-    public async Task OneTimeTearDownAsync()
+    private static List<RssFeed> ReadRssFeedConfig()
     {
-        if (_app != null)
+        var feedsPath = Path.Combine(Directory.GetCurrentDirectory(), "TestData", "feeds.json5");
+        var feedsJson = File.ReadAllText(feedsPath);
+        var jsonSerializerOptions = new System.Text.Json.JsonSerializerOptions
         {
-            try
-            {
-                await _app.StopAsync();
-            }
-            catch
-            {
-                // Ignore stop failures during teardown
-            }
-
-            try
-            {
-                await _app.DisposeAsync();
-            }
-            catch
-            {
-                // Ignore dispose failures during teardown
-            }
-
-            _app = null;
-            _builder = null;
-        }
+            ReadCommentHandling = System.Text.Json.JsonCommentHandling.Skip
+        };
+        var rssFeeds = System.Text.Json.JsonSerializer.Deserialize<List<RssFeed>>(feedsJson, jsonSerializerOptions) ?? new List<RssFeed>();
+        return rssFeeds;
     }
 
     /// <summary>
@@ -85,27 +49,24 @@ public class RssFeedIntegrationTests
     {
         get
         {
-            // Load RSS feeds from separate feeds.json file
-            var feedsPath = Path.Combine(Directory.GetCurrentDirectory(), "TestData", "feeds.json");
-            var feedsJson = File.ReadAllText(feedsPath);
-            var rssFeeds = System.Text.Json.JsonSerializer.Deserialize<List<RssFeed>>(feedsJson) ?? new List<RssFeed>();
+            var rssFeeds = ReadRssFeedConfig();
             
             foreach (var feed in rssFeeds)
             {
                 yield return new TestCaseData(feed)
-                    .SetArgDisplayNames(feed.Name.Replace(" ", "_").Replace(".", "_"))
-                    //.SetName($"RssFeed_ShouldBeIngestible_{feed.Name.Replace(" ", "_").Replace(".", "_")}")
-                    ;
+                    .SetArgDisplayNames(feed.Name.Replace(" ", "_").Replace(".", "_"));
             }
         }
     }
 
     /// <summary>
-    /// Tests that each configured RSS feed can be successfully fetched and parsed.
+    /// Tests that each configured RSS feed can be successfully fetched, parsed, and ingested into the database.
     /// This test validates:
     /// 1. The feed URL is accessible
     /// 2. The feed returns valid XML/RSS content
     /// 3. The feed can be parsed successfully
+    /// 4. Articles can be saved to the database
+    /// 5. Tags are generated and associated with articles
     /// </summary>
     [TestCaseSource(nameof(RssFeedTestCases))]
     public async Task RssFeed_ShouldBeSuccessfullyIngested(RssFeed feed)
@@ -154,6 +115,7 @@ public class RssFeedIntegrationTests
         }
         
         // Test parsing the feed
+        List<Zeitung.Worker.Models.Article> articles;
         try
         {
             var rdfParser = new RdfFeedParser(new MockLogger<RdfFeedParser>());
@@ -162,7 +124,7 @@ public class RssFeedIntegrationTests
                 new MockLogger<RssFeedParser>(),
                 rdfParser);
             
-            var articles = await parser.ParseFeedAsync(feed);
+            articles = await parser.ParseFeedAsync(feed);
             
             Assert.That(articles, Is.Not.Null, $"Feed '{feed.Name}' should be parseable");
             
@@ -176,6 +138,50 @@ public class RssFeedIntegrationTests
         {
             var contentPreview = content.Length > 1000 ? content.Substring(0, 1000) + "..." : content;
             Assert.Fail($"Failed to parse RSS feed '{feed.Name}'. Error: {ex.Message}\n\nRaw XML preview: {contentPreview}");
+            return; // Ensure articles is not used below
+        }
+
+        // Test database ingestion
+        var dbContext = CreateInMemoryDbContext();
+        var articleRepository = new ArticleRepository(dbContext, new MockLogger<ArticleRepository>());
+        var tagRepository = new PostgresTagRepository(dbContext, new MockLogger<PostgresTagRepository>());
+        var taggingStrategy = new MockTaggingStrategy();
+
+        try
+        {
+            // Process first article from the feed
+            var article = articles.First();
+            
+            // Generate tags
+            article.Tags = await taggingStrategy.GenerateTagsAsync(article);
+            Assert.That(article.Tags, Is.Not.Empty, $"Tags should be generated for article '{article.Title}'");
+
+            // Save article to database
+            var savedArticle = await articleRepository.SaveAsync(article);
+            Assert.That(savedArticle, Is.Not.Null, $"Article '{article.Title}' should be saved to database");
+            Assert.That(savedArticle.Id, Is.GreaterThan(0), "Saved article should have a valid ID");
+
+            // Save tags
+            await tagRepository.SaveArticleTagsAsync(savedArticle.Id, article.Tags);
+
+            // Verify article was saved correctly
+            var retrievedArticle = await articleRepository.GetByLinkAsync(article.Link);
+            Assert.That(retrievedArticle, Is.Not.Null, "Article should be retrievable from database");
+            Assert.That(retrievedArticle!.Title, Is.EqualTo(article.Title), "Retrieved article title should match");
+            Assert.That(retrievedArticle.Link, Is.EqualTo(article.Link), "Retrieved article link should match");
+
+            // Verify tags were saved
+            var savedTags = await dbContext.ArticleTags
+                .Where(at => at.ArticleId == savedArticle.Id)
+                .Include(at => at.Tag)
+                .ToListAsync();
+            
+            Assert.That(savedTags, Is.Not.Empty, "Tags should be saved for the article");
+            Assert.That(savedTags.Count, Is.EqualTo(article.Tags.Count), "Number of saved tags should match");
+        }
+        finally
+        {
+            await dbContext.DisposeAsync();
         }
     }
 
@@ -229,5 +235,19 @@ public class RssFeedIntegrationTests
             Assert.That(feed.Url, Is.Not.Null.And.Not.Empty, "Feed URL should be configured");
             Assert.That(() => new Uri(feed.Url), Throws.Nothing, $"Feed URL '{feed.Url}' should be valid");
         }
+    }
+
+    /// <summary>
+    /// Creates an in-memory database context for testing
+    /// </summary>
+    private ZeitungDbContext CreateInMemoryDbContext()
+    {
+        var options = new DbContextOptionsBuilder<ZeitungDbContext>()
+            .UseInMemoryDatabase(databaseName: $"{TestDbName}_{Guid.NewGuid()}")
+            .Options;
+
+        var context = new ZeitungDbContext(options);
+        context.Database.EnsureCreated();
+        return context;
     }
 }
