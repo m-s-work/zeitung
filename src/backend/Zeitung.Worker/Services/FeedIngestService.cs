@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Options;
 using Zeitung.Worker.Models;
 using Zeitung.Core.Models;
 using Zeitung.Worker.Strategies;
@@ -8,6 +9,7 @@ namespace Zeitung.Worker.Services;
 public interface IFeedIngestService
 {
     Task IngestFeedsAsync(CancellationToken cancellationToken = default);
+    Task IngestFeedAsync(RssFeed feed, CancellationToken cancellationToken = default);
 }
 
 public class FeedIngestService : IFeedIngestService
@@ -27,7 +29,7 @@ public class FeedIngestService : IFeedIngestService
         ITagRepository tagRepository,
         IElasticsearchService elasticsearchService,
         ILogger<FeedIngestService> logger,
-        IConfiguration configuration)
+        IOptions<RssFeedOptions> feedOptions)
     {
         _parserFactory = parserFactory;
         _taggingStrategy = taggingStrategy;
@@ -36,9 +38,12 @@ public class FeedIngestService : IFeedIngestService
         _elasticsearchService = elasticsearchService;
         _logger = logger;
         
+        
         // Load feeds from configuration and expand URL patterns
-        var configuredFeeds = configuration.GetSection("RssFeeds").Get<List<RssFeed>>() ?? new List<RssFeed>();
-        _feeds = FeedExpander.ExpandFeeds(configuredFeeds);
+        //var configuredFeeds = configuration.GetSection("RssFeeds").Get<List<RssFeed>>() ?? new List<RssFeed>();
+        //_feeds = FeedExpander.ExpandFeeds(configuredFeeds);
+        //_feeds = feedOptions.Value.Feeds; // this was the new defautl
+        _feeds = FeedExpander.ExpandFeeds(feedOptions.Value.Feeds); // TODO check if expanding is needed or done via iptions?
     }
 
     public async Task IngestFeedsAsync(CancellationToken cancellationToken = default)
@@ -50,44 +55,49 @@ public class FeedIngestService : IFeedIngestService
             if (cancellationToken.IsCancellationRequested)
                 break;
 
-            try
-            {
-                _logger.LogInformation("Processing feed: {FeedName} ({FeedUrl})", feed.Name, feed.Url);
-
-                var parser = _parserFactory.GetParser(feed);
-                var articles = await parser.ParseFeedAsync(feed, cancellationToken);
-
-                foreach (var article in articles)
-                {
-                    if (cancellationToken.IsCancellationRequested)
-                        break;
-
-                    // Generate tags for the article
-                    article.Tags = await _taggingStrategy.GenerateTagsAsync(article, cancellationToken);
-
-                    _logger.LogInformation(
-                        "Article: {Title} | Tags: {Tags}", 
-                        article.Title, 
-                        string.Join(", ", article.Tags));
-
-                    // Store article in PostgreSQL
-                    var articleEntity = await _articleRepository.SaveAsync(article, cancellationToken);
-
-                    // Store tags and relationships
-                    await _tagRepository.SaveArticleTagsAsync(articleEntity.Id, article.Tags, cancellationToken);
-
-                    // Index article in Elasticsearch
-                    await _elasticsearchService.IndexArticleAsync(article, articleEntity.Id, cancellationToken);
-                }
-
-                _logger.LogInformation("Completed processing feed: {FeedName}", feed.Name);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error processing feed: {FeedName}", feed.Name);
-            }
+            await IngestFeedAsync(feed, cancellationToken);
         }
 
         _logger.LogInformation("Completed RSS feed ingestion");
+    }
+
+    public async Task IngestFeedAsync(RssFeed feed, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogInformation("Processing feed: {FeedName} ({FeedUrl})", feed.Name, feed.Url);
+
+            var articles = await _parser.ParseFeedAsync(feed, cancellationToken);
+
+            foreach (var article in articles)
+            {
+                if (cancellationToken.IsCancellationRequested)
+                    break;
+
+                // Generate tags for the article
+                article.Tags = await _taggingStrategy.GenerateTagsAsync(article, cancellationToken);
+
+                _logger.LogInformation(
+                    "Article: {Title} | Tags: {Tags}", 
+                    article.Title, 
+                    string.Join(", ", article.Tags));
+
+                // Store article in PostgreSQL
+                var articleEntity = await _articleRepository.SaveAsync(article, cancellationToken);
+
+                // Store tags and relationships
+                await _tagRepository.SaveArticleTagsAsync(articleEntity.Id, article.Tags, cancellationToken);
+
+                // Index article in Elasticsearch
+                await _elasticsearchService.IndexArticleAsync(article, articleEntity.Id, cancellationToken);
+            }
+
+            _logger.LogInformation("Completed processing feed: {FeedName}", feed.Name);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error processing feed: {FeedName}", feed.Name);
+            throw;
+        }
     }
 }
