@@ -75,7 +75,7 @@ public class RssFeedIntegrationTests// : AspireIntegrationTestBase
     /// 4. Articles can be saved to the database
     /// 5. Tags are generated and associated with articles
     /// </summary>
-    [TestCaseSource(nameof(RssFeedTestCases)), Explicit("Requires network access")]
+    [TestCaseSource(nameof(RssFeedTestCases))]
     public async Task RssFeed_ShouldBeSuccessfullyIngested(RssFeed feed)
     {
         // Arrange - Test feed accessibility and parseability
@@ -178,7 +178,7 @@ public class RssFeedIntegrationTests// : AspireIntegrationTestBase
         }
     }
 
-    [Test, Explicit("Requires network access")]
+    [Test]
     public async Task AllConfiguredFeeds_ShouldBeAccessible()
     {
         // Arrange
