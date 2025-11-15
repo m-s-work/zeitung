@@ -60,7 +60,8 @@ public class RssFeedIntegrationTests// : AspireIntegrationTestBase
         {
             var rssFeeds = ReadRssFeedConfig();
             
-            foreach (var feed in rssFeeds)
+            // Filter out HTML5 feeds - they have their own tests in HtmlFeedIngestLightTests
+            foreach (var feed in rssFeeds.Where(f => f.Type != "html5"))
             {
                 yield return new TestCaseData(feed)
                     .SetArgDisplayNames(feed.Name.Replace(" ", "_").Replace(".", "_"));

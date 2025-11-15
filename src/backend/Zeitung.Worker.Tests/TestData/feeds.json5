@@ -77,25 +77,25 @@
       "3d-druck": "3D Printing"
     },
     "HtmlConfig": {
-      "ItemsSelector": "article.article-teaser",
+      "ItemsSelector": "div.ing-teaser",
       "Title": {
-        "Selector": "h2.headline a",
+        "Selector": "p.ing-teaser__headline",
         "Extractor": "text"
       },
       "Link": {
-        "Selector": "h2.headline a",
+        "Selector": "a.ing-teaser__link",
         "Extractor": "href"
       },
       "Description": {
-        "Selector": "p.intro",
+        "Selector": "span.ing-teaser__subheadline",
         "Extractor": "text"
       },
       "PublishedAt": {
-        "Selector": "time",
-        "Extractor": "datetime"
+        "Selector": "span.ing-teaser__meta-item",
+        "Extractor": "text"
       },
       "Category": {
-        "Selector": ".meta span.tag",
+        "Selector": "span.ing-teaser__category",
         "Extractor": "text"
       }
     }
