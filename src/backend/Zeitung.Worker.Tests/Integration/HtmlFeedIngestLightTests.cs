@@ -12,11 +12,39 @@ namespace Zeitung.Worker.Tests.Integration;
 public class HtmlFeedIngestLightTests
 {
     private List<RssFeed> _htmlFeeds = new();
+    private const string ArtifactsDir = "test-artifacts";
 
     [OneTimeSetUp]
     public void OneTimeSetUpAsync()
     {
         _htmlFeeds = ReadHtmlFeedConfig();
+        
+        // Create artifacts directory if it doesn't exist
+        if (!Directory.Exists(ArtifactsDir))
+        {
+            Directory.CreateDirectory(ArtifactsDir);
+        }
+    }
+    
+    /// <summary>
+    /// Saves content to an artifact file for debugging.
+    /// </summary>
+    private static void SaveArtifact(string feedName, string content, string extension = "html")
+    {
+        try
+        {
+            var sanitizedName = string.Join("_", feedName.Split(Path.GetInvalidFileNameChars()));
+            var timestamp = DateTime.UtcNow.ToString("yyyyMMdd_HHmmss");
+            var filename = $"{sanitizedName}_{timestamp}.{extension}";
+            var filepath = Path.Combine(ArtifactsDir, filename);
+            
+            File.WriteAllText(filepath, content);
+            TestContext.Out.WriteLine($"Artifact saved: {filepath}");
+        }
+        catch (Exception ex)
+        {
+            TestContext.Out.WriteLine($"Failed to save artifact: {ex.Message}");
+        }
     }
     
     public static IEnumerable<TestCaseData> HtmlFeedTestCases
@@ -88,8 +116,9 @@ public class HtmlFeedIngestLightTests
         if (!response!.IsSuccessStatusCode)
         {
             content = await response.Content.ReadAsStringAsync();
+            SaveArtifact($"{feed.Name}_error_{response.StatusCode}", content);
             var contentPreview = content.Length > 3000 ? content.Substring(0, 3000) + "..." : content;
-            Assert.Fail($"Feed '{feed.Name}' returned error status code: {response.StatusCode}. Content preview: {contentPreview}");
+            Assert.Fail($"Feed '{feed.Name}' returned error status code: {response.StatusCode}. Full page saved to artifacts. Content preview: {contentPreview}");
         }
 
         content = await response.Content.ReadAsStringAsync();
@@ -100,8 +129,9 @@ public class HtmlFeedIngestLightTests
         if (!trimmedContent.StartsWith("<!DOCTYPE", StringComparison.OrdinalIgnoreCase) && 
             !trimmedContent.StartsWith("<html", StringComparison.OrdinalIgnoreCase))
         {
+            SaveArtifact($"{feed.Name}_not_html", content);
             var contentPreview = content.Length > 5000 ? content.Substring(0, 5000) + "..." : content;
-            Assert.Inconclusive($"Feed '{feed.Name}' may not be returning valid HTML content. Content starts with: {contentPreview}");
+            Assert.Inconclusive($"Feed '{feed.Name}' may not be returning valid HTML content. Full page saved to artifacts. Content starts with: {contentPreview}");
         }
         
         // Test parsing the feed with HtmlFeedParser
@@ -115,8 +145,9 @@ public class HtmlFeedIngestLightTests
         
         if (articles.Count == 0)
         {
+            SaveArtifact($"{feed.Name}_no_articles", content);
             var contentPreview = content.Length > 5000 ? content.Substring(0, 5000) + "..." : content;
-            Assert.Fail($"Feed '{feed.Name}' parsed successfully but contained no articles. Selectors may need adjustment. HTML preview: {contentPreview}");
+            Assert.Fail($"Feed '{feed.Name}' parsed successfully but contained no articles. Selectors may need adjustment. Full page saved to artifacts. HTML preview: {contentPreview}");
         }
         
         // Verify article structure
