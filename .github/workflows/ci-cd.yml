@@ -211,9 +211,11 @@ jobs:
         if: failure()
         with:
           name: integration-test-artifacts
-          path: src/backend/test-artifacts/
+          path: |
+            src/backend/test-artifacts/
+            src/backend/**/test-artifacts/
           retention-days: 7
-          if-no-files-found: ignore
+          if-no-files-found: warn
 
   release-please:
     name: Release Please

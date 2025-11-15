@@ -46,7 +46,9 @@ public class RssFeedIntegrationTests// : AspireIntegrationTestBase
             ReadCommentHandling = System.Text.Json.JsonCommentHandling.Skip
         };
         var rssFeeds = System.Text.Json.JsonSerializer.Deserialize<List<RssFeed>>(feedsJson, jsonSerializerOptions) ?? new List<RssFeed>();
-        return rssFeeds;
+        
+        // Expand feeds with URL patterns
+        return FeedExpander.ExpandFeeds(rssFeeds);
     }
 
     /// <summary>
