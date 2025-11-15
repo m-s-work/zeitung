@@ -40,8 +40,19 @@ builder.Services.Configure<RssFeedOptions>(options =>
 builder.Services.AddScoped<IArticleRepository, ArticleRepository>();
 builder.Services.AddScoped<ITagRepository, PostgresTagRepository>();
 builder.Services.AddScoped<IElasticsearchService, ElasticsearchService>();
+
+// Register feed parsers
 builder.Services.AddScoped<IRdfFeedParser, RdfFeedParser>();
 builder.Services.AddScoped<IRssFeedParser, RssFeedParser>();
+builder.Services.AddScoped<IHtmlFeedParser, HtmlFeedParser>();
+
+// Register all parsers for factory
+builder.Services.AddScoped<IFeedParser, RssFeedParser>();
+builder.Services.AddScoped<IFeedParser, HtmlFeedParser>();
+
+// Register feed parser factory
+builder.Services.AddScoped<IFeedParserFactory, FeedParserFactory>();
+
 builder.Services.AddScoped<IFeedIngestService, FeedIngestService>();
 
 // Register tagging strategy based on configuration

@@ -8,14 +8,43 @@ namespace Zeitung.Worker.Tests.Integration;
 /// These tests validate that configured RSS feeds can be fetched and ingested into the database.
 /// </summary>
 [TestFixture]
+[Category("IntegrationTest")]
 public class RssFeedIngestLightTests
 {
     private List<RssFeed> _rssFeeds = new();
+    private const string ArtifactsDir = "test-artifacts";
 
     [OneTimeSetUp]
     public void OneTimeSetUpAsync()
     {
         _rssFeeds = ReadRssFeedConfig();
+        
+        // Create artifacts directory if it doesn't exist
+        if (!Directory.Exists(ArtifactsDir))
+        {
+            Directory.CreateDirectory(ArtifactsDir);
+        }
+    }
+    
+    /// <summary>
+    /// Saves content to an artifact file for debugging.
+    /// </summary>
+    private static void SaveArtifact(string feedName, string content, string extension = "xml")
+    {
+        try
+        {
+            var sanitizedName = string.Join("_", feedName.Split(Path.GetInvalidFileNameChars()));
+            var timestamp = DateTime.UtcNow.ToString("yyyyMMdd_HHmmss");
+            var filename = $"{sanitizedName}_{timestamp}.{extension}";
+            var filepath = Path.Combine(ArtifactsDir, filename);
+            
+            File.WriteAllText(filepath, content);
+            TestContext.Out.WriteLine($"Artifact saved: {filepath}");
+        }
+        catch (Exception ex)
+        {
+            TestContext.Out.WriteLine($"Failed to save artifact: {ex.Message}");
+        }
     }
     
     public static IEnumerable<TestCaseData> RssFeedTestCases
@@ -40,7 +69,11 @@ public class RssFeedIngestLightTests
         {
             ReadCommentHandling = System.Text.Json.JsonCommentHandling.Skip
         };
-        var rssFeeds = System.Text.Json.JsonSerializer.Deserialize<List<RssFeed>>(feedsJson, jsonSerializerOptions) ?? new List<RssFeed>();
+        var allFeeds = System.Text.Json.JsonSerializer.Deserialize<List<RssFeed>>(feedsJson, jsonSerializerOptions) ?? new List<RssFeed>();
+        
+        // Filter only RSS/RDF feeds (exclude HTML5 feeds)
+        var rssFeeds = allFeeds.Where(f => !f.Type.Equals("html5", StringComparison.OrdinalIgnoreCase)).ToList();
+        
         return rssFeeds;
     }
 
@@ -82,8 +115,9 @@ public class RssFeedIngestLightTests
         if (!response!.IsSuccessStatusCode)
         {
             content = await response.Content.ReadAsStringAsync();
+            SaveArtifact($"{feed.Name}_error_{response.StatusCode}", content);
             var contentPreview = content.Length > 500 ? content.Substring(0, 500) + "..." : content;
-            Assert.Fail($"Feed '{feed.Name}' returned error status code: {response.StatusCode}. Content preview: {contentPreview}");
+            Assert.Fail($"Feed '{feed.Name}' returned error status code: {response.StatusCode}. Full content saved to artifacts. Content preview: {contentPreview}");
         }
 
         content = await response.Content.ReadAsStringAsync();
@@ -93,8 +127,9 @@ public class RssFeedIngestLightTests
         var trimmedContent = content.TrimStart();
         if (!trimmedContent.StartsWith("<?xml") && !trimmedContent.StartsWith("<rss") && !trimmedContent.StartsWith("<feed"))
         {
+            SaveArtifact($"{feed.Name}_not_xml", content);
             var contentPreview = content.Length > 1000 ? content.Substring(0, 1000) + "..." : content;
-            Assert.Fail($"Feed '{feed.Name}' did not return valid XML/RSS content. Content starts with: {contentPreview}");
+            Assert.Fail($"Feed '{feed.Name}' did not return valid XML/RSS content. Full content saved to artifacts. Content starts with: {contentPreview}");
         }
         
         // Test parsing the feed
@@ -110,8 +145,9 @@ public class RssFeedIngestLightTests
         
         if (articles.Count == 0)
         {
+            SaveArtifact($"{feed.Name}_no_articles", content);
             var contentPreview = content.Length > 1000 ? content.Substring(0, 1000) + "..." : content;
-            Assert.Fail($"Feed '{feed.Name}' parsed successfully but contained no articles. Raw XML preview: {contentPreview}");
+            Assert.Fail($"Feed '{feed.Name}' parsed successfully but contained no articles. Full XML saved to artifacts. Raw XML preview: {contentPreview}");
         }
     }
 

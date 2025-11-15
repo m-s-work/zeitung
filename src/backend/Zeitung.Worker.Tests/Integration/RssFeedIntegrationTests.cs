@@ -46,7 +46,9 @@ public class RssFeedIntegrationTests// : AspireIntegrationTestBase
             ReadCommentHandling = System.Text.Json.JsonCommentHandling.Skip
         };
         var rssFeeds = System.Text.Json.JsonSerializer.Deserialize<List<RssFeed>>(feedsJson, jsonSerializerOptions) ?? new List<RssFeed>();
-        return rssFeeds;
+        
+        // Expand feeds with URL patterns
+        return FeedExpander.ExpandFeeds(rssFeeds);
     }
 
     /// <summary>
@@ -58,7 +60,8 @@ public class RssFeedIntegrationTests// : AspireIntegrationTestBase
         {
             var rssFeeds = ReadRssFeedConfig();
             
-            foreach (var feed in rssFeeds)
+            // Filter out HTML5 feeds - they have their own tests in HtmlFeedIngestLightTests
+            foreach (var feed in rssFeeds.Where(f => f.Type == "rss" || f.Type == "rdf"))
             {
                 yield return new TestCaseData(feed)
                     .SetArgDisplayNames(feed.Name.Replace(" ", "_").Replace(".", "_"));
@@ -127,10 +130,15 @@ public class RssFeedIntegrationTests// : AspireIntegrationTestBase
         {
             // Create service with real dependencies but in-memory database
             var rdfParser = new RdfFeedParser(new MockLogger<RdfFeedParser>());
-            var parser = new RssFeedParser(
+            var rssParser = new RssFeedParser(
                 new MockHttpClientFactory(content),
                 new MockLogger<RssFeedParser>(),
                 rdfParser);
+            var htmlParser = new HtmlFeedParser(
+                new MockHttpClientFactory(content),
+                new MockLogger<HtmlFeedParser>());
+            var parsers = new IFeedParser[] { rssParser, htmlParser };
+            var parserFactory = new FeedParserFactory(parsers, new MockLogger<FeedParserFactory>());
             var articleRepository = new ArticleRepository(dbContext, new MockLogger<ArticleRepository>());
             var tagRepository = new PostgresTagRepository(dbContext, new MockLogger<PostgresTagRepository>());
             var taggingStrategy = new MockTaggingStrategy();
@@ -138,7 +146,7 @@ public class RssFeedIntegrationTests// : AspireIntegrationTestBase
             var feedOptions = Microsoft.Extensions.Options.Options.Create(new RssFeedOptions());
             
             var feedIngestService = new FeedIngestService(
-                parser,
+                parserFactory,
                 taggingStrategy,
                 articleRepository,
                 tagRepository,

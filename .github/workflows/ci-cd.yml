@@ -205,6 +205,17 @@ jobs:
             src/backend/**/test-results.trx
           check_name: Backend Integration Test Results
           comment_title: Backend Integration Test Results
+      
+      - name: Upload Test Artifacts
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: integration-test-artifacts
+          path: |
+            src/backend/test-artifacts/
+            src/backend/**/test-artifacts/
+          retention-days: 7
+          if-no-files-found: warn
 
   release-please:
     name: Release Please

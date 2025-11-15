@@ -33,6 +33,9 @@
     <None Update="TestData\*.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="TestData\*.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="TestData\feeds.json5">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

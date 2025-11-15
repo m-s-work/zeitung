@@ -14,7 +14,7 @@ public interface IFeedIngestService
 
 public class FeedIngestService : IFeedIngestService
 {
-    private readonly IRssFeedParser _parser;
+    private readonly IFeedParserFactory _parserFactory;
     private readonly ITaggingStrategy _taggingStrategy;
     private readonly IArticleRepository _articleRepository;
     private readonly ITagRepository _tagRepository;
@@ -23,7 +23,7 @@ public class FeedIngestService : IFeedIngestService
     private readonly List<RssFeed> _feeds;
 
     public FeedIngestService(
-        IRssFeedParser parser,
+        IFeedParserFactory parserFactory,
         ITaggingStrategy taggingStrategy,
         IArticleRepository articleRepository,
         ITagRepository tagRepository,
@@ -31,13 +31,19 @@ public class FeedIngestService : IFeedIngestService
         ILogger<FeedIngestService> logger,
         IOptions<RssFeedOptions> feedOptions)
     {
-        _parser = parser;
+        _parserFactory = parserFactory;
         _taggingStrategy = taggingStrategy;
         _articleRepository = articleRepository;
         _tagRepository = tagRepository;
         _elasticsearchService = elasticsearchService;
         _logger = logger;
-        _feeds = feedOptions.Value.Feeds;
+        
+        
+        // Load feeds from configuration and expand URL patterns
+        //var configuredFeeds = configuration.GetSection("RssFeeds").Get<List<RssFeed>>() ?? new List<RssFeed>();
+        //_feeds = FeedExpander.ExpandFeeds(configuredFeeds);
+        //_feeds = feedOptions.Value.Feeds; // this was the new defautl
+        _feeds = FeedExpander.ExpandFeeds(feedOptions.Value.Feeds); // TODO check if expanding is needed or done via iptions?
     }
 
     public async Task IngestFeedsAsync(CancellationToken cancellationToken = default)
@@ -61,7 +67,8 @@ public class FeedIngestService : IFeedIngestService
         {
             _logger.LogInformation("Processing feed: {FeedName} ({FeedUrl})", feed.Name, feed.Url);
 
-            var articles = await _parser.ParseFeedAsync(feed, cancellationToken);
+            var parser = _parserFactory.GetParser(feed);
+            var articles = await parser.ParseFeedAsync(feed, cancellationToken);
 
             foreach (var article in articles)
             {
