@@ -75,7 +75,7 @@ public class RssFeedIntegrationTests// : AspireIntegrationTestBase
     /// 4. Articles can be saved to the database
     /// 5. Tags are generated and associated with articles
     /// </summary>
-    [TestCaseSource(nameof(RssFeedTestCases))]
+    [TestCaseSource(nameof(RssFeedTestCases)), Explicit("Requires network access")]
     public async Task RssFeed_ShouldBeSuccessfullyIngested(RssFeed feed)
     {
         // Arrange - Test feed accessibility and parseability
@@ -127,10 +127,15 @@ public class RssFeedIntegrationTests// : AspireIntegrationTestBase
         {
             // Create service with real dependencies but in-memory database
             var rdfParser = new RdfFeedParser(new MockLogger<RdfFeedParser>());
-            var parser = new RssFeedParser(
+            var rssParser = new RssFeedParser(
                 new MockHttpClientFactory(content),
                 new MockLogger<RssFeedParser>(),
                 rdfParser);
+            var htmlParser = new HtmlFeedParser(
+                new MockHttpClientFactory(content),
+                new MockLogger<HtmlFeedParser>());
+            var parsers = new IFeedParser[] { rssParser, htmlParser };
+            var parserFactory = new FeedParserFactory(parsers, new MockLogger<FeedParserFactory>());
             var articleRepository = new ArticleRepository(dbContext, new MockLogger<ArticleRepository>());
             var tagRepository = new PostgresTagRepository(dbContext, new MockLogger<PostgresTagRepository>());
             var taggingStrategy = new MockTaggingStrategy();
@@ -138,7 +143,7 @@ public class RssFeedIntegrationTests// : AspireIntegrationTestBase
             var feedOptions = Microsoft.Extensions.Options.Options.Create(new RssFeedOptions());
             
             var feedIngestService = new FeedIngestService(
-                parser,
+                parserFactory,
                 taggingStrategy,
                 articleRepository,
                 tagRepository,
@@ -173,7 +178,7 @@ public class RssFeedIntegrationTests// : AspireIntegrationTestBase
         }
     }
 
-    [Test]
+    [Test, Explicit("Requires network access")]
     public async Task AllConfiguredFeeds_ShouldBeAccessible()
     {
         // Arrange

@@ -67,7 +67,8 @@ public class FeedIngestService : IFeedIngestService
         {
             _logger.LogInformation("Processing feed: {FeedName} ({FeedUrl})", feed.Name, feed.Url);
 
-            var articles = await _parser.ParseFeedAsync(feed, cancellationToken);
+            var parser = _parserFactory.GetParser(feed);
+            var articles = await parser.ParseFeedAsync(feed, cancellationToken);
 
             foreach (var article in articles)
             {
