@@ -6,6 +6,7 @@ ASP.NET Core Web API with .NET Aspire 9.5.2 for the Zeitung RSS Feed Reader.
 
 - **Zeitung.Api** - Web API project
 - **Zeitung.Worker** - Background worker service for RSS feed ingestion
+- **Zeitung.Core** - Shared core library with data models and Entity Framework migrations
 - **Zeitung.AppHost** - Aspire orchestration host
 - **Zeitung.ServiceDefaults** - Shared service configurations (telemetry, health checks, etc.)
 - **Zeitung.Worker.Tests** - Unit tests for the worker service
@@ -65,7 +66,9 @@ Database schema includes:
 
 ### Database Migrations
 
-Database migrations can be run on-demand using the `--migrate` or `-m` flag. This is useful for pre-deploy hooks in Helm or Argo:
+**Migration Location**: EF Core migrations are stored in `Zeitung.Core/Migrations/` alongside the `ZeitungDbContext`. This ensures migrations are in the same assembly as the DbContext, which is required by EF Core.
+
+Database migrations can be run on-demand using the `--migrate` or `-m` flag when running the Worker. This is useful for pre-deploy hooks in Helm or Argo:
 
 ```bash
 dotnet run --project Zeitung.Worker/Zeitung.Worker.csproj -- --migrate
@@ -77,6 +80,13 @@ The flag can be combined with `--run-once` for one-time migration and ingestion:
 
 ```bash
 dotnet run --project Zeitung.Worker/Zeitung.Worker.csproj -- --migrate --run-once
+```
+
+To add a new migration, run from the `Zeitung.Core` directory:
+
+```bash
+cd Zeitung.Core
+dotnet ef migrations add YourMigrationName --startup-project ../Zeitung.Worker
 ```
 
 ### Configuration
