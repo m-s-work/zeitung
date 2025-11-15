@@ -2,21 +2,18 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Zeitung.Core.Models;
 
 #nullable disable
 
-namespace Zeitung.Worker.Migrations
+namespace Zeitung.Core.Migrations
 {
     [DbContext(typeof(ZeitungDbContext))]
-    [Migration("20251110012633_InitialCreate")]
-    partial class InitialCreate
+    partial class ZeitungDbContextModelSnapshot : ModelSnapshot
     {
-        /// <inheritdoc />
-        protected override void BuildTargetModel(ModelBuilder modelBuilder)
+        protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -25,7 +22,7 @@ namespace Zeitung.Worker.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("Zeitung.Worker.Data.ArticleEntity", b =>
+            modelBuilder.Entity("Zeitung.Worker.Models.ArticleEntity", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -70,7 +67,7 @@ namespace Zeitung.Worker.Migrations
                     b.ToTable("Articles", (string)null);
                 });
 
-            modelBuilder.Entity("Zeitung.Worker.Data.ArticleTagEntity", b =>
+            modelBuilder.Entity("Zeitung.Worker.Models.ArticleTagEntity", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -97,7 +94,75 @@ namespace Zeitung.Worker.Migrations
                     b.ToTable("ArticleTags", (string)null);
                 });
 
-            modelBuilder.Entity("Zeitung.Worker.Data.TagCoOccurrenceEntity", b =>
+            modelBuilder.Entity("Zeitung.Worker.Models.MagicLinkEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)");
+
+                    b.Property<DateTime?>("UsedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Email");
+
+                    b.HasIndex("Token")
+                        .IsUnique();
+
+                    b.ToTable("MagicLinks", (string)null);
+                });
+
+            modelBuilder.Entity("Zeitung.Worker.Models.RefreshTokenEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("RevokedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Token")
+                        .IsUnique();
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("RefreshTokens", (string)null);
+                });
+
+            modelBuilder.Entity("Zeitung.Worker.Models.TagCoOccurrenceEntity", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -127,7 +192,7 @@ namespace Zeitung.Worker.Migrations
                     b.ToTable("TagCoOccurrences", (string)null);
                 });
 
-            modelBuilder.Entity("Zeitung.Worker.Data.TagEntity", b =>
+            modelBuilder.Entity("Zeitung.Worker.Models.TagEntity", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -151,15 +216,43 @@ namespace Zeitung.Worker.Migrations
                     b.ToTable("Tags", (string)null);
                 });
 
-            modelBuilder.Entity("Zeitung.Worker.Data.ArticleTagEntity", b =>
+            modelBuilder.Entity("Zeitung.Worker.Models.UserEntity", b =>
                 {
-                    b.HasOne("Zeitung.Worker.Data.ArticleEntity", "Article")
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime?>("LastLoginAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Email")
+                        .IsUnique();
+
+                    b.ToTable("Users", (string)null);
+                });
+
+            modelBuilder.Entity("Zeitung.Worker.Models.ArticleTagEntity", b =>
+                {
+                    b.HasOne("Zeitung.Worker.Models.ArticleEntity", "Article")
                         .WithMany("ArticleTags")
                         .HasForeignKey("ArticleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Zeitung.Worker.Data.TagEntity", "Tag")
+                    b.HasOne("Zeitung.Worker.Models.TagEntity", "Tag")
                         .WithMany("ArticleTags")
                         .HasForeignKey("TagId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -170,15 +263,26 @@ namespace Zeitung.Worker.Migrations
                     b.Navigation("Tag");
                 });
 
-            modelBuilder.Entity("Zeitung.Worker.Data.TagCoOccurrenceEntity", b =>
+            modelBuilder.Entity("Zeitung.Worker.Models.RefreshTokenEntity", b =>
                 {
-                    b.HasOne("Zeitung.Worker.Data.TagEntity", "Tag1")
+                    b.HasOne("Zeitung.Worker.Models.UserEntity", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Zeitung.Worker.Models.TagCoOccurrenceEntity", b =>
+                {
+                    b.HasOne("Zeitung.Worker.Models.TagEntity", "Tag1")
                         .WithMany("TagCoOccurrences1")
                         .HasForeignKey("Tag1Id")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Zeitung.Worker.Data.TagEntity", "Tag2")
+                    b.HasOne("Zeitung.Worker.Models.TagEntity", "Tag2")
                         .WithMany("TagCoOccurrences2")
                         .HasForeignKey("Tag2Id")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -189,12 +293,12 @@ namespace Zeitung.Worker.Migrations
                     b.Navigation("Tag2");
                 });
 
-            modelBuilder.Entity("Zeitung.Worker.Data.ArticleEntity", b =>
+            modelBuilder.Entity("Zeitung.Worker.Models.ArticleEntity", b =>
                 {
                     b.Navigation("ArticleTags");
                 });
 
-            modelBuilder.Entity("Zeitung.Worker.Data.TagEntity", b =>
+            modelBuilder.Entity("Zeitung.Worker.Models.TagEntity", b =>
                 {
                     b.Navigation("ArticleTags");
 
