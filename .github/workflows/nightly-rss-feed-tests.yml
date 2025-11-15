@@ -95,8 +95,7 @@ jobs:
                 if [ -n "$test_name" ] && echo "$test_name" | grep -q "RssFeed_ShouldBeIngestible"; then
                   # Store test name and error message separated by ||| delimiter
                   if [ -n "$failed_data" ]; then
-                    failed_data="$failed_data
-$test_name|||${error_message:-Unknown error}"
+                    failed_data="$failed_data"$'\n'"$test_name|||${error_message:-Unknown error}"
                   else
                     failed_data="$test_name|||${error_message:-Unknown error}"
                   fi
