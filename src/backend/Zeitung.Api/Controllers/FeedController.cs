@@ -1,21 +1,29 @@
+using System;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Zeitung.Core.Models;
 using Zeitung.Api.DTOs;
 
-namespace Zeitung.Api.Endpoints;
-
-public static class FeedEndpoints
+namespace Zeitung.Api.Controllers
 {
-    public static void MapFeedEndpoints(this IEndpointRouteBuilder app)
+    [ApiController]
+    [Route("api/feeds")]
+    public class FeedController : ControllerBase
     {
-        var group = app.MapGroup("/api/feeds")
-            .WithTags("Feeds")
-            .WithOpenApi();
+        private readonly ZeitungDbContext _db;
 
-        // GET /api/feeds - List all feeds (global + user's personal)
-        group.MapGet("/", async (ZeitungDbContext db, int? userId) =>
+        public FeedController(ZeitungDbContext db)
         {
-            var feeds = await db.Feeds
+            _db = db;
+        }
+
+        /// <summary>Get all feeds (global + user's personal).</summary>
+        [HttpGet]
+        public async Task<ActionResult> GetFeeds([FromQuery] int? userId)
+        {
+            var feeds = await _db.Feeds
                 .Include(f => f.UserFeeds)
                 .ToListAsync();
 
@@ -30,18 +38,16 @@ public static class FeedEndpoints
                 f.LastFetchedAt
             )).ToList();
 
-            return Results.Ok(feedDtos);
-        })
-        .WithName("GetFeeds")
-        .WithSummary("Get all feeds")
-        .WithDescription("Returns all feeds including global (approved) and personal feeds");
+            return Ok(feedDtos);
+        }
 
-        // POST /api/feeds - Add feed to personal list
-        group.MapPost("/", async (CreateFeedDto dto, int userId, ZeitungDbContext db) =>
+        /// <summary>Add feed to personal list.</summary>
+        [HttpPost]
+        public async Task<ActionResult> CreateFeed([FromBody] CreateFeedDto dto, [FromQuery] int userId)
         {
             // Check if feed already exists
-            var existingFeed = await db.Feeds.FirstOrDefaultAsync(f => f.Url == dto.Url);
-            
+            var existingFeed = await _db.Feeds.FirstOrDefaultAsync(f => f.Url == dto.Url);
+
             Feed feed;
             if (existingFeed != null)
             {
@@ -57,17 +63,17 @@ public static class FeedEndpoints
                     AddedByUserId = userId,
                     IsApproved = false
                 };
-                db.Feeds.Add(feed);
-                await db.SaveChangesAsync();
+                _db.Feeds.Add(feed);
+                await _db.SaveChangesAsync();
             }
 
             // Check if user already subscribed
-            var existingSubscription = await db.UserFeeds
+            var existingSubscription = await _db.UserFeeds
                 .FirstOrDefaultAsync(uf => uf.UserId == userId && uf.FeedId == feed.Id);
 
             if (existingSubscription != null)
             {
-                return Results.Conflict(new { message = "Already subscribed to this feed" });
+                return Conflict(new { message = "Already subscribed to this feed" });
             }
 
             var userFeed = new UserFeed
@@ -75,8 +81,8 @@ public static class FeedEndpoints
                 UserId = userId,
                 FeedId = feed.Id
             };
-            db.UserFeeds.Add(userFeed);
-            await db.SaveChangesAsync();
+            _db.UserFeeds.Add(userFeed);
+            await _db.SaveChangesAsync();
 
             var feedDto = new FeedDto(
                 feed.Id,
@@ -89,62 +95,56 @@ public static class FeedEndpoints
                 feed.LastFetchedAt
             );
 
-            return Results.Created($"/api/feeds/{feed.Id}", feedDto);
-        })
-        .WithName("CreateFeed")
-        .WithSummary("Add feed to personal list")
-        .WithDescription("Adds a feed to the user's personal feed list");
+            return Created($"/api/feeds/{feed.Id}", feedDto);
+        }
 
-        // DELETE /api/feeds/{id} - Remove feed from personal list
-        group.MapDelete("/{id}", async (int id, int userId, ZeitungDbContext db) =>
+        /// <summary>Remove feed from personal list.</summary>
+        [HttpDelete("{id}")]
+        public async Task<ActionResult> DeleteFeed(int id, [FromQuery] int userId)
         {
-            var userFeed = await db.UserFeeds
+            var userFeed = await _db.UserFeeds
                 .FirstOrDefaultAsync(uf => uf.UserId == userId && uf.FeedId == id);
 
             if (userFeed == null)
             {
-                return Results.NotFound(new { message = "Feed subscription not found" });
+                return NotFound(new { message = "Feed subscription not found" });
             }
 
-            db.UserFeeds.Remove(userFeed);
-            await db.SaveChangesAsync();
+            _db.UserFeeds.Remove(userFeed);
+            await _db.SaveChangesAsync();
 
-            return Results.NoContent();
-        })
-        .WithName("DeleteFeed")
-        .WithSummary("Remove feed from personal list")
-        .WithDescription("Removes a feed from the user's personal feed list");
+            return NoContent();
+        }
 
-        // POST /api/feeds/{id}/promote - Promote feed to global (admin/mod)
-        group.MapPost("/{id}/promote", async (int id, ZeitungDbContext db) =>
+        /// <summary>Promote feed to global list.</summary>
+        [HttpPost("{id}/promote")]
+        public async Task<ActionResult> PromoteFeed(int id)
         {
-            var feed = await db.Feeds.FindAsync(id);
-            
+            var feed = await _db.Feeds.FindAsync(id);
+
             if (feed == null)
             {
-                return Results.NotFound(new { message = "Feed not found" });
+                return NotFound(new { message = "Feed not found" });
             }
 
             if (feed.IsApproved)
             {
-                return Results.Conflict(new { message = "Feed is already approved" });
+                return Conflict(new { message = "Feed is already approved" });
             }
 
             feed.IsApproved = true;
             feed.ApprovedAt = DateTime.UtcNow;
-            await db.SaveChangesAsync();
+            await _db.SaveChangesAsync();
 
-            return Results.Ok(new { message = "Feed promoted to global list" });
-        })
-        .WithName("PromoteFeed")
-        .WithSummary("Promote feed to global list")
-        .WithDescription("Promotes a feed to the global list (requires admin/mod role)");
+            return Ok(new { message = "Feed promoted to global list" });
+        }
 
-        // GET /api/feeds/recommendations - Get feed recommendations
-        group.MapGet("/recommendations", async (int userId, ZeitungDbContext db) =>
+        /// <summary>Get feed recommendations based on user's tag preferences.</summary>
+        [HttpGet("recommendations")]
+        public async Task<ActionResult> GetFeedRecommendations([FromQuery] int userId)
         {
             // Get user's tag preferences
-            var userTags = await db.UserTags
+            var userTags = await _db.UserTags
                 .Where(ut => ut.UserId == userId && ut.InteractionType != InteractionType.Ignored)
                 .Include(ut => ut.Tag)
                 .OrderByDescending(ut => ut.Score)
@@ -154,26 +154,26 @@ public static class FeedEndpoints
             if (!userTags.Any())
             {
                 // Return popular feeds if user has no preferences
-                var popularFeeds = await db.Feeds
+                var popularFeeds = await _db.Feeds
                     .Where(f => f.IsApproved)
                     .Take(10)
                     .ToListAsync();
 
-                return Results.Ok(popularFeeds.Select(f => new FeedRecommendationDto(
+                return Ok(popularFeeds.Select(f => new FeedRecommendationDto(
                     f.Id,
                     f.Url,
                     f.Name,
                     f.Description,
                     0.5,
-                    new List<string>()
+                    new System.Collections.Generic.List<string>()
                 )).ToList());
             }
 
             var userTagIds = userTags.Select(ut => ut.TagId).ToList();
 
             // Find feeds with articles that match user's interests
-            var recommendedFeeds = await db.Feeds
-                .Where(f => !db.UserFeeds.Any(uf => uf.UserId == userId && uf.FeedId == f.Id))
+            var recommendedFeeds = await _db.Feeds
+                .Where(f => !_db.UserFeeds.Any(uf => uf.UserId == userId && uf.FeedId == f.Id))
                 .Where(f => f.Articles.Any(a => a.ArticleTags.Any(at => userTagIds.Contains(at.TagId))))
                 .Select(f => new
                 {
@@ -198,14 +198,11 @@ public static class FeedEndpoints
                 x.Feed.Url,
                 x.Feed.Name,
                 x.Feed.Description,
-                Math.Min(x.Score / 10.0, 1.0), // Normalize score
+                Math.Min(x.Score / 10.0, 1.0),
                 x.RelevantTags
             )).ToList();
 
-            return Results.Ok(recommendations);
-        })
-        .WithName("GetFeedRecommendations")
-        .WithSummary("Get feed recommendations")
-        .WithDescription("Returns feed recommendations based on user's tag preferences");
+            return Ok(recommendations);
+        }
     }
 }

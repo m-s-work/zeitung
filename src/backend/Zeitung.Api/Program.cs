@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Zeitung.Core.Models;
-using Zeitung.Api.Endpoints;
 using Zeitung.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -18,7 +17,7 @@ var useInMemoryDatabase = builder.Configuration.GetValue<bool>("UseInMemoryDatab
 
 if (!useInMemoryDatabase)
 {
-    var connectionString = builder.Configuration.GetConnectionString("zeitungdb") 
+    var connectionString = builder.Configuration.GetConnectionString("zeitungdb")
         ?? "Host=localhost;Database=zeitung;Username=zeitung;Password=zeitung";
     builder.Services.AddDbContext<ZeitungDbContext>(options =>
         options.UseNpgsql(connectionString));
@@ -28,15 +27,15 @@ if (!useInMemoryDatabase)
         .AddNpgSql(
             name: "postgres",
             connectionStringFactory: sp => connectionString,
-            tags: ["ready", "db"])
+            tags: new[] { "ready", "db" })
         .AddRedis(
             name: "redis",
             connectionStringFactory: sp => builder.Configuration.GetConnectionString("redis") ?? "localhost:6379",
-            tags: ["ready", "cache"])
+            tags: new[] { "ready", "cache" })
         .AddElasticsearch(
             elasticsearchUri: builder.Configuration.GetConnectionString("elasticsearch") ?? "http://localhost:9200",
             name: "elasticsearch",
-            tags: ["ready", "search"]);
+            tags: new[] { "ready", "search" });
 }
 else
 {
@@ -81,6 +80,9 @@ builder.Services.AddSwaggerGen(c =>
     c.SwaggerDoc("v1", new() { Title = "Zeitung API", Version = "v1" });
 });
 
+// Add MVC controllers so MapControllers works
+builder.Services.AddControllers();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline
@@ -99,12 +101,8 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-// Map API endpoints
-app.MapAuthEndpoints();
-app.MapFeedEndpoints();
-app.MapArticleEndpoints();
-app.MapTagEndpoints();
-app.MapUserEndpoints();
+// Use attribute routed controllers
+app.MapControllers();
 
 app.Run();
 
