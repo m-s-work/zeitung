@@ -2,8 +2,8 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Zeitung.Core.Models;
 using Zeitung.Api.Services;
+using Zeitung.Core.Context;
 
 var builder = WebApplication.CreateBuilder(args);
 

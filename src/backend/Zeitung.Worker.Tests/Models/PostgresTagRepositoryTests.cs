@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
+using Zeitung.Core.Context;
 using Zeitung.Core.Models;
 using Zeitung.Worker.Models;
 using Zeitung.Worker.Services;

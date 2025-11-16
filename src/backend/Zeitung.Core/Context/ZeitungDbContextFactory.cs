@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 
-namespace Zeitung.Core.Models;
+namespace Zeitung.Core.Context;
 
 /// <summary>
 /// Design-time factory for creating ZeitungDbContext instances.

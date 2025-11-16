@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
+using Zeitung.Core.Models;
 
-namespace Zeitung.Core.Models;
+namespace Zeitung.Core.Context;
 
 /// <summary>
 /// Database context for Zeitung RSS Feed Reader.

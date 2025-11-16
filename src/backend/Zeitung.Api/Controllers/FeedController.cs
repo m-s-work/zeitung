@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Zeitung.Core.Models;
 using Zeitung.Api.DTOs;
+using Zeitung.Core.Context;
 
 namespace Zeitung.Api.Controllers
 {

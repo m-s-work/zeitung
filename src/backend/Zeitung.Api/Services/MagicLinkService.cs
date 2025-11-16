@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using Microsoft.EntityFrameworkCore;
+using Zeitung.Core.Context;
 using Zeitung.Core.Models;
 
 namespace Zeitung.Api.Services;
