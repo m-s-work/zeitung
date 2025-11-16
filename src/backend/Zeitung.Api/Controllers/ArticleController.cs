@@ -1,27 +1,29 @@
+using System;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Zeitung.Core.Models;
 using Zeitung.Api.DTOs;
 
-namespace Zeitung.Api.Endpoints;
-
-public static class ArticleEndpoints
+namespace Zeitung.Api.Controllers
 {
-    public static void MapArticleEndpoints(this IEndpointRouteBuilder app)
+    [ApiController]
+    [Route("api/articles")]
+    public class ArticleController : ControllerBase
     {
-        var group = app.MapGroup("/api/articles")
-            .WithTags("Articles")
-            .WithOpenApi();
+        private readonly ZeitungDbContext _db;
 
-        // GET /api/articles - List articles with filtering
-        group.MapGet("/", async (
-            ZeitungDbContext db, 
-            int? userId, 
-            int? feedId, 
-            int? tagId,
-            int page = 1,
-            int pageSize = 20) =>
+        public ArticleController(ZeitungDbContext db)
         {
-            var query = db.Articles
+            _db = db;
+        }
+
+        /// <summary>Get articles (paginated) with optional filtering by feed or tag.</summary>
+        [HttpGet]
+        public async Task<ActionResult> GetArticles([FromQuery] int? userId, [FromQuery] int? feedId, [FromQuery] int? tagId, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
+        {
+            var query = _db.Articles
                 .Include(a => a.Feed)
                 .Include(a => a.ArticleTags)
                     .ThenInclude(at => at.Tag)
@@ -38,7 +40,7 @@ public static class ArticleEndpoints
             }
 
             var totalCount = await query.CountAsync();
-            
+
             var articles = await query
                 .OrderByDescending(a => a.PublishedDate)
                 .Skip((page - 1) * pageSize)
@@ -55,22 +57,20 @@ public static class ArticleEndpoints
                 a.ArticleTags.Select(at => at.Tag.Name).ToList()
             )).ToList();
 
-            return Results.Ok(new
+            return Ok(new
             {
                 Articles = articleDtos,
                 TotalCount = totalCount,
                 Page = page,
                 PageSize = pageSize
             });
-        })
-        .WithName("GetArticles")
-        .WithSummary("Get articles")
-        .WithDescription("Returns paginated articles with optional filtering by feed or tag");
+        }
 
-        // GET /api/articles/{id} - Get article details
-        group.MapGet("/{id}", async (int id, int? userId, ZeitungDbContext db) =>
+        /// <summary>Get detailed information about a specific article.</summary>
+        [HttpGet("{id}")]
+        public async Task<ActionResult<ArticleDto>> GetArticle(int id, [FromQuery] int? userId)
         {
-            var article = await db.Articles
+            var article = await _db.Articles
                 .Include(a => a.Feed)
                 .Include(a => a.ArticleTags)
                     .ThenInclude(at => at.Tag)
@@ -78,13 +78,13 @@ public static class ArticleEndpoints
 
             if (article == null)
             {
-                return Results.NotFound(new { message = "Article not found" });
+                return NotFound(new { message = "Article not found" });
             }
 
             int? userVote = null;
             if (userId.HasValue)
             {
-                var vote = await db.Votes
+                var vote = await _db.Votes
                     .FirstOrDefaultAsync(v => v.UserId == userId.Value && v.ArticleId == id);
                 userVote = vote?.Value;
             }
@@ -104,46 +104,41 @@ public static class ArticleEndpoints
                 userVote
             );
 
-            return Results.Ok(articleDto);
-        })
-        .WithName("GetArticle")
-        .WithSummary("Get article details")
-        .WithDescription("Returns detailed information about a specific article");
+            return Ok(articleDto);
+        }
 
-        // POST /api/articles/{id}/vote - Vote on article
-        group.MapPost("/{id}/vote", async (int id, VoteDto dto, int userId, ZeitungDbContext db) =>
+        /// <summary>Vote on an article (upvote or downvote).</summary>
+        [HttpPost("{id}/vote")]
+        public async Task<ActionResult> VoteArticle(int id, [FromBody] VoteDto dto, [FromQuery] int userId)
         {
             if (dto.Value != 1 && dto.Value != -1)
             {
-                return Results.BadRequest(new { message = "Vote value must be 1 or -1" });
+                return BadRequest(new { message = "Vote value must be 1 or -1" });
             }
 
-            var article = await db.Articles.FindAsync(id);
+            var article = await _db.Articles.FindAsync(id);
             if (article == null)
             {
-                return Results.NotFound(new { message = "Article not found" });
+                return NotFound(new { message = "Article not found" });
             }
 
-            var existingVote = await db.Votes
+            var existingVote = await _db.Votes
                 .FirstOrDefaultAsync(v => v.UserId == userId && v.ArticleId == id);
 
             if (existingVote != null)
             {
                 if (existingVote.Value == dto.Value)
                 {
-                    // Remove vote if same value
-                    db.Votes.Remove(existingVote);
+                    _db.Votes.Remove(existingVote);
                 }
                 else
                 {
-                    // Update vote if different value
                     existingVote.Value = dto.Value;
                 }
             }
             else
             {
-                // Create new vote
-                db.Votes.Add(new Vote
+                _db.Votes.Add(new Vote
                 {
                     UserId = userId,
                     ArticleId = id,
@@ -151,34 +146,31 @@ public static class ArticleEndpoints
                 });
             }
 
-            await db.SaveChangesAsync();
+            await _db.SaveChangesAsync();
 
-            return Results.Ok(new { message = "Vote recorded" });
-        })
-        .WithName("VoteArticle")
-        .WithSummary("Vote on article")
-        .WithDescription("Upvote or downvote an article");
+            return Ok(new { message = "Vote recorded" });
+        }
 
-        // POST /api/articles/{id}/like - Like article (updates tag interests)
-        group.MapPost("/{id}/like", async (int id, int userId, ZeitungDbContext db) =>
+        /// <summary>Like an article and update user's tag preferences.</summary>
+        [HttpPost("{id}/like")]
+        public async Task<ActionResult> LikeArticle(int id, [FromQuery] int userId)
         {
-            var article = await db.Articles
+            var article = await _db.Articles
                 .Include(a => a.ArticleTags)
                     .ThenInclude(at => at.Tag)
                 .FirstOrDefaultAsync(a => a.Id == id);
 
             if (article == null)
             {
-                return Results.NotFound(new { message = "Article not found" });
+                return NotFound(new { message = "Article not found" });
             }
 
-            // Update user tag preferences for all tags in this article
             foreach (var articleTag in article.ArticleTags)
             {
-                var userTag = await db.UserTags
-                    .FirstOrDefaultAsync(ut => 
-                        ut.UserId == userId && 
-                        ut.TagId == articleTag.TagId && 
+                var userTag = await _db.UserTags
+                    .FirstOrDefaultAsync(ut =>
+                        ut.UserId == userId &&
+                        ut.TagId == articleTag.TagId &&
                         ut.InteractionType == InteractionType.Liked);
 
                 if (userTag != null)
@@ -189,7 +181,7 @@ public static class ArticleEndpoints
                 }
                 else
                 {
-                    db.UserTags.Add(new UserTag
+                    _db.UserTags.Add(new UserTag
                     {
                         UserId = userId,
                         TagId = articleTag.TagId,
@@ -200,45 +192,42 @@ public static class ArticleEndpoints
                 }
             }
 
-            await db.SaveChangesAsync();
+            await _db.SaveChangesAsync();
 
-            return Results.Ok(new { message = "Article liked, tag preferences updated" });
-        })
-        .WithName("LikeArticle")
-        .WithSummary("Like article")
-        .WithDescription("Marks article as liked and updates user's tag interest scores");
+            return Ok(new { message = "Article liked, tag preferences updated" });
+        }
 
-        // POST /api/articles/{id}/click - Track article click (updates tag interests)
-        group.MapPost("/{id}/click", async (int id, int userId, ZeitungDbContext db) =>
+        /// <summary>Track an article click and update user's tag preferences with lower weight.</summary>
+        [HttpPost("{id}/click")]
+        public async Task<ActionResult> ClickArticle(int id, [FromQuery] int userId)
         {
-            var article = await db.Articles
+            var article = await _db.Articles
                 .Include(a => a.ArticleTags)
                     .ThenInclude(at => at.Tag)
                 .FirstOrDefaultAsync(a => a.Id == id);
 
             if (article == null)
             {
-                return Results.NotFound(new { message = "Article not found" });
+                return NotFound(new { message = "Article not found" });
             }
 
-            // Update user tag preferences for all tags in this article
             foreach (var articleTag in article.ArticleTags)
             {
-                var userTag = await db.UserTags
-                    .FirstOrDefaultAsync(ut => 
-                        ut.UserId == userId && 
-                        ut.TagId == articleTag.TagId && 
+                var userTag = await _db.UserTags
+                    .FirstOrDefaultAsync(ut =>
+                        ut.UserId == userId &&
+                        ut.TagId == articleTag.TagId &&
                         ut.InteractionType == InteractionType.Clicked);
 
                 if (userTag != null)
                 {
-                    userTag.Score += articleTag.Confidence * 0.5; // Lower weight for clicks
+                    userTag.Score += articleTag.Confidence * 0.5;
                     userTag.InteractionCount++;
                     userTag.UpdatedAt = DateTime.UtcNow;
                 }
                 else
                 {
-                    db.UserTags.Add(new UserTag
+                    _db.UserTags.Add(new UserTag
                     {
                         UserId = userId,
                         TagId = articleTag.TagId,
@@ -249,12 +238,9 @@ public static class ArticleEndpoints
                 }
             }
 
-            await db.SaveChangesAsync();
+            await _db.SaveChangesAsync();
 
-            return Results.Ok(new { message = "Article click tracked" });
-        })
-        .WithName("ClickArticle")
-        .WithSummary("Track article click")
-        .WithDescription("Tracks article click and updates user's tag interest scores");
+            return Ok(new { message = "Article click tracked" });
+        }
     }
 }
