@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Tests.Integration.Harness;
+namespace Zeitung.AppHost.Tests.Harness;
 
 /// <summary>
 /// A custom WebApplicationFactory that bootstraps an Aspire AppHost for integration tests.
@@ -16,7 +16,7 @@ namespace Tests.Integration.Harness;
 /// </summary>
 /// <typeparam name="TEntryPoint">Program class of the API under test (the SUT).</typeparam>
 /// <typeparam name="TAppHost">The Aspire AppHost Program type (e.g., Projects.Pep_Host).</typeparam>
-public class AspireWebApplicationFactory<TEntryPoint, TAppHost> : WebApplicationFactory<TEntryPoint>, IAsyncLifetime
+public class AspireWebApplicationFactory<TEntryPoint, TAppHost> : WebApplicationFactory<TEntryPoint>, IDisposable
     where TEntryPoint : class
     where TAppHost : class
 {
@@ -46,6 +46,8 @@ public class AspireWebApplicationFactory<TEntryPoint, TAppHost> : WebApplication
 
     /// <summary>
     /// Resources the AppHost should include.
+    /// if set to null no resource filtering will be applied.
+    /// if set to empty all resources will be removed except the API-under-test.
     /// </summary>
     public List<string> Resources { get; init; } = [];
 
@@ -56,7 +58,7 @@ public class AspireWebApplicationFactory<TEntryPoint, TAppHost> : WebApplication
 
     private Dictionary<string, string?> _hostConfig = [];
 
-    public async Task InitializeAsync()
+    public async Task<DistributedApplication> InitializeAsync()
     {
         var testingBuilder = await DistributedApplicationTestingBuilder.CreateAsync<TAppHost>();
 
@@ -65,32 +67,38 @@ public class AspireWebApplicationFactory<TEntryPoint, TAppHost> : WebApplication
             throw new InvalidOperationException(
                 "Could not resolve the API-under-test resource from the AppHost. Provide ApiResourceName or ApiResourceSelector.");
 
-        int added;
-        do
-        {
-            var annotations = testingBuilder.Resources.Where(r =>
-                    r.Annotations.OfType<ResourceRelationshipAnnotation>().Any(p =>
-                        Resources.Contains(p.Resource.Name) && p.Type == "Parent" &&
-                        !Resources.Contains(p.Resource.Name)))
-                .Select(r => r.Name);
-            var parents = testingBuilder.Resources.Where(r => r is IResourceWithParent && !Resources.Contains(r.Name))
-                .Select(r => r.Name);
 
-            List<string> adds = [.. annotations, .. parents];
-            Resources.AddRange(adds);
+        //if (Resources is not null)
+        //{
+            int added;
+            do
+            {
+                var annotations = testingBuilder.Resources.Where(r =>
+                        r.Annotations.OfType<ResourceRelationshipAnnotation>().Any(p =>
+                            Resources.Contains(p.Resource.Name) && p.Type == "Parent" &&
+                            !Resources.Contains(p.Resource.Name)))
+                    .Select(r => r.Name);
+                var parents = testingBuilder.Resources.Where(r => r is IResourceWithParent && !Resources.Contains(r.Name))
+                    .Select(r => r.Name);
 
-            added = adds.Count;
-        } while (added > 0);
+                List<string> adds = [.. annotations, .. parents];
+                Resources.AddRange(adds);
 
-        foreach (var resource in testingBuilder.Resources.Where(r => !Resources.Distinct().Contains(r.Name)).ToArray())
-            testingBuilder.Resources.Remove(resource);
+                added = adds.Count;
+            } while (added > 0);
+
+            foreach (var resource in testingBuilder.Resources.Where(r => !Resources.Distinct().Contains(r.Name)).ToArray())
+                testingBuilder.Resources.Remove(resource);
+        //}
+        
 
         if (Ephemeral)
         {
             foreach (var resource in testingBuilder.Resources)
             {
-                var lifetime = resource.Annotations.OfType<ContainerLifetimeAnnotation>().FirstOrDefault();
-                if (lifetime != null) resource.Annotations.Remove(lifetime);
+                var lifetime = resource.Annotations.OfType<ContainerLifetimeAnnotation>()?.FirstOrDefault();
+                if (lifetime != null)
+                    resource.Annotations.Remove(lifetime);
             }
         }
 
@@ -106,6 +114,9 @@ public class AspireWebApplicationFactory<TEntryPoint, TAppHost> : WebApplication
             await AfterAppHostStartedAsync.Invoke(_app.Services, CancellationToken.None);
 
         _hostConfig = await ResolveConfigurationFromResourceAsync(apiResource, _app.Services);
+
+
+        return _app;
     }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
@@ -193,7 +204,7 @@ public class AspireWebApplicationFactory<TEntryPoint, TAppHost> : WebApplication
         return config;
     }
 
-    public new async Task DisposeAsync()
+    public override async ValueTask DisposeAsync()
     {
         if (_app is not null)
             await _app.DisposeAsync();

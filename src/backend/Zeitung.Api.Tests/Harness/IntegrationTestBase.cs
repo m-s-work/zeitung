@@ -6,7 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Zeitung.Core.Context;
 
-namespace Zeitung.Api.Tests;
+namespace Zeitung.Api.Tests.Harness;
 
 /// <summary>
 /// Base class for API integration tests with in-memory database.

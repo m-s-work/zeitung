@@ -3,11 +3,11 @@ using Microsoft.Extensions.DependencyInjection;
 using Zeitung.AppHost.Tests.Harness;
 using Zeitung.AppHost.Tests.TestHelpers;
 
-namespace Zeitung.AppHost.Tests;
+namespace Zeitung.Api.Tests;
 
 [TestFixture]
 [Category("IntegrationTest")]
-public class HealthCheckTests : AspireIntegrationTestBase<Projects.Zeitung_AppHost>
+public class HappyPathApiTests : AspireIntegrationTestBase<Program>
 {
     protected override void ConfigureBuilder(IDistributedApplicationTestingBuilder builder)
     {
