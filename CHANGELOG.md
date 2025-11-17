@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.2.0](https://github.com/m-s-work/zeitung/compare/v1.1.0...v1.2.0) (2025-11-17)
+
+
+### Features
+
+* add DB ingest to RssFeedIntegrationTests with FeedIngestService and IOptions pattern ([#59](https://github.com/m-s-work/zeitung/issues/59)) ([6a4af99](https://github.com/m-s-work/zeitung/commit/6a4af998579931fba11b69c0b317f96705f3f5df))
+* add HTML5 feed parser with CSS selector configuration and URL pattern support ([#58](https://github.com/m-s-work/zeitung/issues/58)) ([6fad497](https://github.com/m-s-work/zeitung/commit/6fad497b14a375def94d03a2197faf55bd9712a7))
+* add nightly RSS feed integration tests with automated GitHub issue management and RDF/RSS 1.0 support ([#42](https://github.com/m-s-work/zeitung/issues/42)) ([63d0893](https://github.com/m-s-work/zeitung/commit/63d08938f418ec7a700fadc1029c66f4d712a7fe))
+
+
+### Bug Fixes
+
+* YAML syntax error in nightly-rss-feed-tests.yml line 99 ([#62](https://github.com/m-s-work/zeitung/issues/62)) ([db983a2](https://github.com/m-s-work/zeitung/commit/db983a2ce5ffa27e4bd126f98d40de65f8f751be))
+
 ## [1.1.0](https://github.com/m-s-work/zeitung/compare/v1.0.0...v1.1.0) (2025-11-13)
 
 
