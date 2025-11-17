@@ -1,16 +1,20 @@
 using Aspire.Hosting;
 using Aspire.Hosting.Testing;
+using Projects;
 
-namespace Zeitung.AppHost.Tests.TestHelpers;
+namespace Zeitung.AppHost.Tests.Harness;
 
 /// <summary>
 /// Base class for Aspire integration tests with common setup and teardown.
 /// Manages the lifecycle of the DistributedApplication.
 /// </summary>
-public abstract class AspireIntegrationTestBase
+public abstract class AspireIntegrationTestBase<TProgram>
+    where TProgram : class
 {
-    protected IDistributedApplicationTestingBuilder? Builder { get; private set; }
+    //protected IDistributedApplicationTestingBuilder? Builder { get; private set; }
     protected DistributedApplication? App { get; private set; }
+
+    public AspireWebApplicationFactory<TProgram, Zeitung_AppHost>? Factory { get; set; }
 
     /// <summary>
     /// Sets up the Aspire application once for all tests in the fixture.
@@ -20,8 +24,9 @@ public abstract class AspireIntegrationTestBase
     public async Task OneTimeSetUpAsync()
     {
         // create a token that cancels after 30 seconds
-        CancellationToken cancellationToken = new CancellationTokenSource(90_000).Token;
+        CancellationToken cancellationToken = new CancellationTokenSource(30_000).Token;
 
+        /*
         // Configure Aspire to run in CI environment to use appsettings.ci.json
         // This skips frontend startup and external RSS feed health checks during tests
         var appHost = await DistributedApplicationTestingBuilder.CreateAsync<Projects.Zeitung_AppHost>(
@@ -40,6 +45,15 @@ public abstract class AspireIntegrationTestBase
         Builder = appHost;
         App = await appHost.BuildAsync(cancellationToken);
         await App.StartAsync(cancellationToken);
+        */
+        Factory = new Zeitung.AppHost.Tests.Harness.AspireWebApplicationFactory<TProgram, Projects.Zeitung_AppHost>()
+        {
+            //ApiResourceName = "Zeitung.Api",
+            ApiResourceName = "api",
+            Ephemeral = true,
+            Resources = [],
+        };
+        App = await Factory.InitializeAsync();
     }
 
     /// <summary>
@@ -57,28 +71,31 @@ public abstract class AspireIntegrationTestBase
     [OneTimeTearDown]
     public async Task OneTimeTearDownAsync()
     {
-        if (App != null)
-        {
-            try
-            {
-                await App.StopAsync();
-            }
-            catch
-            {
-                // Ignore stop failures during teardown
-            }
+        //if (App != null)
+        //{
+        //    try
+        //    {
+        //        await App.StopAsync();
+        //    }
+        //    catch
+        //    {
+        //        // Ignore stop failures during teardown
+        //    }
+        //
+        //    try
+        //    {
+        //        await App.DisposeAsync();
+        //    }
+        //    catch
+        //    {
+        //        // Ignore dispose failures during teardown
+        //    }
+        //
+        //    App = null;
+        //    Builder = null;
+        //}
 
-            try
-            {
-                await App.DisposeAsync();
-            }
-            catch
-            {
-                // Ignore dispose failures during teardown
-            }
-
-            App = null;
-            Builder = null;
-        }
+        if (Factory != null)
+            await Factory.DisposeAsync();
     }
 }
