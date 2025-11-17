@@ -35,7 +35,9 @@ var postgres = builder.AddPostgres("postgres")
         var logger = evt.Services.GetRequiredService<ILogger<Program>>();
         logger.LogInformation("PostgreSQL container starting...");
         return Task.CompletedTask;
-    });
+    })
+    .WithPgWeb()
+    ;
 
 var postgresdb = postgres.AddDatabase("zeitungdb");
 

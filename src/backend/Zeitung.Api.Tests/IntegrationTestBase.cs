@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Zeitung.Core.Models;
+using Zeitung.Core.Context;
 
 namespace Zeitung.Api.Tests;
 

@@ -79,6 +79,45 @@ The flag can be combined with `--run-once` for one-time migration and ingestion:
 dotnet run --project Zeitung.Worker/Zeitung.Worker.csproj -- --migrate --run-once
 ```
 
+#### Creating New Migrations
+
+**Important:** Migrations are stored in `Zeitung.Worker/Migrations` but use the `ZeitungDbContext` from `Zeitung.Core`. Both projects specify `MigrationsAssembly("Zeitung.Worker")` to ensure migrations are found.
+
+To create a new migration after modifying the database models:
+
+1. Ensure you have the Entity Framework Core tools installed:
+   ```bash
+   dotnet tool install --global dotnet-ef --version 9.0.0
+   ```
+
+2. Navigate to the Worker project directory:
+   ```bash
+   cd src/backend/Zeitung.Worker
+   ```
+
+3. Create the migration:
+   ```bash
+   dotnet ef migrations add <MigrationName> --context ZeitungDbContext
+   ```
+
+**You do NOT need PostgreSQL running** to create migrations. The design-time factory (`ZeitungDbContextFactory`) in `Zeitung.Worker/Context` provides the necessary configuration to generate migration code without a database connection.
+
+Example:
+```bash
+cd src/backend/Zeitung.Worker
+dotnet ef migrations add AddUserPreferences --context ZeitungDbContext
+```
+
+To remove the last migration (if not yet applied):
+```bash
+dotnet ef migrations remove --context ZeitungDbContext
+```
+
+To list all migrations:
+```bash
+dotnet ef migrations list --context ZeitungDbContext
+```
+
 ### Configuration
 
 Configure feeds and tagging strategy in `appsettings.json`:
