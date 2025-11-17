@@ -3,19 +3,23 @@ using Microsoft.EntityFrameworkCore;
 using TickerQ.DependencyInjection;
 using TickerQ.EntityFrameworkCore;
 using Zeitung.Worker;
-using Zeitung.Core.Models;
 using Zeitung.Worker.Services;
 using Zeitung.Worker.Strategies;
 using Zeitung.Worker.Jobs;
 using Zeitung.Worker.Models;
+using Zeitung.Core.Context;
 
 var builder = Host.CreateApplicationBuilder(args);
 
 // Add service defaults
 builder.AddServiceDefaults();
 
-// Add PostgreSQL with Aspire
-builder.AddNpgsqlDbContext<ZeitungDbContext>("zeitungdb");
+ // Add PostgreSQL with Aspire
+ var zeitungDbConn = builder.Configuration.GetConnectionString("zeitungdb") ?? throw new System.InvalidOperationException("Connection string 'zeitungdb' not found");
+ builder.Services.AddDbContext<ZeitungDbContext>(options =>
+ {
+     options.UseNpgsql(zeitungDbConn, npgsqlOptions => npgsqlOptions.MigrationsAssembly("Zeitung.Worker"));
+ });
 
 // Add Elasticsearch
 var elasticsearchConnectionString = builder.Configuration.GetConnectionString("elasticsearch") ?? "http://localhost:9200";

@@ -1,10 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Zeitung.Core.Models;
 using Zeitung.Worker.Models;
 using ArticleDto = Zeitung.Worker.Models.Article;
 using Zeitung.Worker.Services;
+using Zeitung.Core.Context;
 
 namespace Zeitung.Worker.Tests.Models;
 

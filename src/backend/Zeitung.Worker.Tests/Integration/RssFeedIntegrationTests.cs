@@ -5,7 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Zeitung.AppHost.Tests.TestHelpers;
-using Zeitung.Core.Models;
+using Zeitung.Core.Context;
 using Zeitung.Worker.Models;
 using Zeitung.Worker.Services;
 using Zeitung.Worker.Strategies;

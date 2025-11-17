@@ -2,8 +2,8 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Zeitung.Core.Models;
 using Zeitung.Api.Services;
+using Zeitung.Core.Context;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,7 +20,7 @@ if (!useInMemoryDatabase)
     var connectionString = builder.Configuration.GetConnectionString("zeitungdb")
         ?? "Host=localhost;Database=zeitung;Username=zeitung;Password=zeitung";
     builder.Services.AddDbContext<ZeitungDbContext>(options =>
-        options.UseNpgsql(connectionString));
+        options.UseNpgsql(connectionString, npgsqlOptions => npgsqlOptions.MigrationsAssembly("Zeitung.Worker")));
         
     // Add health checks for external dependencies
     builder.Services.AddHealthChecks()
