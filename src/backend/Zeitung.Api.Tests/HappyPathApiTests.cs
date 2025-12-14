@@ -153,7 +153,7 @@ public class HappyPathApiTests : AspireIntegrationTestBase<Program>
         var match = regex.Match(content);
         var timestampStr = match.Groups["timestamp"].Value;
         var timestamp = long.Parse(timestampStr);
-        var dateTime = DateTimeOffset.FromUnixTimeMilliseconds(timestamp).UtcDateTime;
+        var dateTime = DateTimeOffset.FromUnixTimeMilliseconds(timestamp*1000).UtcDateTime;
         var status = match.Groups["status"].Value; // green
 
         Assert.That(response.StatusCode, Is.EqualTo(System.Net.HttpStatusCode.OK));
@@ -165,10 +165,10 @@ public class HappyPathApiTests : AspireIntegrationTestBase<Program>
 
         // unauthorized
         response = await httpClient!.GetAsync("/health");
-        content = await response.Content.ReadAsStringAsync();
+        content = await response.Content.ReadAsStringAsync(); // `{"error":{"root_cause":[{"type":"security_exception","reason":"missing authentication credentials for REST request [/health]","header":{"WWW-Authenticate":["Basic realm=\"security\", charset=\"UTF-8\"","ApiKey"]}}],"type":"security_exception","reason":"missing authentication credentials for REST request [/health]","header":{"WWW-Authenticate":["Basic realm=\"security\", charset=\"UTF-8\"","ApiKey"]}},"status":401}`
 
         // Assert
-        Assert.That(response.StatusCode, Is.EqualTo(System.Net.HttpStatusCode.Forbidden));
-        Assert.That(content, Does.Contain("Healthy"));
+        Assert.That(response.StatusCode, Is.EqualTo(System.Net.HttpStatusCode.Unauthorized));
+        Assert.That(content, Does.Contain("missing authentication credentials for REST request"));
     }
 }
