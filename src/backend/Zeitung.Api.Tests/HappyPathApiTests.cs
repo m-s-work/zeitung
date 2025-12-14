@@ -17,7 +17,8 @@ public class HappyPathApiTests : AspireIntegrationTestBase<Program>
             //ApiResourceName = "Zeitung.Api",
             ApiResourceName = "api",
             Ephemeral = true,
-            FilterIncludeResources = ["api", "postgres", "migrator"],
+            FilterIncludeResources = ["postgres", "migrator"],
+            //FilterIncludeResources = ["api", "postgres", "migrator"],
             //FilterIncludeResources = [],
         };
         App = await Factory.InitializeAsync();

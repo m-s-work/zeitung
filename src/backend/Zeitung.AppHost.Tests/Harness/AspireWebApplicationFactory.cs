@@ -6,6 +6,7 @@ using Aspire.Hosting.Testing;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 namespace Zeitung.AppHost.Tests.Harness;
 
@@ -129,14 +130,23 @@ public class AspireWebApplicationFactory<TEntryPoint, TAppHost> : WebApplication
             .Select(r => _app!.ResourceNotifications.WaitForResourceHealthyAsync(r.Name))
             .ToArray();
 
-        while (waitTasks.Any(t => !t.IsCompleted))
+        // Awaitable that completes when all resources are healthy
+        var allCompleted = Task.WhenAll(waitTasks);
+
+        while (!allCompleted.IsCompleted)
         {
             PrintStatusTable(testingBuilder.Resources);
-            await Task.Delay(TimeSpan.FromSeconds(5));
+
+            // Wait until either all resources are healthy or the delay elapses so we can print periodically.
+            var finished = await Task.WhenAny(allCompleted, Task.Delay(TimeSpan.FromSeconds(5)));
+
+            // If allCompleted finished, exit the loop immediately.
+            if (finished == allCompleted)
+                break;
         }
 
         // Observe any exceptions from the wait tasks
-        await Task.WhenAll(waitTasks);
+        await allCompleted;
 
         static void PrintStatusTable(IEnumerable<IResource> resources)
         {
@@ -144,16 +154,19 @@ public class AspireWebApplicationFactory<TEntryPoint, TAppHost> : WebApplication
             {
                 Name = r.Name ?? string.Empty,
                 Type = r.GetType().Name,
-                Annotations = (r.Annotations?.Count ?? 0).ToString()
+                Annotations = (r.Annotations?.Count ?? 0).ToString(),
             }).ToList();
+
+
             var nameWidth = Math.Max(rows.Max(r => r.Name.Length), "Name".Length);
             var typeWidth = Math.Max(rows.Max(r => r.Type.Length), "Type".Length);
-            var annWidth = Math.Max(rows.Max(r => r.Annotations.Length), "Ann".Length);
+            var annotationString = "Annotation";
+            var annWidth = Math.Max(rows.Max(r => r.Annotations.Length), annotationString.Length);
 
             var sep = "+-" + new string('-', nameWidth) + "-+-" + new string('-', typeWidth) + "-+-" + new string('-', annWidth) + "-+";
 
             Console.WriteLine(sep);
-            Console.WriteLine($"| {"Name".PadRight(nameWidth)} | {"Type".PadRight(typeWidth)} | {"Ann".PadRight(annWidth)} |");
+            Console.WriteLine($"| {"Name".PadRight(nameWidth)} | {"Type".PadRight(typeWidth)} | {annotationString.PadRight(annWidth)} |");
             Console.WriteLine(sep);
 
             foreach (var row in rows)
