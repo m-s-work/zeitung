@@ -122,8 +122,47 @@ public class AspireWebApplicationFactory<TEntryPoint, TAppHost> : WebApplication
         _app = await testingBuilder.BuildAsync();
 
         //await Task.WhenAll(testingBuilder.Resources.Select(r => _app.ResourceNotifications.WaitForResourceHealthyAsync(r.Name)));
-        // TODO print every 5 seconds a status table of resources until all are all healthy
+        // Print every 5 seconds a status table of resources until all are healthy
 
+        // Wait for each resource to become healthy using the app's ResourceNotifications API
+        var waitTasks = testingBuilder.Resources
+            .Select(r => _app!.ResourceNotifications.WaitForResourceHealthyAsync(r.Name))
+            .ToArray();
+
+        while (waitTasks.Any(t => !t.IsCompleted))
+        {
+            PrintStatusTable(testingBuilder.Resources);
+            await Task.Delay(TimeSpan.FromSeconds(5));
+        }
+
+        // Observe any exceptions from the wait tasks
+        await Task.WhenAll(waitTasks);
+
+        static void PrintStatusTable(IEnumerable<IResource> resources)
+        {
+            var rows = resources.Select(r => new
+            {
+                Name = r.Name ?? string.Empty,
+                Type = r.GetType().Name,
+                Annotations = (r.Annotations?.Count ?? 0).ToString()
+            }).ToList();
+            var nameWidth = Math.Max(rows.Max(r => r.Name.Length), "Name".Length);
+            var typeWidth = Math.Max(rows.Max(r => r.Type.Length), "Type".Length);
+            var annWidth = Math.Max(rows.Max(r => r.Annotations.Length), "Ann".Length);
+
+            var sep = "+-" + new string('-', nameWidth) + "-+-" + new string('-', typeWidth) + "-+-" + new string('-', annWidth) + "-+";
+
+            Console.WriteLine(sep);
+            Console.WriteLine($"| {"Name".PadRight(nameWidth)} | {"Type".PadRight(typeWidth)} | {"Ann".PadRight(annWidth)} |");
+            Console.WriteLine(sep);
+
+            foreach (var row in rows)
+            {
+                Console.WriteLine($"| {row.Name.PadRight(nameWidth)} | {row.Type.PadRight(typeWidth)} | {row.Annotations.PadRight(annWidth)} |");
+            }
+
+            Console.WriteLine(sep);
+        }
 
 
         await _app.StartAsync();
