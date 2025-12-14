@@ -49,7 +49,7 @@ public class AspireWebApplicationFactory<TEntryPoint, TAppHost> : WebApplication
     /// if set to null no resource filtering will be applied.
     /// if set to empty all resources will be removed except the API-under-test.
     /// </summary>
-    public List<string> Resources { get; init; } = [];
+    public List<string> FilterIncludeResources { get; init; } = [];
 
     /// <summary>
     /// Determines whether the container lifetimes should be removed from all resources in the app host, if false, this will allow persistence between test runs (useful while adding new tests for speed).
@@ -68,27 +68,39 @@ public class AspireWebApplicationFactory<TEntryPoint, TAppHost> : WebApplication
                 "Could not resolve the API-under-test resource from the AppHost. Provide ApiResourceName or ApiResourceSelector.");
 
 
+        // was nullable and NULL did disable resource filtering
         //if (Resources is not null)
         //{
-            int added;
-            do
-            {
-                var annotations = testingBuilder.Resources.Where(r =>
-                        r.Annotations.OfType<ResourceRelationshipAnnotation>().Any(p =>
-                            Resources.Contains(p.Resource.Name) && p.Type == "Parent" &&
-                            !Resources.Contains(p.Resource.Name)))
-                    .Select(r => r.Name);
-                var parents = testingBuilder.Resources.Where(r => r is IResourceWithParent && !Resources.Contains(r.Name))
-                    .Select(r => r.Name);
+        int added;
+        do
+        {
+            var annotations = testingBuilder.Resources.Where(r =>
+                    r.Annotations.OfType<ResourceRelationshipAnnotation>().Any(p =>
+                        FilterIncludeResources.Contains(p.Resource.Name) && p.Type == "Parent" &&
+                        !FilterIncludeResources.Contains(p.Resource.Name)))
+                .Select(r => r.Name)
+                .ToArray();
 
-                List<string> adds = [.. annotations, .. parents];
-                Resources.AddRange(adds);
+            var parents = testingBuilder.Resources
+                .Where(r => r is IResourceWithParent && !FilterIncludeResources.Contains(r.Name))
+                .ToArray();
+            var parentNames = parents.Select(r => r.Name).ToArray();
 
-                added = adds.Count;
-            } while (added > 0);
+            List<string> adds = [.. annotations, .. parentNames];
+            FilterIncludeResources.AddRange(adds);
 
-            foreach (var resource in testingBuilder.Resources.Where(r => !Resources.Distinct().Contains(r.Name)).ToArray())
-                testingBuilder.Resources.Remove(resource);
+            added = adds.Count;
+        } while (added > 0); // run as long as we have parents or annotations to add
+
+        var resourcesToRemove = testingBuilder.Resources
+            .Where(r => !FilterIncludeResources.Distinct().Contains(r.Name))
+            .ToArray();
+        foreach (var resource in resourcesToRemove)
+        {
+            // TODO logger
+            Console.WriteLine($"[AspireWebApplicationFactory] Removing resource '{resource.Name}' from AppHost for testing.");
+            testingBuilder.Resources.Remove(resource);
+        }
         //}
         
 
@@ -98,7 +110,10 @@ public class AspireWebApplicationFactory<TEntryPoint, TAppHost> : WebApplication
             {
                 var lifetime = resource.Annotations.OfType<ContainerLifetimeAnnotation>()?.FirstOrDefault();
                 if (lifetime != null)
+                {
+                    Console.WriteLine($"[AspireWebApplicationFactory] Removing lifetime annotation from resource '{resource.Name}' to make it ephemeral.");
                     resource.Annotations.Remove(lifetime);
+                }
             }
         }
 
@@ -106,7 +121,10 @@ public class AspireWebApplicationFactory<TEntryPoint, TAppHost> : WebApplication
 
         _app = await testingBuilder.BuildAsync();
 
-        await Task.WhenAll(testingBuilder.Resources.Select(r => _app.ResourceNotifications.WaitForResourceHealthyAsync(r.Name)));
+        //await Task.WhenAll(testingBuilder.Resources.Select(r => _app.ResourceNotifications.WaitForResourceHealthyAsync(r.Name)));
+        // TODO print every 5 seconds a status table of resources until all are all healthy
+
+
 
         await _app.StartAsync();
 

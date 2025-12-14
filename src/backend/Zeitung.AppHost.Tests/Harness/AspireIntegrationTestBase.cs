@@ -12,7 +12,7 @@ public abstract class AspireIntegrationTestBase<TProgram>
     where TProgram : class
 {
     //protected IDistributedApplicationTestingBuilder? Builder { get; private set; }
-    protected DistributedApplication? App { get; private set; }
+    protected DistributedApplication? App { get; set; }
 
     public AspireWebApplicationFactory<TProgram, Zeitung_AppHost>? Factory { get; set; }
 
@@ -21,7 +21,7 @@ public abstract class AspireIntegrationTestBase<TProgram>
     /// Override to customize HTTP client configuration.
     /// </summary>
     [OneTimeSetUp]
-    public async Task OneTimeSetUpAsync()
+    public virtual async Task OneTimeSetUpAsync()
     {
         // create a token that cancels after 30 seconds
         CancellationToken cancellationToken = new CancellationTokenSource(30_000).Token;
@@ -51,7 +51,7 @@ public abstract class AspireIntegrationTestBase<TProgram>
             //ApiResourceName = "Zeitung.Api",
             ApiResourceName = "api",
             Ephemeral = true,
-            Resources = [],
+            FilterIncludeResources = [],
         };
         App = await Factory.InitializeAsync();
     }

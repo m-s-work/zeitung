@@ -9,6 +9,21 @@ namespace Zeitung.Api.Tests;
 [Category("IntegrationTest")]
 public class HappyPathApiTests : AspireIntegrationTestBase<Program>
 {
+    [OneTimeSetUp]
+    public override async Task OneTimeSetUpAsync()
+    {
+        Factory = new AspireWebApplicationFactory<Program, Projects.Zeitung_AppHost>()
+        {
+            //ApiResourceName = "Zeitung.Api",
+            ApiResourceName = "api",
+            Ephemeral = true,
+            FilterIncludeResources = ["api", "postgres", "migrator"],
+            //FilterIncludeResources = [],
+        };
+        App = await Factory.InitializeAsync();
+    }
+
+
     protected override void ConfigureBuilder(IDistributedApplicationTestingBuilder builder)
     {
         // Configure default HTTP client resilience/timeouts used by tests.
