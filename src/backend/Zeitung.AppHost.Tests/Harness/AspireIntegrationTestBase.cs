@@ -12,7 +12,7 @@ public abstract class AspireIntegrationTestBase<TProgram>
     where TProgram : class
 {
     //protected IDistributedApplicationTestingBuilder? Builder { get; private set; }
-    protected DistributedApplication? DistributedApp { get; set; }
+    protected DistributedApplication? AspireApp { get; set; }
     public HttpClient? ApiClient { get; set; }
 
     public AspireWebApplicationFactory<TProgram, Zeitung_AppHost>? Factory { get; set; }
@@ -54,7 +54,7 @@ public abstract class AspireIntegrationTestBase<TProgram>
             Ephemeral = true,
             FilterIncludeResources = [],
         };
-        DistributedApp = await Factory.InitializeAsync();
+        AspireApp = await Factory.InitializeAsync();
         ApiClient = Factory!.CreateClient();
     }
 

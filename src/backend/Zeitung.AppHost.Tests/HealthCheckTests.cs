@@ -27,7 +27,7 @@ public class HealthCheckTests : AspireIntegrationTestBase<Projects.Zeitung_AppHo
     public async Task ApiHealthCheckEndpointReturnsOk()
     {
         // Act
-        var httpClient = DistributedApp!.CreateHttpClient("api");
+        var httpClient = AspireApp!.CreateHttpClient("api");
         var response = await httpClient.GetAsync("/health");
 
         // Assert
@@ -38,7 +38,7 @@ public class HealthCheckTests : AspireIntegrationTestBase<Projects.Zeitung_AppHo
     public async Task ApiAliveEndpointReturnsOk()
     {
         // Act
-        var httpClient = DistributedApp!.CreateHttpClient("api");
+        var httpClient = AspireApp!.CreateHttpClient("api");
         var response = await httpClient.GetAsync("/alive");
 
         // Assert
@@ -49,7 +49,7 @@ public class HealthCheckTests : AspireIntegrationTestBase<Projects.Zeitung_AppHo
     public async Task ApiReadyEndpointReturnsOkWhenDependenciesAreHealthy()
     {
         // Act
-        var httpClient = DistributedApp!.CreateHttpClient("api");
+        var httpClient = AspireApp!.CreateHttpClient("api");
         
         // Retry logic for /ready endpoint as dependencies might take time to initialize
         var maxRetries = 20;
@@ -80,7 +80,7 @@ public class HealthCheckTests : AspireIntegrationTestBase<Projects.Zeitung_AppHo
     public async Task PostgresHealthCheckIsRegistered()
     {
         // Act
-        var httpClient = DistributedApp!.CreateHttpClient("api");
+        var httpClient = AspireApp!.CreateHttpClient("api");
         var response = await httpClient.GetAsync("/health");
         var content = await response.Content.ReadAsStringAsync();
 
@@ -94,7 +94,7 @@ public class HealthCheckTests : AspireIntegrationTestBase<Projects.Zeitung_AppHo
     public async Task RedisHealthCheckIsRegistered()
     {
         // Act
-        var httpClient = DistributedApp!.CreateHttpClient("api");
+        var httpClient = AspireApp!.CreateHttpClient("api");
         var response = await httpClient.GetAsync("/health");
         var content = await response.Content.ReadAsStringAsync();
 
@@ -107,7 +107,7 @@ public class HealthCheckTests : AspireIntegrationTestBase<Projects.Zeitung_AppHo
     public async Task ElasticsearchHealthCheckIsRegistered()
     {
         // Act
-        var httpClient = DistributedApp!.CreateHttpClient("api");
+        var httpClient = AspireApp!.CreateHttpClient("api");
         var response = await httpClient.GetAsync("/health");
         var content = await response.Content.ReadAsStringAsync();
 

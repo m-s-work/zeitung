@@ -68,6 +68,10 @@ public class AspireWebApplicationFactory<TEntryPoint, TAppHost> : WebApplication
             throw new InvalidOperationException(
                 "Could not resolve the API-under-test resource from the AppHost. Provide ApiResourceName or ApiResourceSelector.");
 
+        // fail if apiResource is in the FilterIncludeResources
+        if (FilterIncludeResources.Contains(apiResource.Name))
+            throw new InvalidOperationException(
+                $"The API-under-test resource '{apiResource.Name}' cannot be included in the FilterIncludeResources list.");
 
         // was nullable and NULL did disable resource filtering
         //if (Resources is not null)
