@@ -83,6 +83,10 @@ builder.Services.AddSwaggerGen(c =>
 // Add MVC controllers so MapControllers works
 builder.Services.AddControllers();
 
+// add DB stuff
+builder.Services.AddDbContext<ZeitungDbContext>();
+
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline
