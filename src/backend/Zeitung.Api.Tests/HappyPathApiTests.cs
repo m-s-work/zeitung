@@ -21,7 +21,7 @@ public class HappyPathApiTests : AspireIntegrationTestBase<Program>
             //FilterIncludeResources = ["api", "postgres", "migrator"],
             //FilterIncludeResources = [],
         };
-        App = await Factory.InitializeAsync();
+        DistributedApp = await Factory.InitializeAsync();
     }
 
 
@@ -43,8 +43,7 @@ public class HappyPathApiTests : AspireIntegrationTestBase<Program>
     public async Task ApiHealthCheckEndpointReturnsOk()
     {
         // Act
-        var httpClient = App!.CreateHttpClient("api");
-        var response = await httpClient.GetAsync("/health");
+        var response = await ApiClient!.GetAsync("/health");
 
         // Assert
         Assert.That(response.StatusCode, Is.EqualTo(System.Net.HttpStatusCode.OK));
@@ -54,8 +53,9 @@ public class HappyPathApiTests : AspireIntegrationTestBase<Program>
     public async Task ApiAliveEndpointReturnsOk()
     {
         // Act
-        var httpClient = App!.CreateHttpClient("api");
-        var response = await httpClient.GetAsync("/alive");
+        var client = Factory!.CreateClient();
+        //var httpClient = App!.CreateHttpClient("api");
+        var response = await client.GetAsync("/alive");
 
         // Assert
         Assert.That(response.StatusCode, Is.EqualTo(System.Net.HttpStatusCode.OK));
@@ -65,8 +65,7 @@ public class HappyPathApiTests : AspireIntegrationTestBase<Program>
     public async Task ApiReadyEndpointReturnsOkWhenDependenciesAreHealthy()
     {
         // Act
-        var httpClient = App!.CreateHttpClient("api");
-        
+
         // Retry logic for /ready endpoint as dependencies might take time to initialize
         var maxRetries = 20;
         var retryDelay = TimeSpan.FromSeconds(10);
@@ -74,7 +73,7 @@ public class HappyPathApiTests : AspireIntegrationTestBase<Program>
         
         for (int i = 0; i < maxRetries; i++)
         {
-            var response = await httpClient.GetAsync("/ready");
+            var response = await ApiClient!.GetAsync("/ready");
             statusCode = response.StatusCode;
             
             if (statusCode == System.Net.HttpStatusCode.OK)
@@ -96,8 +95,7 @@ public class HappyPathApiTests : AspireIntegrationTestBase<Program>
     public async Task PostgresHealthCheckIsRegistered()
     {
         // Act
-        var httpClient = App!.CreateHttpClient("api");
-        var response = await httpClient.GetAsync("/health");
+        var response = await ApiClient!.GetAsync("/health");
         var content = await response.Content.ReadAsStringAsync();
 
         // Assert
@@ -110,8 +108,7 @@ public class HappyPathApiTests : AspireIntegrationTestBase<Program>
     public async Task RedisHealthCheckIsRegistered()
     {
         // Act
-        var httpClient = App!.CreateHttpClient("api");
-        var response = await httpClient.GetAsync("/health");
+        var response = await ApiClient!.GetAsync("/health");
         var content = await response.Content.ReadAsStringAsync();
 
         // Assert
@@ -123,8 +120,7 @@ public class HappyPathApiTests : AspireIntegrationTestBase<Program>
     public async Task ElasticsearchHealthCheckIsRegistered()
     {
         // Act
-        var httpClient = App!.CreateHttpClient("api");
-        var response = await httpClient.GetAsync("/health");
+        var response = await ApiClient!.GetAsync("/health");
         var content = await response.Content.ReadAsStringAsync();
 
         // Assert

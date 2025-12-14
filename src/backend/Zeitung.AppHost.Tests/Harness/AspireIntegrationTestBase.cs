@@ -12,7 +12,8 @@ public abstract class AspireIntegrationTestBase<TProgram>
     where TProgram : class
 {
     //protected IDistributedApplicationTestingBuilder? Builder { get; private set; }
-    protected DistributedApplication? App { get; set; }
+    protected DistributedApplication? DistributedApp { get; set; }
+    public HttpClient? ApiClient { get; set; }
 
     public AspireWebApplicationFactory<TProgram, Zeitung_AppHost>? Factory { get; set; }
 
@@ -53,8 +54,10 @@ public abstract class AspireIntegrationTestBase<TProgram>
             Ephemeral = true,
             FilterIncludeResources = [],
         };
-        App = await Factory.InitializeAsync();
+        DistributedApp = await Factory.InitializeAsync();
+        ApiClient = Factory!.CreateClient();
     }
+
 
     /// <summary>
     /// Override to configure the builder with custom settings (e.g., HTTP client defaults).

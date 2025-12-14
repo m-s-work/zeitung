@@ -185,7 +185,6 @@ public class AspireWebApplicationFactory<TEntryPoint, TAppHost> : WebApplication
 
         _hostConfig = await ResolveConfigurationFromResourceAsync(apiResource, _app.Services);
 
-
         return _app;
     }
 
