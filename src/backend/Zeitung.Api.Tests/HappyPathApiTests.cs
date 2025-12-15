@@ -1,10 +1,8 @@
 using Aspire.Hosting.Testing;
-using Google.Protobuf.WellKnownTypes;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Zeitung.AppHost.Tests.Harness;
-using Zeitung.AppHost.Tests.TestHelpers;
 using Zeitung.Core.Context;
 
 namespace Zeitung.Api.Tests;

@@ -1,10 +1,4 @@
-using Aspire.Hosting;
-using Aspire.Hosting.Testing;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Zeitung.AppHost.Tests.TestHelpers;
 using Zeitung.Core.Context;
 using Zeitung.Worker.Models;
 using Zeitung.Worker.Services;
