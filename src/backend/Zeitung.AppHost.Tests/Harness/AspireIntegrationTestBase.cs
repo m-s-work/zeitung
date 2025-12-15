@@ -8,8 +8,7 @@ namespace Zeitung.AppHost.Tests.Harness;
 /// Base class for Aspire integration tests with common setup and teardown.
 /// Manages the lifecycle of the DistributedApplication.
 /// </summary>
-public abstract class AspireIntegrationTestBase<TProgram>
-    where TProgram : class
+public abstract class AspireIntegrationTestBase<TProgram> where TProgram : class
 {
     //protected IDistributedApplicationTestingBuilder? Builder { get; private set; }
     protected DistributedApplication? AspireApp { get; set; }
