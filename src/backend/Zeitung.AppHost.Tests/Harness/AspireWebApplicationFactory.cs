@@ -5,6 +5,7 @@ using Aspire.Hosting.ApplicationModel;
 using Aspire.Hosting.Testing;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
@@ -61,7 +62,22 @@ public class AspireWebApplicationFactory<TEntryPoint, TAppHost> : WebApplication
 
     public async Task<DistributedApplication> InitializeAsync()
     {
-        var testingBuilder = await DistributedApplicationTestingBuilder.CreateAsync<TAppHost>();
+        // timeout 30sec
+        var cancellationToken = new CancellationTokenSource(30_000).Token;
+
+        var testingBuilder = await DistributedApplicationTestingBuilder.CreateAsync<TAppHost>(
+            args: [],
+            (options, settings) =>
+            {
+                settings.Configuration?.AddInMemoryCollection(new Dictionary<string, string?>
+                {
+                    // Configure Aspire to run in CI environment to use appsettings.ci.json
+                    //["EnvironmentName"] = "ci"
+                    // This skips frontend startup and external RSS feed health checks during tests
+                    ["CI"] = "true",
+                });
+            },
+            cancellationToken);
 
         var apiResource = ResolveApiResource(testingBuilder.Resources.ToList());
         if (apiResource is null)
