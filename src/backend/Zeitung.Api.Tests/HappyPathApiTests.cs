@@ -21,7 +21,7 @@ public class HappyPathApiTests : AspireIntegrationTestBase<Program>
             //ApiResourceName = "Zeitung.Api",
             ApiResourceName = "api",
             Ephemeral = true,
-            FilterIncludeResources = ["postgres", "migrator", "elasticsearch"],
+            FilterIncludeResources = ["postgres", "migrator", "elasticsearch", "redis"],
             //FilterIncludeResources = ["api", "postgres", "migrator"],
             //FilterIncludeResources = [],
         };
@@ -45,46 +45,51 @@ public class HappyPathApiTests : AspireIntegrationTestBase<Program>
     }
 
     [Test]
-    [CancelAfter(30)]
+    [CancelAfter(30_000)]
     public async Task ApiHealthCheckEndpointReturnsOk()
     {
         // Act
         var response = await ApiClient!.GetAsync("/health");
+        var content = await response.Content.ReadAsStringAsync();
 
         // Assert
         Assert.That(response.StatusCode, Is.EqualTo(System.Net.HttpStatusCode.OK));
     }
 
     [Test]
-    [CancelAfter(30)]
+    [CancelAfter(30_000)]
     public async Task ApiAliveEndpointReturnsOk()
     {
         // Act
         var client = Factory!.CreateClient();
         //var httpClient = App!.CreateHttpClient("api");
         var response = await client.GetAsync("/alive");
+        var content = await response.Content.ReadAsStringAsync();
 
         // Assert
         Assert.That(response.StatusCode, Is.EqualTo(System.Net.HttpStatusCode.OK));
     }
 
     [Test]
-    [Ignore("this will not work since we do not span all dependencies like redis")]
-    [CancelAfter(30)]
+    //[Ignore("this will not work since we do not span all dependencies like redis")]
+    [CancelAfter(30_000)]
     public async Task ApiReadyEndpointReturnsOkWhenDependenciesAreHealthy(CancellationToken cancellationToken)
     {
         // Act
 
         // Retry logic for /ready endpoint as dependencies might take time to initialize
-        var maxRetries = 20;
-        var retryDelay = TimeSpan.FromSeconds(10);
+        var maxRetries = 6;
+        var retryDelay = TimeSpan.FromSeconds(5);
         System.Net.HttpStatusCode statusCode = System.Net.HttpStatusCode.ServiceUnavailable;
         
         for (int i = 0; i < maxRetries; i++)
         {
             var response = await ApiClient!.GetAsync("/ready");
             statusCode = response.StatusCode;
-            
+            var content = await response.Content.ReadAsStringAsync();
+            Console.WriteLine($"Attempt {i + 1}: /ready returned {statusCode} and content: {content}");
+
+
             if (statusCode == System.Net.HttpStatusCode.OK)
             {
                 break;
@@ -104,7 +109,7 @@ public class HappyPathApiTests : AspireIntegrationTestBase<Program>
     }
 
     [Test]
-    [CancelAfter(30)]
+    [CancelAfter(30_000)]
     public async Task PostgresHealthCheckIsRegistered()
     {
         // Arrange
@@ -119,7 +124,7 @@ public class HappyPathApiTests : AspireIntegrationTestBase<Program>
 
     [Test]
     [Ignore("Redis (likely) has no http endpoints to check")]
-    [CancelAfter(30)]
+    [CancelAfter(30_000)]
     public async Task RedisHealthCheckIsRegistered()
     {
         // Act
@@ -132,7 +137,7 @@ public class HappyPathApiTests : AspireIntegrationTestBase<Program>
     }
 
     [Test]
-    [CancelAfter(30)]
+    [CancelAfter(30_000)]
     public async Task ElasticsearchHealthCheckIsRegistered()
     {
         // Act
