@@ -1,7 +1,12 @@
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.Linq;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Zeitung.Api.Services;
 using Zeitung.Core.Context;
 
@@ -83,11 +88,28 @@ builder.Services.AddSwaggerGen(c =>
 // Add MVC controllers so MapControllers works
 builder.Services.AddControllers();
 
-
 var app = builder.Build();
 
-// Configure the HTTP request pipeline
 app.MapDefaultEndpoints();
+
+// Configure the HTTP request pipeline
+// Map health endpoints with a detailed JSON response writer so clients can see which resources are failing.
+app.MapHealthChecks("/health", new HealthCheckOptions
+{
+    ResponseWriter = WriteHealthCheckResponseAsync
+});
+
+app.MapHealthChecks("/alive", new HealthCheckOptions
+{
+    Predicate = r => r.Tags.Contains("live"),
+    ResponseWriter = WriteHealthCheckResponseAsync
+});
+
+app.MapHealthChecks("/ready", new HealthCheckOptions
+{
+    Predicate = r => r.Tags.Contains("ready"),
+    ResponseWriter = WriteHealthCheckResponseAsync
+});
 
 app.UseAuthentication();
 app.UseAuthorization();
@@ -106,6 +128,34 @@ if (app.Environment.IsDevelopment())
 app.MapControllers();
 
 app.Run();
+
+static async Task WriteHealthCheckResponseAsync(HttpContext context, HealthReport report)
+{
+    context.Response.ContentType = "application/json; charset=utf-8";
+
+    var options = new JsonSerializerOptions
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        WriteIndented = true
+    };
+
+    var response = new
+    {
+        status = report.Status.ToString(), // "Healthy", "Unhealthy", "Degraded"
+        totalDuration = report.TotalDuration.ToString(@"hh\:mm\:ss\.fffffff"),
+        entries = report.Entries.Select(e => new
+        {
+            name = e.Key,
+            status = e.Value.Status.ToString(),
+            description = e.Value.Description,
+            exception = e.Value.Exception?.Message,
+            duration = e.Value.Duration.ToString(@"hh\:mm\:ss\.fffffff")
+        }).ToArray()
+    };
+
+    await context.Response.WriteAsync(JsonSerializer.Serialize(response, options));
+}
 
 // Make Program class accessible for testing
 public partial class Program { }
