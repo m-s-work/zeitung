@@ -37,10 +37,12 @@ if (!useInMemoryDatabase)
             name: "redis",
             connectionStringFactory: sp => builder.Configuration.GetConnectionString("redis") ?? "localhost:6379",
             tags: new[] { "ready", "cache" })
-        .AddElasticsearch(
-            elasticsearchUri: builder.Configuration.GetConnectionString("elasticsearch") ?? "http://localhost:9200",
-            name: "elasticsearch",
-            tags: new[] { "ready", "search" });
+        // is currently broken - https://github.com/Xabaril/AspNetCore.Diagnostics.HealthChecks/issues/2355
+        //.AddElasticsearch(
+        //    elasticsearchUri: builder.Configuration.GetConnectionString("elasticsearch") ?? "http://localhost:9200",
+        //    name: "elasticsearch",
+        //    tags: new[] { "ready", "search" })
+        ;
 }
 else
 {
@@ -90,7 +92,9 @@ builder.Services.AddControllers();
 
 var app = builder.Build();
 
-app.MapDefaultEndpoints();
+
+// this maps health endpoints
+//app.MapDefaultEndpoints();
 
 // Configure the HTTP request pipeline
 // Map health endpoints with a detailed JSON response writer so clients can see which resources are failing.
